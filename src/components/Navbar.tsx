@@ -68,17 +68,9 @@ export default function Navbar() {
     }
   }, []);
 
-  const toggleDrawer = (state: boolean) => () => {
-    setOpen(state);
-  };
-
-  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const toggleDrawer = (state: boolean) => () => setOpen(state);
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -152,14 +144,18 @@ export default function Navbar() {
                     );
                   }
                 )}
-
-                {/* Avatar con menú dropdown */}
                 {usuario && (
                   <>
                     <Tooltip title={usuario.username}>
                       <IconButton onClick={handleAvatarClick}>
                         <Avatar
-                          src={usuario.fotoPerfil ? `${API_URL}${usuario.fotoPerfil}` : undefined}
+                          src={
+                            usuario.fotoPerfil
+                              ? usuario.fotoPerfil.startsWith("http")
+                                ? usuario.fotoPerfil
+                                : `${API_URL}${usuario.fotoPerfil}`
+                              : undefined
+                          }
                           alt={usuario.username}
                           sx={{
                             width: 36,
@@ -201,26 +197,86 @@ export default function Navbar() {
       {/* Drawer para mobile */}
       <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
         <Box
-          sx={{ width: 250 }}
+          sx={{
+            width: 250,
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
           role="presentation"
           onClick={toggleDrawer(false)}
           onKeyDown={toggleDrawer(false)}
         >
-          <List>
-            {navItems.map((item) => (
-              <ListItemButton key={item.text} component={Link} href={item.href}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
+          <Box>
+            <List>
+              {navItems.map((item) => (
+                <ListItemButton key={item.text} component={Link} href={item.href}>
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              ))}
+            </List>
+            <Divider />
+            <List>
+              <ListItemButton component={Link} href="/usuarios">
+                <ListItemIcon><GroupIcon /></ListItemIcon>
+                <ListItemText primary="Usuarios" />
               </ListItemButton>
-            ))}
-          </List>
-          <Divider />
-          <List>
-            <ListItemButton component={Link} href="/usuarios">
-              <ListItemIcon><GroupIcon /></ListItemIcon>
-              <ListItemText primary="Usuarios" />
-            </ListItemButton>
-          </List>
+            </List>
+          </Box>
+
+          {/* Footer con usuario */}
+          {usuario && (
+            <Box
+              sx={{
+                p: 2,
+                borderTop: "1px solid #ccc",
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              <Avatar
+                src={
+                  usuario.fotoPerfil
+                    ? usuario.fotoPerfil.startsWith("http")
+                      ? usuario.fotoPerfil
+                      : `${API_URL}${usuario.fotoPerfil}`
+                    : undefined
+                }
+                alt={usuario.username}
+                sx={{ width: 40, height: 40 }}
+              >
+                {usuario.username[0]?.toUpperCase()}
+              </Avatar>
+              <Box>
+                <Typography variant="body1" fontWeight="bold">
+                  {usuario.username}
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1, mt: 0.5 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ cursor: "pointer", color: "#fbbf24" }}
+                    onClick={() => {
+                      setOpen(false);
+                      router.push("/auth/perfil");
+                    }}
+                  >
+                    Mi cuenta
+                  </Typography>
+                  <Typography variant="body2">|</Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ cursor: "pointer", color: "#f87171" }}
+                    onClick={handleLogout}
+                  >
+                    Cerrar sesión
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
         </Box>
       </Drawer>
     </>
