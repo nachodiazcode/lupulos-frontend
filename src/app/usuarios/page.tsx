@@ -4,48 +4,76 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Box,
-  Container,
-  Grid,
-  Avatar,
   Typography,
+  Avatar,
   Button,
-  CircularProgress,
   TextField,
-  Stack,
+  InputAdornment,
+  CircularProgress,
+  Container,
+  Chip,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import SpaIcon from "@mui/icons-material/Spa";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
+const tipoColor: Record<string, { bg: string; icon: React.ReactNode; label: string }> = {
+  legendario: { bg: "#fbbf24", icon: <EmojiEventsIcon />, label: "LEGENDARIO" },
+  activo: { bg: "#34d399", icon: <FlashOnIcon />, label: "ACTIVO" },
+  nuevo: { bg: "#60a5fa", icon: <SpaIcon />, label: "NUEVO" },
+  default: { bg: "#9ca3af", icon: <SpaIcon />, label: "DESCONOCIDO" },
+};
+
 interface Usuario {
   _id: string;
   username: string;
   email: string;
   fotoPerfil?: string;
+  tipo?: string;
 }
 
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [usuariosFiltrados, setUsuariosFiltrados] = useState<Usuario[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [usuarioActual, setUsuarioActual] = useState<Usuario | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUsuarioActual(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("❌ Error al parsear user desde localStorage:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
         const res = await axios.get(`${API_URL}/api/user`);
-        setUsuarios(res.data || []);
-        setUsuariosFiltrados(res.data || []);
+        const data = (Array.isArray(res.data) ? res.data : res.data.usuarios || []).map((u, i) => ({
+          ...u,
+          tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
+        }));
+        setUsuarios(data);
+        setUsuariosFiltrados(data);
       } catch (error) {
         console.error("❌ Error al obtener usuarios:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchUsuarios();
   }, []);
 
@@ -53,66 +81,55 @@ export default function UsuariosPage() {
     const value = e.target.value.toLowerCase();
     setSearch(value);
     const filtrados = usuarios.filter(
-      (u) =>
-        u.username.toLowerCase().includes(value) ||
-        u.email.toLowerCase().includes(value)
+      (u) => u.username.toLowerCase().includes(value) || u.email.toLowerCase().includes(value)
     );
     setUsuariosFiltrados(filtrados);
   };
 
+  const getFotoPerfil = (user: Usuario): string | undefined => {
+    const path =
+      user._id === usuarioActual?._id
+        ? usuarioActual?.fotoPerfil
+        : user.fotoPerfil;
+
+    if (!path) return undefined;
+    if (path.startsWith("http")) return path;
+
+    const fixedPath = path.startsWith("./") ? path.replace("./", "/") : path;
+    return `${API_URL}${fixedPath}`;
+  };
+
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        color: "white",
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", color: "white" }}>
       <GoldenBackground />
       <Navbar />
 
-      <Container
-        maxWidth="lg"
-        sx={{
-          px: 2,
-          mt: 4,
-          mb: 6,
-          flex: 1,
-          position: "relative",
-          zIndex: 2,
-        }}
-      >
-        <Typography
-          variant="h4"
-          sx={{
-            color: "#fbbf24",
-            mb: 4,
-            textAlign: "center",
-            fontWeight: "bold",
-          }}
-        >
+      <Container maxWidth="lg" sx={{ flex: 1, py: 6, zIndex: 2 }}>
+        <Typography variant="h4" sx={{ color: "#fbbf24", mb: 4, textAlign: "center", fontWeight: "bold" }}>
           👥 Usuarios registrados
         </Typography>
 
-        {/* 🔍 Buscador */}
         <Box mb={5}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <SearchIcon sx={{ color: "#fbbf24" }} />
-            <TextField
-              variant="outlined"
-              placeholder="Buscar por nombre o correo..."
-              value={search}
-              onChange={handleSearch}
-              fullWidth
-              sx={{
-                input: { color: "white" },
-                bgcolor: "#1f2937",
-                borderRadius: 2,
-              }}
-            />
-          </Stack>
+          <TextField
+            variant="outlined"
+            placeholder="Buscar por nombre o correo..."
+            value={search}
+            onChange={handleSearch}
+            fullWidth
+            sx={{
+              bgcolor: "#1f2937",
+              borderRadius: 2,
+              input: { color: "white" },
+              "& fieldset": { border: "none" },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "#9ca3af" }} />
+                </InputAdornment>
+              ),
+            }}
+          />
         </Box>
 
         {loading ? (
@@ -120,68 +137,90 @@ export default function UsuariosPage() {
             <CircularProgress color="warning" />
           </Box>
         ) : (
-          <Grid
-            container
-            spacing={4}
-            justifyContent="center"
-            sx={{ maxWidth: "1300px", mx: "auto" }}
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr", lg: "1fr 1fr 1fr 1fr" }}
+            gap={3}
           >
-            {usuariosFiltrados.map((usuario) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={usuario._id}>
+            {usuariosFiltrados.map((user) => {
+              const tipo = user.tipo?.toLowerCase() || "default";
+              const estilo = tipoColor[tipo];
+
+              return (
                 <Box
+                  key={user._id}
                   sx={{
-                    backgroundColor: "#1f2937",
-                    borderRadius: 3,
-                    boxShadow: 4,
+                    backgroundColor: "#111827",
+                    borderRadius: 4,
                     p: 3,
+                    boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
                     textAlign: "center",
-                    transition: "transform 0.2s",
+                    transition: "0.3s",
                     "&:hover": {
-                      transform: "scale(1.03)",
+                      transform: "translateY(-6px)",
+                      boxShadow: `0 0 25px ${estilo.bg}80`,
                     },
                   }}
                 >
                   <Avatar
-                    src={usuario.fotoPerfil}
-                    alt={usuario.username}
+                    src={getFotoPerfil(user)}
+                    alt={user.username}
                     sx={{
-                      bgcolor: "#fbbf24",
-                      width: 70,
-                      height: 70,
-                      mx: "auto",
-                      fontSize: 28,
+                      bgcolor: estilo.bg,
+                      width: 80,
+                      height: 80,
+                      fontSize: 32,
+                      fontWeight: "bold",
+                      mb: 2,
+                      boxShadow: `0 0 12px ${estilo.bg}aa`,
                     }}
                   >
-                    {usuario.fotoPerfil
-                      ? ""
-                      : usuario.username.charAt(0).toUpperCase()}
+                    {!getFotoPerfil(user) && user.username.charAt(0).toUpperCase()}
                   </Avatar>
 
-                  <Typography variant="h6" mt={2} sx={{ color: "white" }}>
-                    {usuario.username}
+                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                    {user.username}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "#9ca3af" }}>
-                    {usuario.email}
+                    {user.email}
                   </Typography>
 
-                  <Button
-                    variant="outlined"
+                  <Chip
+                    icon={estilo.icon}
+                    label={estilo.label}
                     sx={{
                       mt: 2,
-                      borderColor: "#fbbf24",
-                      color: "#fbbf24",
+                      fontWeight: "bold",
+                      bgcolor: estilo.bg,
+                      color: estilo.bg === "#fbbf24" ? "#000" : "#fff",
+                    }}
+                  />
+
+                  <Button
+                    variant="contained"
+                    sx={{
+                      mt: 2,
+                      bgcolor: estilo.bg,
+                      color: estilo.bg === "#fbbf24" ? "#000" : "#fff",
+                      fontWeight: "bold",
+                      borderRadius: 2,
+                      px: 3,
                       "&:hover": {
-                        backgroundColor: "#fbbf24",
-                        color: "#000",
+                        bgcolor: "#facc15",
+                        color: "black",
                       },
                     }}
+                    onClick={() => router.push(`/usuarios/${user._id}`)}
                   >
-                    Ver perfil
+                    VER PERFIL
                   </Button>
                 </Box>
-              </Grid>
-            ))}
-          </Grid>
+              );
+            })}
+          </Box>
         )}
       </Container>
 

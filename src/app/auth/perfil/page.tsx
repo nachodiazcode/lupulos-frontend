@@ -30,6 +30,9 @@ export default function PerfilPage() {
   const [loading, setLoading] = useState(true);
   const [alertOpen, setAlertOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => setIsClient(true), []);
 
   useEffect(() => {
     const fetchPerfil = async () => {
@@ -37,10 +40,12 @@ export default function PerfilPage() {
         const userStr = localStorage.getItem("user");
         const token = localStorage.getItem("authToken");
         if (!userStr || !token) return;
+
         const user = JSON.parse(userStr);
         const { data } = await axios.get(`${API_URL}/api/auth/perfil/${user._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         if (data.exito) {
           setPerfil(data);
           setFormData(data.usuario);
@@ -51,6 +56,7 @@ export default function PerfilPage() {
         setLoading(false);
       }
     };
+
     fetchPerfil();
   }, []);
 
@@ -67,6 +73,7 @@ export default function PerfilPage() {
       });
       setEditMode(false);
       setAlertOpen(true);
+      localStorage.setItem("user", JSON.stringify({ ...formData }));
     } catch (error) {
       console.error("❌ Error al guardar perfil:", error);
     }
@@ -84,16 +91,19 @@ export default function PerfilPage() {
       });
 
       if (res.data.exito) {
-        const rutaURL = res.data.ruta;
+        const ruta = res.data.ruta;
         const token = localStorage.getItem("authToken");
 
         await axios.put(
           `${API_URL}/api/auth/perfil/${perfil?.usuario._id}`,
-          { fotoPerfil: rutaURL },
+          { fotoPerfil: ruta },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        setFormData((prev) => ({ ...prev, fotoPerfil: rutaURL }));
+        const actualizado = { ...perfil.usuario, fotoPerfil: ruta };
+        localStorage.setItem("user", JSON.stringify(actualizado));
+        setPerfil((prev: any) => ({ ...prev, usuario: actualizado }));
+        setFormData((prev) => ({ ...prev, fotoPerfil: ruta }));
       }
     } catch (error) {
       console.error("❌ Error al subir la foto:", error);
@@ -102,7 +112,7 @@ export default function PerfilPage() {
 
   const triggerFileInput = () => fileInputRef.current?.click();
 
-  if (loading) {
+  if (!isClient || loading) {
     return (
       <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center" }}>
         <Typography color="white">Cargando perfil...</Typography>
@@ -111,37 +121,35 @@ export default function PerfilPage() {
   }
 
   const user = perfil?.usuario;
-  const stats = perfil?.stats || {};
-  const avatarURL = formData.fotoPerfil?.startsWith("/uploads")
-    ? `${API_URL}${formData.fotoPerfil}`
-    : formData.fotoPerfil;
+  const avatarURL = formData.fotoPerfil?.startsWith("http")
+    ? formData.fotoPerfil
+    : `${API_URL}${formData.fotoPerfil || ""}`;
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Navbar />
       <Container maxWidth="lg" sx={{ py: 6, flex: 1 }}>
-      
-
-        {/* Tarjeta principal */}
-        <Paper sx={{ bgcolor: "#1e293b", p: { xs: 3, md: 6 }, borderRadius: 4, boxShadow: 4, mx: "auto"}}>
+        <Paper
+          sx={{
+            bgcolor: "#3b2f1e", // Ámbar/café oscuro
+            p: { xs: 3, md: 6 },
+            borderRadius: 4,
+            boxShadow: 4,
+            mx: "auto",
+            border: "1px solid #fbbf24",
+            color: "white",
+          }}
+        >
           <Stack direction={{ xs: "column", md: "row" }} spacing={5} alignItems="flex-start">
             <Stack alignItems="center" spacing={2} minWidth={200}>
               <Avatar src={avatarURL} sx={{ width: 100, height: 100, border: "3px solid #fbbf24" }} />
-              <Typography color="#fbbf24" fontWeight="bold" textAlign="center">
-                {user?.username}
-              </Typography>
-              <Typography color="#cbd5e1" fontSize="14px" textAlign="center">
-                {user?.email}
-              </Typography>
+              <Typography color="#fbbf24" fontWeight="bold" textAlign="center">{user?.username}</Typography>
+              <Typography color="#cbd5e1" fontSize="14px" textAlign="center">{user?.email}</Typography>
               {editMode && (
                 <>
                   <input type="file" ref={fileInputRef} onChange={handleFotoUpload} accept="image/*" hidden />
-                  <Button
-                    startIcon={<UploadIcon />}
-                    variant="outlined"
-                    onClick={triggerFileInput}
-                    sx={{ color: "#fbbf24", borderColor: "#fbbf24", mt: 1 }}
-                  >
+                  <Button startIcon={<UploadIcon />} variant="outlined" onClick={triggerFileInput}
+                    sx={{ color: "#fbbf24", borderColor: "#fbbf24", mt: 1 }}>
                     Subir Foto
                   </Button>
                 </>
@@ -155,17 +163,13 @@ export default function PerfilPage() {
                     👤 Información Personal
                   </Typography>
                   <Tooltip title={editMode ? "Cancelar edición" : "Editar perfil"}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<EditIcon />}
-                      onClick={() => setEditMode(!editMode)}
-                      sx={{ color: "#fbbf24", borderColor: "#fbbf24" }}
-                    >
+                    <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditMode(!editMode)}
+                      sx={{ color: "#fbbf24", borderColor: "#fbbf24" }}>
                       {editMode ? "Cancelar" : "Editar"}
                     </Button>
                   </Tooltip>
                 </Stack>
-                <Divider sx={{ borderColor: "#334155" }} />
+                <Divider sx={{ borderColor: "#fbbf24" }} />
 
                 {["username", "ciudad", "pais", "sitioWeb", "bio", "pronombres"].map((name) => {
                   const labelMap: Record<string, string> = {
@@ -178,9 +182,7 @@ export default function PerfilPage() {
                   };
                   return (
                     <Box key={name}>
-                      <Typography variant="subtitle2" color="#fbbf24" mb={0.5}>
-                        {labelMap[name]}
-                      </Typography>
+                      <Typography variant="subtitle2" color="#fbbf24" mb={0.5}>{labelMap[name]}</Typography>
                       {editMode ? (
                         <TextField
                           name={name}
@@ -217,17 +219,6 @@ export default function PerfilPage() {
       <Snackbar open={alertOpen} autoHideDuration={3000} onClose={() => setAlertOpen(false)}>
         <Alert severity="success" sx={{ bgcolor: "#6EE7B7", color: "black" }}>¡Cambios guardados con éxito!</Alert>
       </Snackbar>
-    </Box>
-  );
-}
-
-function StatItem({ label, value }: { label: string; value: number }) {
-  return (
-    <Box textAlign="center">
-      <Typography color="white" fontWeight="bold" fontSize="1.2rem">
-        {value || 0}
-      </Typography>
-      <Typography color="#94a3b8">{label}</Typography>
     </Box>
   );
 }

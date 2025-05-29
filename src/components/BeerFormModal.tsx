@@ -32,17 +32,7 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
   const [preview, setPreview] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (
-      !nombre.trim() ||
-      !tipo.trim() ||
-      !cerveceria.trim() ||
-      !descripcion.trim() ||
-      !abv.trim() ||
-      !imagen
-    ) {
-      return;
-    }
-
+    if (!nombre || !tipo || !cerveceria || !descripcion || !abv || !imagen) return;
 
     const abvValue = parseFloat(abv);
     if (isNaN(abvValue)) {
@@ -61,32 +51,11 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
     formData.append("cerveceria", cerveceria);
     formData.append("abv", String(abvValue));
     formData.append("descripcion", descripcion);
-    formData.append("usuario", usuario._id); // ✅ Agregamos el ID del usuario
-
-    if (imagen) formData.append("imagen", imagen);
+    formData.append("usuario", usuario._id);
+    formData.append("imagen", imagen);
 
     try {
       const token = localStorage.getItem("authToken");
-      console.log("Enviando cerveza con:", {
-        nombre,
-        tipo,
-        cerveceria,
-        abv: abvValue,
-        descripcion,
-        usuario: usuario._id,
-        imagen
-      });
-
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-      }
-
-      if (!imagen) {
-        alert("La imagen es obligatoria.");
-        return;
-      }
-
-
 
       await axios.post(`${API_URL}/api/beer`, formData, {
         headers: {
@@ -94,16 +63,10 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
           "Content-Type": "multipart/form-data",
         },
       });
-      onSuccess();
 
-      // Limpieza después de publicar
-      setNombre("");
-      setTipo("");
-      setCerveceria("");
-      setAbv("");
-      setDescripcion("");
-      setImagen(null);
-      setPreview(null);
+      onSuccess();
+      setNombre(""); setTipo(""); setCerveceria(""); setAbv("");
+      setDescripcion(""); setImagen(null); setPreview(null);
     } catch (error: any) {
       console.error("❌ Error al subir cerveza:", error.response?.data || error.message);
       alert(error.response?.data?.mensaje || "Ocurrió un error al subir la cerveza.");
@@ -118,51 +81,52 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
       fullWidth
       PaperProps={{
         sx: {
-          bgcolor: "#1e293b",
+          bgcolor: "#1f2937", // fondo dark
           color: "white",
           borderRadius: 3,
           p: 2,
         },
       }}
     >
-      <DialogTitle sx={{ fontWeight: "bold", fontSize: 20 }}>
+      <DialogTitle sx={{ fontWeight: "bold", fontSize: 20, color: "white" }}>
         🍺 Nueva Cerveza
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
-          <TextField
-            label="Nombre"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            fullWidth
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
-          />
-          <TextField
-            label="Tipo"
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-            fullWidth
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
-          />
-          <TextField
-            label="Cervecería"
-            value={cerveceria}
-            onChange={(e) => setCerveceria(e.target.value)}
-            fullWidth
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
-          />
+          {[["Nombre", nombre, setNombre], ["Tipo", tipo, setTipo], ["Cervecería", cerveceria, setCerveceria]].map(([label, value, setter]) => (
+            <TextField
+              key={label}
+              label={label as string}
+              value={value}
+              onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)}
+              fullWidth
+              InputLabelProps={{ sx: { color: "#ccc" } }}
+              InputProps={{ sx: { color: "white" } }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": { borderColor: "#555" },
+                  "&:hover fieldset": { borderColor: "#fbbf24" },
+                },
+              }}
+            />
+          ))}
+
           <TextField
             label="ABV (%)"
             value={abv}
             onChange={(e) => setAbv(e.target.value)}
-            fullWidth
             type="number"
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
+            fullWidth
+            InputLabelProps={{ sx: { color: "#ccc" } }}
+            InputProps={{ sx: { color: "white" } }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "#555" },
+                "&:hover fieldset": { borderColor: "#fbbf24" },
+              },
+            }}
           />
+
           <TextField
             label="Descripción"
             value={descripcion}
@@ -170,14 +134,24 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
             fullWidth
             multiline
             rows={3}
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
+            InputLabelProps={{ sx: { color: "#ccc" } }}
+            InputProps={{ sx: { color: "white" } }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "#555" },
+                "&:hover fieldset": { borderColor: "#fbbf24" },
+              },
+            }}
           />
 
           <Button
             component="label"
             variant="outlined"
-            sx={{ borderColor: "#fbbf24", color: "#fbbf24" }}
+            sx={{
+              borderColor: "#fbbf24",
+              color: "#fbbf24",
+              "&:hover": { bgcolor: "#fbbf24", color: "#1f2937" },
+            }}
           >
             Subir Imagen
             <input
@@ -211,10 +185,10 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
             variant="contained"
             onClick={handleSubmit}
             sx={{
-              bgcolor: "#f97316",
-              color: "black",
+              bgcolor: "#fbbf24",
+              color: "#1f2937",
               fontWeight: "bold",
-              "&:hover": { bgcolor: "#ea580c" },
+              "&:hover": { bgcolor: "#facc15" },
             }}
           >
             Publicar Cerveza 🚀

@@ -1,16 +1,18 @@
-// "use client" para Next.js 13+
 "use client";
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Box, Typography, TextField, Button, Container, Stack, Modal,
-  IconButton, CircularProgress
+  CircularProgress, IconButton, Tooltip, Zoom
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import { useRouter } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
@@ -19,11 +21,6 @@ interface Usuario {
   _id: string;
   username: string;
   fotoPerfil?: string;
-}
-
-interface Comentario {
-  comentario: string;
-  usuario?: Usuario;
 }
 
 interface Post {
@@ -38,14 +35,13 @@ interface Post {
 }
 
 export default function PostPage() {
+  const router = useRouter();
   const [user, setUser] = useState<Usuario | null>(null);
   const [titulo, setTitulo] = useState("");
   const [contenido, setContenido] = useState("");
   const [imagen, setImagen] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [comentarios, setComentarios] = useState<Record<string, string>>({});
-  const [comentariosCargados, setComentariosCargados] = useState<Record<string, Comentario[]>>({});
   const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -78,10 +74,14 @@ export default function PostPage() {
     }
   };
 
-  const handleLike = async (postId: string) => {
+  const toggleLike = async (postId: string) => {
     if (!user?._id) return;
+    const postActual = posts.find(p => p._id === postId);
+    const yaDioLike = postActual?.reacciones?.meGusta?.usuarios.includes(user._id);
+    const endpoint = yaDioLike ? "unlike" : "like";
+
     try {
-      await axios.post(`${API_URL}/api/post/${postId}/like`, {
+      await axios.post(`${API_URL}/api/post/${postId}/${endpoint}`, {
         tipo: "meGusta",
         userId: user._id
       }, {
@@ -89,32 +89,7 @@ export default function PostPage() {
       });
       fetchPosts();
     } catch (err) {
-      console.error("❌ Error al dar like:", err);
-    }
-  };
-
-  const enviarComentario = async (postId: string) => {
-    if (!comentarios[postId] || !user?._id) return;
-    try {
-      await axios.post(`${API_URL}/api/post/${postId}/comentario`, {
-        contenido: comentarios[postId],
-        usuarioId: user._id
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
-      });
-      setComentarios(prev => ({ ...prev, [postId]: "" }));
-      verComentarios(postId);
-    } catch (error) {
-      console.error("❌ Error al comentar:", error);
-    }
-  };
-
-  const verComentarios = async (postId: string) => {
-    try {
-      const res = await axios.get(`${API_URL}/api/post/${postId}/comentarios`);
-      setComentariosCargados(prev => ({ ...prev, [postId]: res.data.comentarios }));
-    } catch (err) {
-      console.error("❌ Error al cargar comentarios:", err);
+      console.error("❌ Error al alternar like:", err);
     }
   };
 
@@ -159,14 +134,11 @@ export default function PostPage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", background: "linear-gradient(to bottom, #1f2937, #111827)", color: "white", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ minHeight: "100vh",color: "white", display: "flex", flexDirection: "column" }}>
       <GoldenBackground />
       <Navbar />
 
-      <Container
-        maxWidth="lg"
-        sx={{  px: 2, flex: 1, pb: 10 }}
-      >
+      <Container maxWidth="lg" sx={{ px: 2, flex: 1, pb: 10 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" my={4}>
           <Typography variant="h5" fontWeight="bold">📢 Comunidad cervecera</Typography>
           <Button onClick={() => setModalAbierto(true)} variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: amarillo, color: "#000", fontWeight: "bold" }}>
@@ -183,33 +155,40 @@ export default function PostPage() {
             .map(post => {
               const yaDioLike = post.reacciones?.meGusta?.usuarios.includes(user?._id || "");
               return (
-                <div key={post._id} className="bg-[#1f2937] p-4 rounded-2xl text-white space-y-3">
-                  {post.imagenes?.[0] && <img src={`${API_URL}${post.imagenes[0]}`} className="w-full h-auto rounded" alt={post.titulo} />}
-                  <h2 className="text-lg font-bold text-yellow-400">{post.titulo}</h2>
-                  <p>{post.contenido}</p>
-                  <p className="text-xs text-gray-400">@{post.usuario?.username}</p>
-                  <div className="flex items-center gap-2">
-                    <IconButton onClick={() => yaDioLike ? null : handleLike(post._id)} size="small" sx={{ color: amarillo }}>{yaDioLike ? "💔" : "❤️"}</IconButton>
-                    <span>{post.reacciones?.meGusta?.count ?? 0}</span>
+                <div
+                  key={post._id}
+                  onClick={() => router.push(`/posts/${post._id}`)}
+                  className="cursor-pointer bg-[#1f2937] text-white rounded-2xl p-4 shadow-md space-y-3 transition-transform hover:-translate-y-2 hover:scale-[1.02] hover:shadow-xl active:scale-95"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && router.push(`/posts/${post._id}`)}
+                >
+                  {post.imagenes?.[0] && (
+                    <img
+                      src={`${API_URL}${post.imagenes[0]}`}
+                      alt={post.titulo}
+                      className="w-full h-64 object-cover rounded"
+                    />
+                  )}
+
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-semibold truncate w-4/5">{post.titulo}</h2>
+                    <Tooltip title={yaDioLike ? "Quitar saludo vikingo" : "Enviar saludo vikingo"} arrow TransitionComponent={Zoom}>
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleLike(post._id);
+                        }}
+                        sx={{ color: yaDioLike ? amarillo : "white", transition: "transform 0.2s ease" }}
+                      >
+                        {yaDioLike ? <FavoriteIcon sx={{ "&:hover": { transform: "scale(1.2)" } }} /> : <FavoriteBorderIcon sx={{ "&:hover": { transform: "scale(1.2)" } }} />}
+                      </IconButton>
+                    </Tooltip>
                   </div>
-                  <Button size="small" onClick={() => verComentarios(post._id)} sx={{ color: amarillo }}>Ver comentarios</Button>
-                  {comentariosCargados[post._id]?.map((c, i) => (
-                    <Stack key={i} direction="row" spacing={2} alignItems="flex-start">
-                      <img src={c.usuario?.fotoPerfil || "/default-avatar.png"} className="w-10 h-10 rounded-full object-cover" alt={c.usuario?.username} />
-                      <Box>
-                        <Typography fontWeight="bold">{c.usuario?.username}</Typography>
-                        <Typography variant="body2" color="gray">{c.comentario}</Typography>
-                      </Box>
-                    </Stack>
-                  ))}
-                  <TextField
-                    fullWidth
-                    placeholder="Escribe tu comentario"
-                    value={comentarios[post._id] || ""}
-                    onChange={(e) => setComentarios(prev => ({ ...prev, [post._id]: e.target.value }))}
-                    sx={{ mt: 2, bgcolor: "#111827", input: { color: "white" }, borderRadius: 1 }}
-                  />
-                  <Button fullWidth variant="contained" sx={{ mt: 1, bgcolor: amarillo, color: "black" }} onClick={() => enviarComentario(post._id)}>Comentar 💬</Button>
+
+                  <Typography sx={{ mb: 1 }}>{post.contenido}</Typography>
+                  <Typography variant="caption" color="gray">@{post.usuario?.username}</Typography>
+                  <p className="text-sm text-amber-300">💛 {post.reacciones?.meGusta?.count ?? 0} saludos vikingos</p>
                 </div>
               );
             })}

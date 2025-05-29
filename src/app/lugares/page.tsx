@@ -28,6 +28,14 @@ interface Lugar {
   _id: string;
   nombre: string;
   descripcion: string;
+  creadoEn: string;
+  // puedes agregar más campos según sea necesario
+}
+
+interface Lugar {
+  _id: string;
+  nombre: string;
+  descripcion: string;
   imagen?: string;
   direccion: {
     calle: string;
@@ -61,15 +69,20 @@ export default function LugaresPage() {
     fetchLugares();
   }, []);
 
-  const fetchLugares = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/location`);
-      setLugares(Array.isArray(res.data.data) ? res.data.data : []);
-    } catch (error) {
-      console.error("❌ Error al obtener lugares:", error);
-      setLugares([]);
-    }
-  };
+
+const fetchLugares = async () => {
+  try {
+    const res = await axios.get<{ data: Lugar[] }>(`${API_URL}/api/location`);
+    const data = Array.isArray(res.data.data) ? res.data.data : [];
+    const ordenados = data.sort((a, b) =>
+      new Date(b.creadoEn).getTime() - new Date(a.creadoEn).getTime()
+    );
+    setLugares(ordenados);
+  } catch (error) {
+    console.error("❌ Error al obtener lugares:", error);
+    setLugares([]);
+  }
+};
 
   const toggleFavorito = (id: string) => {
     const nuevosFavoritos = favoritos.includes(id)
@@ -128,14 +141,12 @@ export default function LugaresPage() {
     <Box sx={{
       minHeight: "100vh",
       position: "relative",
-      bgcolor: "#0e0e0e",
-      background: "linear-gradient(to bottom, rgb(43,65,114), rgb(24,39,84))",
       color: "white",
       display: "flex",
       flexDirection: "column",
     }}>
-      <GoldenBackground />
       <Navbar />
+      <GoldenBackground />
 
       <Container maxWidth="lg" sx={{ px: 2, mt: 4, mb: 6, flex: 1, position: "relative", zIndex: 2 }}>
         <Box component="form" onSubmit={e => e.preventDefault()} sx={{ mb: 4 }}>

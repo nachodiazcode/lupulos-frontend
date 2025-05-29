@@ -1,15 +1,7 @@
 // src/hooks/useAuth.ts
-import { useState, useEffect } from 'react';
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
-const useAuth = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    useEffect(() => {
-        const token = localStorage.getItem('authToken');
-        setIsAuthenticated(!!token);
-    }, []);
-
-    return isAuthenticated;
-};
+const useAuth = () => useContext(AuthContext);
 
 export default useAuth;

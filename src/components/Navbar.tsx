@@ -1,97 +1,225 @@
 "use client";
 
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  AppBar, Toolbar, Typography, Box, IconButton, Drawer, List,
-  ListItem, ListItemIcon, ListItemText, useMediaQuery
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Drawer,
+  Box,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  useTheme,
+  useMediaQuery,
+  Avatar,
+  Tooltip,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import SportsBarIcon from "@mui/icons-material/SportsBar";
-import MapIcon from "@mui/icons-material/Map";
-import GroupIcon from "@mui/icons-material/Group";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ForumIcon from "@mui/icons-material/Forum";
-import StarIcon from "@mui/icons-material/Star";
-import { useTheme } from "@mui/material/styles";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import GroupIcon from "@mui/icons-material/Group";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import LogoutIcon from "@mui/icons-material/Logout";
 
-const amarillo = "#fbbf24";
+interface NavItem {
+  text: string;
+  href: string;
+  icon: React.ReactElement;
+}
 
-const navItems = [
-  { href: "/", label: "Inicio", icon: <HomeIcon /> },
-  { href: "/cervezas", label: "Cervezas", icon: <SportsBarIcon /> },
-  { href: "/lugares", label: "Lugares", icon: <MapIcon /> },
-  { href: "/usuarios", label: "Usuarios", icon: <GroupIcon /> },
-  { href: "/posts", label: "Comunidad", icon: <ForumIcon /> },
-  { href: "/planes", label: "Planes", icon: <StarIcon /> },
+interface Usuario {
+  _id: string;
+  username: string;
+  fotoPerfil?: string;
+}
+
+const navItems: NavItem[] = [
+  { text: "Inicio", href: "/", icon: <HomeIcon /> },
+  { text: "Cervezas", href: "/cervezas", icon: <SportsBarIcon /> },
+  { text: "Lugares", href: "/lugares", icon: <LocationOnIcon /> },
+  { text: "Comunidad", href: "/posts", icon: <ForumIcon /> },
 ];
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
+
 export default function Navbar() {
+  const [open, setOpen] = useState(false);
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const pathname = usePathname();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const router = useRouter();
 
-  // ⚠️ Cambia el punto de quiebre a 979px
-  const isSmallScreen = useMediaQuery("(max-width:979px)");
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUsuario(JSON.parse(storedUser));
+    }
+  }, []);
 
-  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+  const toggleDrawer = (state: boolean) => () => {
+    setOpen(state);
+  };
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    handleMenuClose();
+    router.push("/auth/login");
+  };
 
   return (
     <>
-      <AppBar position="sticky" sx={{ bgcolor: "#0f172a", boxShadow: "0 2px 10px rgba(0,0,0,0.4)" }}>
-        <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Typography variant="h6" fontWeight="bold" color={amarillo}>
-            🍺 Lúpulos App
-          </Typography>
-
-          {isSmallScreen ? (
-            <IconButton onClick={toggleDrawer} sx={{ color: "white" }}>
-              <MenuIcon />
-            </IconButton>
+      <AppBar
+        position="static"
+        sx={{ background: "linear-gradient(to right, #5C3B1E, #8B5E3C)" }}
+      >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          {isMobile ? (
+            <>
+              <IconButton edge="start" onClick={toggleDrawer(true)} sx={{ color: "white" }}>
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ color: "white" }}>
+                Lúpulos App 🍺
+              </Typography>
+            </>
           ) : (
-            <Box display="flex" gap={2}>
-              {navItems.map(({ href, label, icon }) => (
-                <Link href={href} key={href} passHref>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      color: "white",
-                      px: 2,
-                      borderBottom: pathname === href ? `2px solid ${amarillo}` : "2px solid transparent",
-                      transition: "all 0.3s ease-in-out",
-                      cursor: "pointer",
-                      "&:hover": { borderBottom: `2px solid ${amarillo}` },
-                    }}
-                  >
-                    {icon}
-                    <Typography
-                      variant="body2"
-                      ml={1}
-                      sx={{ display: isSmallScreen ? "none" : "inline" }}
+            <>
+              <Typography variant="h6" sx={{ color: "white", flexGrow: 1 }}>
+                Lúpulos App 🍺
+              </Typography>
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                {[...navItems, { text: "Usuarios", href: "/usuarios", icon: <GroupIcon /> }].map(
+                  (item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <ListItemButton
+                        key={item.text}
+                        component={Link}
+                        href={item.href}
+                        sx={{
+                          position: "relative",
+                          color: isActive ? "#FFD700" : "white",
+                          transition: "color 0.3s ease-in-out",
+                          "&:hover": {
+                            color: "#FFD700",
+                          },
+                          "&::after": {
+                            content: '""',
+                            position: "absolute",
+                            bottom: 4,
+                            left: 10,
+                            width: isActive ? "60%" : "0%",
+                            height: "2px",
+                            backgroundColor: "#FFD700",
+                            transition: "width 0.3s ease-in-out",
+                          },
+                          "&:hover::after": {
+                            width: "60%",
+                          },
+                        }}
+                      >
+                        <ListItemIcon
+                          sx={{
+                            color: isActive ? "#FFD700" : "white",
+                            minWidth: 36,
+                          }}
+                        >
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText primary={item.text} />
+                      </ListItemButton>
+                    );
+                  }
+                )}
+
+                {/* Avatar con menú dropdown */}
+                {usuario && (
+                  <>
+                    <Tooltip title={usuario.username}>
+                      <IconButton onClick={handleAvatarClick}>
+                        <Avatar
+                          src={usuario.fotoPerfil ? `${API_URL}${usuario.fotoPerfil}` : undefined}
+                          alt={usuario.username}
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            border: "2px solid #FFD700",
+                          }}
+                        >
+                          {usuario.username[0]?.toUpperCase()}
+                        </Avatar>
+                      </IconButton>
+                    </Tooltip>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleMenuClose}
+                      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                      transformOrigin={{ vertical: "top", horizontal: "right" }}
                     >
-                      {label}
-                    </Typography>
-                  </Box>
-                </Link>
-              ))}
-            </Box>
+                      <MenuItem onClick={() => {
+                        handleMenuClose();
+                        router.push(`/auth/perfil`);
+                      }}>
+                        <ListItemIcon><AccountCircleIcon /></ListItemIcon>
+                        Mi cuenta
+                      </MenuItem>
+                      <MenuItem onClick={handleLogout}>
+                        <ListItemIcon><LogoutIcon /></ListItemIcon>
+                        Cerrar sesión
+                      </MenuItem>
+                    </Menu>
+                  </>
+                )}
+              </Box>
+            </>
           )}
         </Toolbar>
       </AppBar>
 
-      {/* Drawer para Mobile y Tablet */}
-      <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
-        <Box sx={{ width: 240, bgcolor: "#0f172a", height: "100%", color: "white" }}>
+      {/* Drawer para mobile */}
+      <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
+        <Box
+          sx={{ width: 250 }}
+          role="presentation"
+          onClick={toggleDrawer(false)}
+          onKeyDown={toggleDrawer(false)}
+        >
           <List>
-            {navItems.map(({ href, label, icon }) => (
-              <Link href={href} key={href} passHref>
-                <ListItem button selected={pathname === href} onClick={toggleDrawer}>
-                  <ListItemIcon sx={{ color: amarillo }}>{icon}</ListItemIcon>
-                  <ListItemText primary={label} />
-                </ListItem>
-              </Link>
+            {navItems.map((item) => (
+              <ListItemButton key={item.text} component={Link} href={item.href}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
             ))}
+          </List>
+          <Divider />
+          <List>
+            <ListItemButton component={Link} href="/usuarios">
+              <ListItemIcon><GroupIcon /></ListItemIcon>
+              <ListItemText primary="Usuarios" />
+            </ListItemButton>
           </List>
         </Box>
       </Drawer>

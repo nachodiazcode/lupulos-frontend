@@ -57,6 +57,19 @@ export default function UsuarioPage() {
     }
   };
 
+  const getFotoPerfilUrl = (fotoPerfil?: string): string | undefined => {
+    if (!fotoPerfil) return undefined;
+
+    // Si ya es una URL completa
+    if (fotoPerfil.startsWith("http")) return fotoPerfil;
+
+    // Si empieza con ./ lo corregimos
+    const path = fotoPerfil.startsWith("./") ? fotoPerfil.replace("./", "/") : fotoPerfil;
+
+    return `${API_URL}${path}`;
+  };
+
+
   useEffect(() => {
     if (id) fetchPerfil();
   }, [id]);
@@ -105,7 +118,6 @@ export default function UsuarioPage() {
       <Box
         sx={{
           minHeight: "100vh",
-          background: "linear-gradient(to bottom, #1f2937, #111827)",
           py: { xs: 6, md: 10 },
         }}
       >
@@ -129,7 +141,7 @@ export default function UsuarioPage() {
               {/* Columna izquierda */}
               <Stack spacing={2} alignItems="center" flex={1}>
                 <Avatar
-                  src={perfil?.fotoPerfil || "/default-avatar.jpg"}
+                  src={getFotoPerfilUrl(perfil?.fotoPerfil) || "/default-avatar.jpg"}
                   sx={{
                     width: 130,
                     height: 130,

@@ -176,9 +176,7 @@ const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
   }
 
   return (
-    <div className="min-h-screen text-white" style={{
-      background: "linear-gradient(to bottom, rgb(43, 65, 114), rgb(24, 39, 84))",
-    }}>
+    <div className="min-h-screen text-white" >
       <Navbar />
 
       <div className="container mx-auto px-4 py-12 flex flex-col lg:flex-row items-start gap-16">

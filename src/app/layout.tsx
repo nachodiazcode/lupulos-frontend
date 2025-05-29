@@ -42,6 +42,8 @@ export default function RootLayout({
         }}
       >
         {children}
+
+        {/* 🟡 Chat flotante siempre disponible como Facebook */}
       </body>
     </html>
   );

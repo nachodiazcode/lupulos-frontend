@@ -1,39 +1,38 @@
 @import "tailwindcss";
 
+/* 🎨 Variables globales personalizadas */
 :root {
-  /* 🎨 Paleta ámbar personalizada */
+  /* 🌞 Modo claro */
   --background: linear-gradient(180deg, #fbbf24, #f59e0b); /* Ámbar degradado */
-  --foreground: #1f2937; /* Gris oscuro para el texto */
-  --accent: #facc15; /* Amarillo claro para botones o highlights */
+  --foreground: #1f2937; /* Gris oscuro */
+  --accent: #facc15; /* Amarillo claro para botones/destacados */
 
-  /* Tipografías */
   --font-sans: 'Ubuntu', Arial, Helvetica, sans-serif;
   --font-mono: monospace;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 🌒 Modo oscuro */
+    --background: linear-gradient(180deg, #0f172a, #1e293b); /* Azul profundo */
+    --foreground: #f1f5f9; /* Texto claro */
+    --accent: #fbbf24; /* Dorado cervecero */
+  }
+}
+
+/* 🧱 Reset general */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-
+/* 🧍 Estilos base del body */
 body {
-  background: linear-gradient(180deg, #4b2e1e, #2f1b10); /* Café oscuro degradado */
-  color: #f1f5f9; /* Texto claro */
-  font-family: 'Ubuntu', sans-serif;
+  background: linear-gradient(180deg, #4b2e1e, #2f1b10); /* Café oscuro tipo barril */
+  color: var(--foreground);
+  font-family: var(--font-sans);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-}
-
-
-
-/* 🌒 Soporte para modo oscuro */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: linear-gradient(180deg, #0f172a, #1e293b); /* Azul profundo */
-    --foreground: #f1f5f9; /* Texto claro */
-    --accent: #fbbf24;
-  }
 }

@@ -5,66 +5,70 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Box } from "@mui/material";
-
+import { Box, Snackbar, Alert } from "@mui/material";
 import GoldenBackground from "@/components/GoldenBackground";
+import useAuth from "@/hooks/useAuth";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setUser, setToken } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [openToast, setOpenToast] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3940/api/auth/login", {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Error desconocido al iniciar sesión");
+      if (!response.ok) throw new Error(data.mensaje || "Error desconocido al iniciar sesión");
 
-      localStorage.setItem("authToken", data.token || data.accessToken);
+      localStorage.setItem("authToken", data.accessToken);
       localStorage.setItem("user", JSON.stringify(data.usuario));
-      localStorage.setItem("justLoggedIn", "true");
 
-      router.push("/cervezas");
+      setToken(data.accessToken);
+      setUser(data.usuario);
+      setOpenToast(true);
+
+      setTimeout(() => {
+        router.push("/cervezas");
+      }, 1200);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("Ocurrió un error inesperado");
-      }
+      setError(error instanceof Error ? error.message : "Ocurrió un error inesperado");
     }
   };
 
   return (
     <>
-      {/* Fondo animado con burbujas */}
       <GoldenBackground />
 
       <div className="min-h-screen flex flex-col md:flex-row relative overflow-hidden">
-        {/* Fondo oscuro translúcido para dejar ver las burbujas */}
         <Box
           sx={{
             position: "absolute",
             inset: 0,
-            background: "radial-gradient(circle at top left, rgba(75, 46, 30, 0.9) 0%, rgba(47, 27, 16, 0.9) 100%)",
-            zIndex: -1, // <- IMPORTANTE para no tapar las burbujas
+            background: "radial-gradient(circle at top left, rgba(75, 46, 30, 0.9), rgba(47, 27, 16, 0.9))",
+            zIndex: -1,
           }}
         />
 
-        {/* Columna izquierda: formulario */}
+        {/* Formulario */}
         <motion.div
           initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8 }}
           className="w-full md:w-1/2 flex items-center justify-center text-white p-8 pl-16 relative z-10"
         >
           <div className="w-full max-w-md space-y-8">
@@ -134,7 +138,7 @@ export default function LoginPage() {
             </div>
 
             <a
-              href="http://localhost:3940/api/auth/google"
+              href={`${API_URL}/api/auth/google`}
               className="w-full block text-center border border-amber-400 text-amber-400 py-3 rounded-xl font-semibold hover:bg-amber-500 hover:text-black transition"
             >
               Continuar con Google
@@ -149,11 +153,11 @@ export default function LoginPage() {
           </div>
         </motion.div>
 
-        {/* Columna derecha con personajes */}
+        {/* Imagen animada */}
         <motion.div
           initial={{ x: 100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8 }}
           className="hidden md:flex w-1/2 relative items-center justify-center pr-16"
         >
           <Box
@@ -184,6 +188,13 @@ export default function LoginPage() {
           </Box>
         </motion.div>
       </div>
+
+      {/* Toast de bienvenida */}
+      <Snackbar open={openToast} autoHideDuration={3000}>
+        <Alert severity="success" variant="filled">
+          ¡Bienvenido a Lúpulos App! 🍺
+        </Alert>
+      </Snackbar>
     </>
   );
 }

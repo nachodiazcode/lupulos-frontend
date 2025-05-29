@@ -1,137 +1,132 @@
 "use client";
 
-import { Box, Button, Typography, Container, Stack } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { Box, Typography, Button, Stack, Container, Paper } from "@mui/material";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import GoldenBackground from "@/components/GoldenBackground";
-import { keyframes } from "@emotion/react";
 
-// ✨ Animaciones suaves
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
+const SECTIONS = [
+  {
+    title: "🍺 Cervezas Artesanales",
+    description: "Descubre y filtra cervezas chilenas e internacionales según estilo, sabor y amargor. ¡Encuentra tu favorita!",
+    button: "VER CERVEZAS",
+    route: "/auth/login",
+  },
+  {
+    title: "📍 Lugares Imperdibles",
+    description: "Explora bares, festivales y locales donde vivir la experiencia cervecera. Opiniones y mapas en tiempo real.",
+    button: "EXPLORAR LUGARES",
+    route: "/auth/login",
+  },
+  {
+    title: "👥 Comunidad Lúpulos",
+    description: "Conecta con amantes de la cerveza, comenta descubrimientos y brinda 'salud' a tus etiquetas favoritas.",
+    button: "UNIRSE A LA COMUNIDAD",
+    route: "/auth/login",
+  },
+];
 
 export default function HomePage() {
   const router = useRouter();
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        position: "relative",
-        background: "transparent", // fondo controlado por GoldenBackground
-        animation: `${fadeIn} 1s ease-out`,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* 🍺 Fondo animado con partículas */}
-      <GoldenBackground />
+    <Box sx={{ bgcolor: "#cdb9a5", color: "#1e1e1e", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <Navbar />
 
-      {/* 🌟 Contenido principal */}
-      <Container
-        maxWidth="lg"
+      {/* HERO */}
+      <Box
         sx={{
-          flexGrow: 1,
+          py: 12,
+          px: 3,
           display: "flex",
           flexDirection: "column",
+          justifyContent: "flex-start",
           alignItems: "center",
-          justifyContent: "center",
           textAlign: "center",
-          zIndex: 2,
-          pt: 10,
-          pb: 6,
         }}
       >
-        {/* Título */}
-        <Typography
-          variant="h1"
-          fontWeight="900"
-          sx={{
-            fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4.5rem" },
-            color: "white",
-            mb: 3,
-            letterSpacing: "-1px",
-            animation: `${fadeIn} 1.2s ease-out`,
-          }}
-        >
-          Bienvenido a <br />
-          <span style={{ color: "#fbbf24" }}>Lupuverse 🍻</span>
+        <Typography variant="h2" fontWeight="bold" color="#1e1e1e" gutterBottom>
+          Bienvenido a Lúpulos App
+        </Typography>
+        <Typography variant="h6" sx={{ maxWidth: 700, mb: 5 }}>
+          Descubre cervezas únicas, lugares auténticos y conecta con amantes de la cultura cervecera. Todo en una sola plataforma.
         </Typography>
 
-        {/* Subtítulo */}
-        <Typography
-          variant="subtitle1"
-          sx={{
-            color: "#cbd5e1",
-            fontSize: { xs: "1rem", sm: "1.2rem" },
-            mb: 5,
-            maxWidth: 600,
-            animation: `${fadeIn} 1.4s ease-out`,
-          }}
-        >
-          Una dimensión cervecera con personajes, lugares mágicos y aventuras espumantes. ¡Explora, descubre y conéctate!
-        </Typography>
-
-        {/* Botones */}
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={3}
-          sx={{ animation: `${fadeIn} 1.6s ease-out`, mb: 6 }}
-        >
+        {/* BOTONES PRINCIPALES */}
+        <Stack direction="row" spacing={2} flexWrap="wrap" justifyContent="center" mb={8}>
           <Button
             variant="contained"
             size="large"
+            onClick={() => router.push("/auth/login")}
             sx={{
               bgcolor: "#fbbf24",
-              color: "black",
+              color: "#000",
               fontWeight: "bold",
-              px: 5,
-              py: 1.5,
-              borderRadius: 2,
-              '&:hover': { bgcolor: "#f59e0b" },
+              px: 4,
+              "&:hover": { bgcolor: "#f59e0b" },
             }}
-            onClick={() => router.push("/auth/login")}
           >
-            Entrar al Lupuverso
+            EXPLORAR CERVEZAS
           </Button>
-
           <Button
             variant="outlined"
             size="large"
+            onClick={() => router.push("/auth/login")}
             sx={{
-              borderColor: "#fbbf24",
-              color: "#fbbf24",
+              color: "#1e1e1e",
+              borderColor: "#1e1e1e",
+              px: 4,
               fontWeight: "bold",
-              px: 5,
-              py: 1.5,
-              borderRadius: 2,
-              '&:hover': {
-                borderColor: "#f59e0b",
-                color: "#f59e0b",
-              },
+              "&:hover": { bgcolor: "#1e1e1e11" },
             }}
-            onClick={() => router.push("/personajes")}
           >
-            Conocer a Lupin 🧝‍♂️
+            CONOCER COMUNIDAD
           </Button>
         </Stack>
 
-        {/* Imagen de personajes */}
-        <Box
-          component="img"
-          src="/assets/personajes/lupuverse.png"
-          alt="Team Lúpulos"
-          sx={{
-            width: { xs: "100%", sm: "80%", md: "65%" },
-            maxWidth: 900,
-            animation: `${fadeIn} 1s ease-out`,
-            filter: "drop-shadow(0 5px 20px rgba(0,0,0,0.3))",
-          }}
-        />
-      </Container>
+        {/* TARJETAS HORIZONTALES */}
+        <Container sx={{ py: 4 }}>
+          <Box display="flex" justifyContent="center" flexWrap="wrap" gap={4}>
+            {SECTIONS.map((item, idx) => (
+              <Paper
+                key={idx}
+                elevation={4}
+                sx={{
+                  bgcolor: "#3b2f1e",
+                  color: "#fefce8",
+                  border: "1px solid #fbbf24",
+                  borderRadius: 4,
+                  p: 4,
+                  width: { xs: "100%", sm: "90%", md: "30%" },
+                  minWidth: 280,
+                  transition: "all 0.3s",
+                  "&:hover": {
+                    transform: "scale(1.03)",
+                    boxShadow: 6,
+                  },
+                }}
+              >
+                <Typography variant="h6" fontWeight="bold" gutterBottom color="#fbbf24">
+                  {item.title}
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 2 }}>{item.description}</Typography>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => router.push(item.route)}
+                  sx={{
+                    color: "#fbbf24",
+                    borderColor: "#fbbf24",
+                    "&:hover": { bgcolor: "#fbbf2411" },
+                  }}
+                >
+                  {item.button}
+                </Button>
+              </Paper>
+            ))}
+          </Box>
+        </Container>
+      </Box>
 
       <Footer />
     </Box>
