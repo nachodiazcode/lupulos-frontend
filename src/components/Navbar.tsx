@@ -20,6 +20,8 @@ import {
   Menu,
   MenuItem,
   Collapse,
+  useTheme,
+  useMediaQuery
 } from "@mui/material";
 import {
   ExpandLess,
@@ -61,8 +63,8 @@ export default function Navbar() {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [footerMenuOpen, setFooterMenuOpen] = useState(false);
-const theme = useTheme();
-const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const pathname = usePathname();
   const router = useRouter();
 
