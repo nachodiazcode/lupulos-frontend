@@ -225,11 +225,7 @@ Inspirado por el espíritu del lúpulo y el poder del código abierto 🍻
 ## 📸 Preview
 
 ```bash
-# Puedes reemplazar esto por una imagen real
-```
-
-![Preview](./public/assets/logo.gif)
-
+# Puedes reemplazar esto por una image
 
 ---
 

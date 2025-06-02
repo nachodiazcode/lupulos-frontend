@@ -11,6 +11,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Image from "next/image"; // ✅ Corrección clave
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -25,6 +26,7 @@ interface Usuario {
 }
 
 interface Comentario {
+  _id?: string;
   comentario: string;
   usuario?: Usuario;
 }
@@ -41,7 +43,8 @@ interface Post {
 }
 
 export default function PostDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const router = useRouter();
 
   const [post, setPost] = useState<Post | null>(null);
@@ -121,7 +124,7 @@ export default function PostDetailPage() {
   };
 
   const eliminarPost = async () => {
-    if (!window.confirm("¿Estás seguro que quieres eliminar este post?")) return;
+    if (typeof window !== "undefined" && !window.confirm("¿Estás seguro que quieres eliminar este post?")) return;
     try {
       await axios.delete(`${API_URL}/api/post/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
@@ -195,10 +198,12 @@ export default function PostDetailPage() {
           <>
             <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
             {post.imagenes?.[0] && (
-              <img
+              <Image
                 src={`${API_URL}${post.imagenes[0]}`}
                 alt={post.titulo}
-                style={{ width: "100%", maxHeight: 400, objectFit: "cover", borderRadius: 8, marginBottom: 16 }}
+                width={800}
+                height={400}
+                style={{ width: "100%", objectFit: "cover", borderRadius: 8, marginBottom: 16 }}
               />
             )}
             <Typography variant="body1" mb={3}>{post.contenido}</Typography>
@@ -235,8 +240,8 @@ export default function PostDetailPage() {
 
         <Box mt={5}>
           <Typography variant="h6" mb={2}>💬 Comentarios</Typography>
-          {comentarios.map((c, i) => (
-            <Box key={i} mb={2} p={2} bgcolor="#111827" borderRadius={2}>
+          {comentarios.map((c) => (
+            <Box key={c._id || c.comentario} mb={2} p={2} bgcolor="#111827" borderRadius={2}>
               <Typography fontWeight="bold">@{c.usuario?.username}</Typography>
               <Typography variant="body2" color="gray">{c.comentario}</Typography>
             </Box>

@@ -9,15 +9,41 @@ import {
   Button,
   Snackbar,
   Alert,
-  Slide,
   Avatar,
   Typography,
   Stack,
 } from "@mui/material";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
+
+interface Usuario {
+  _id: string;
+  username: string;
+  fotoPerfil?: string;
+}
+
+interface Review {
+  _id: string;
+  comentario: string;
+  calificacion: number;
+  usuario: Usuario;
+}
+
+interface Beer {
+  _id: string;
+  nombre: string;
+  tipo: string;
+  abv: number;
+  descripcion: string;
+  cerveceria: string;
+  imagen?: string;
+  usuario: Usuario;
+  calificacionPromedio?: number;
+  reviews?: Review[];
+}
 
 const getRatingLabel = (rating: number | null) => {
   switch (rating) {
@@ -31,17 +57,19 @@ const getRatingLabel = (rating: number | null) => {
 };
 
 export default function DetalleCervezaPage() {
-  const [editandoId, setEditandoId] = useState<string | null>(null);
-const [nuevoComentario, setNuevoComentario] = useState("");
-const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
-
   const { id } = useParams();
   const router = useRouter();
-  const [beer, setBeer] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+
+  const [beer, setBeer] = useState<Beer | null>(null);
+  const [user, setUser] = useState<Usuario | null>(null);
   const [rating, setRating] = useState<number | null>(0);
   const [comment, setComment] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [nuevoComentario, setNuevoComentario] = useState("");
+  const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
+
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarColor, setSnackbarColor] = useState("#6EE7B7");
@@ -55,12 +83,8 @@ const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
   const fetchBeer = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/beer/${id}`);
-      // ⚠️ Validación para asegurar que sea un objeto, no array
-      if (Array.isArray(res.data?.datos)) {
-        setBeer(res.data?.datos[0]);
-      } else {
-        setBeer(res.data?.datos);
-      }
+      const data = Array.isArray(res.data?.datos) ? res.data?.datos[0] : res.data?.datos;
+      setBeer(data);
     } catch (error) {
       console.error("❌ Error al obtener cerveza:", error);
     } finally {
@@ -68,12 +92,12 @@ const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
     }
   };
 
-  const handleEditComentario = (review: any) => {
+  const handleEditComentario = (review: Review) => {
     setEditandoId(review._id);
     setNuevoComentario(review.comentario);
     setNuevaPuntuacion(review.calificacion);
   };
-  
+
   const handleGuardarEdicion = async (reviewId: string) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -92,11 +116,9 @@ const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
       console.error("❌ Error al editar comentario:", error);
     }
   };
-  
+
   const handleDeleteComentario = async (reviewId: string) => {
-    const confirmDelete = window.confirm("¿Estás seguro de eliminar este comentario?");
-    if (!confirmDelete) return;
-  
+    if (!window.confirm("¿Estás seguro de eliminar este comentario?")) return;
     try {
       const token = localStorage.getItem("authToken");
       await axios.delete(`${API_URL}/api/beer/${id}/review/${reviewId}`, {
@@ -110,7 +132,6 @@ const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
       console.error("❌ Error al eliminar comentario:", error);
     }
   };
-  
 
   const handleRatingSubmit = async () => {
     try {
@@ -148,9 +169,7 @@ const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
   };
 
   const handleDeleteBeer = async () => {
-    const confirmDelete = window.confirm("¿Estás seguro de que quieres eliminar esta cerveza?");
-    if (!confirmDelete) return;
-
+    if (!window.confirm("¿Estás seguro de que quieres eliminar esta cerveza?")) return;
     try {
       const token = localStorage.getItem("authToken");
       await axios.delete(`${API_URL}/api/beer/${id}`, {
@@ -168,23 +187,23 @@ const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
     }
   };
 
-  const slideTransition = (props: any) => <Slide {...props} direction="down" />;
-  const handleCloseSnackbar = () => setSnackbarOpen(false);
-
   if (loading || !beer || !beer.nombre) {
     return <div className="p-10 text-white">Cargando cerveza...</div>;
   }
 
   return (
-    <div className="min-h-screen text-white" >
+    <div className="min-h-screen text-white">
       <Navbar />
 
       <div className="container mx-auto px-4 py-12 flex flex-col lg:flex-row items-start gap-16">
         <div className="w-full lg:w-[40%] flex justify-center">
           {beer.imagen && (
-            <img
+            <Image
               src={`${API_URL}${beer.imagen}`}
               alt={beer.nombre}
+              unoptimized
+              width={500}
+              height={500}
               className="rounded-2xl shadow-2xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain"
             />
           )}
@@ -259,73 +278,79 @@ const [nuevaPuntuacion, setNuevaPuntuacion] = useState<number>(0);
 
           <div className="mt-10">
             <h2 className="text-xl font-bold mb-4">Comentarios</h2>
-            {beer.reviews?.map((review: any) => (
-  <div key={review._id} className="bg-[#1f2937] p-4 rounded-xl mb-4 shadow-sm">
-    <Stack direction="row" spacing={2} alignItems="center">
-      <Avatar src={review.usuario?.fotoPerfil || ""} />
-      <Typography fontWeight="bold">
-        {review.usuario?._id === user?._id ? "Tú" : review.usuario?.username || "Anónimo"}
-      </Typography>
-    </Stack>
+            {beer.reviews?.map((review) => (
+              <div key={review._id} className="bg-[#1f2937] p-4 rounded-xl mb-4 shadow-sm">
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Avatar src={review.usuario?.fotoPerfil || ""} />
+                  <Typography fontWeight="bold">
+                    {review.usuario?._id === user?._id ? "Tú" : review.usuario?.username || "Anónimo"}
+                  </Typography>
+                </Stack>
 
-    {editandoId === review._id ? (
-      <>
-        <TextField
-          fullWidth
-          multiline
-          rows={2}
-          value={nuevoComentario}
-          onChange={(e) => setNuevoComentario(e.target.value)}
-          sx={{ mt: 2, bgcolor: "#111827", borderRadius: 2, textarea: { color: "white" } }}
-        />
-        <Rating
-          value={nuevaPuntuacion}
-          onChange={(_, newValue) => setNuevaPuntuacion(newValue || 0)}
-          size="small"
-          sx={{ mt: 1 }}
-        />
-        <Stack direction="row" spacing={2} mt={2}>
-          <Button
-            variant="contained"
-            onClick={() => handleGuardarEdicion(review._id)}
-            sx={{ bgcolor: "#4ade80", color: "#000" }}
-          >
-            Guardar ✅
-          </Button>
-          <Button variant="outlined" onClick={() => setEditandoId(null)}>Cancelar</Button>
-        </Stack>
-      </>
-    ) : (
-      <>
-        <p className="text-gray-300 mt-2">{review.comentario}</p>
-        <Rating value={review.calificacion} readOnly size="small" className="mt-1" />
-        {user && review.usuario?._id === user._id && (
-          <Stack direction="row" spacing={1} mt={2}>
-            <Button
-              size="small"
-              variant="outlined"
-              color="info"
-              onClick={() => handleEditComentario(review)}
-            >
-              Editar ✏️
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              color="error"
-              onClick={() => handleDeleteComentario(review._id)}
-            >
-              Eliminar ❌
-            </Button>
-          </Stack>
-        )}
-      </>
-    )}
-  </div>
-))}
+                {editandoId === review._id ? (
+                  <>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={2}
+                      value={nuevoComentario}
+                      onChange={(e) => setNuevoComentario(e.target.value)}
+                      sx={{ mt: 2, bgcolor: "#111827", borderRadius: 2, textarea: { color: "white" } }}
+                    />
+                    <Rating
+                      value={nuevaPuntuacion}
+                      onChange={(_, newValue) => setNuevaPuntuacion(newValue || 0)}
+                      size="small"
+                      sx={{ mt: 1 }}
+                    />
+                    <Stack direction="row" spacing={2} mt={2}>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleGuardarEdicion(review._id)}
+                        sx={{ bgcolor: "#4ade80", color: "#000" }}
+                      >
+                        Guardar ✅
+                      </Button>
+                      <Button variant="outlined" onClick={() => setEditandoId(null)}>Cancelar</Button>
+                    </Stack>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-300 mt-2">{review.comentario}</p>
+                    <Rating value={review.calificacion} readOnly size="small" className="mt-1" />
+                    {user && review.usuario?._id === user._id && (
+                      <Stack direction="row" spacing={1} mt={2}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="info"
+                          onClick={() => handleEditComentario(review)}
+                        >
+                          Editar ✏️
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => handleDeleteComentario(review._id)}
+                        >
+                          Eliminar ❌
+                        </Button>
+                      </Stack>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
+
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+        <Alert severity="info" sx={{ backgroundColor: snackbarColor, color: "black" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
 
       <Footer />
     </div>
