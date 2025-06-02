@@ -232,17 +232,6 @@ Inspirado por el espíritu del lúpulo y el poder del código abierto 🍻
 
 ---
 
-## 🤝 Contribuciones
-
-¡Se aceptan ideas, pull requests y saludos vikingos!
-
-1. Haz un fork 🍴
-2. Crea una rama nueva 🚀
-3. Haz commit de tus cambios ✅
-4. Abre un pull request 🛠️
-
----
-
 ## 📄 Licencia
 
 MIT © Ignacio Sergio Díaz
