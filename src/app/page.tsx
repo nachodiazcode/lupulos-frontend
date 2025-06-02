@@ -1,134 +1,168 @@
 "use client";
 
+import { Box, Typography, Button, Stack } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { Box, Typography, Button, Stack, Container, Paper } from "@mui/material";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-
-const SECTIONS = [
-  {
-    title: "🍺 Cervezas Artesanales",
-    description: "Descubre y filtra cervezas chilenas e internacionales según estilo, sabor y amargor. ¡Encuentra tu favorita!",
-    button: "VER CERVEZAS",
-    route: "/auth/login",
-  },
-  {
-    title: "📍 Lugares Imperdibles",
-    description: "Explora bares, festivales y locales donde vivir la experiencia cervecera. Opiniones y mapas en tiempo real.",
-    button: "EXPLORAR LUGARES",
-    route: "/auth/login",
-  },
-  {
-    title: "👥 Comunidad Lúpulos",
-    description: "Conecta con amantes de la cerveza, comenta descubrimientos y brinda 'salud' a tus etiquetas favoritas.",
-    button: "UNIRSE A LA COMUNIDAD",
-    route: "/auth/login",
-  },
-];
+import Image from "next/image";
+import { useEffect } from "react";
 
 export default function HomePage() {
   const router = useRouter();
 
-  return (
-    <Box sx={{ bgcolor: "#cdb9a5", color: "#1e1e1e", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Navbar />
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.href = "https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+  }, []);
 
-      {/* HERO */}
-      <Box
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#D7981C",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        position: "relative",
+        overflow: "hidden",
+        textAlign: "center",
+        px: 4,
+        py: 10,
+      }}
+    >
+
+
+
+
+      {/* TITULO */}
+      <Typography
+        variant="h2"
         sx={{
-          py: 12,
-          px: 3,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-start",
-          alignItems: "center",
+          fontFamily: "'Lora', serif",
+          fontSize: { xs: "2.5rem", md: "3.5rem" },
+          fontWeight: 900,
+          color: "#3a1f00",
           textAlign: "center",
+          textShadow: "2px 2px 6px rgba(255, 215, 135, 0.6)", // Sombra clara difusa
+          zIndex: 2,
+          position: "relative",
         }}
       >
-        <Typography variant="h2" fontWeight="bold" color="#1e1e1e" gutterBottom>
-          Bienvenido a Lúpulos App
-        </Typography>
-        <Typography variant="h6" sx={{ maxWidth: 700, mb: 5 }}>
-          Descubre cervezas únicas, lugares auténticos y conecta con amantes de la cultura cervecera. Todo en una sola plataforma.
-        </Typography>
+        Explora el mundo cervecero <br />
+        como nunca antes 🍺
+      </Typography>
 
-        {/* BOTONES PRINCIPALES */}
-        <Stack direction="row" spacing={2} flexWrap="wrap" justifyContent="center" mb={8}>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={() => router.push("/auth/login")}
-            sx={{
-              bgcolor: "#fbbf24",
-              color: "#000",
-              fontWeight: "bold",
-              px: 4,
-              "&:hover": { bgcolor: "#f59e0b" },
-            }}
-          >
-            EXPLORAR CERVEZAS
-          </Button>
-          <Button
-            variant="outlined"
-            size="large"
-            onClick={() => router.push("/auth/login")}
-            sx={{
-              color: "#1e1e1e",
-              borderColor: "#1e1e1e",
-              px: 4,
-              fontWeight: "bold",
-              "&:hover": { bgcolor: "#1e1e1e11" },
-            }}
-          >
-            CONOCER COMUNIDAD
-          </Button>
-        </Stack>
+      {/* DESCRIPCIÓN */}
+      <Typography
+        variant="body1"
+        sx={{
+          mt: 3,
+          maxWidth: 800,
+          fontWeight: 480,
+          fontSize: "1.5rem",
+          color: "#3a1f00",
+          textAlign: "center",
+          textShadow: "2px 2px 5px rgba(255, 235, 175, 0.6)", // Sombra clara dorada
+          zIndex: 2,
+          position: "relative",
+        }}
+      >
+        Encuentra cervezas únicas, bares escondidos, eventos vikingos y comparte tu pasión por el lúpulo. Bienvenido a tu comunidad cervecera.
+      </Typography>
 
-        {/* TARJETAS HORIZONTALES */}
-        <Container sx={{ py: 4 }}>
-          <Box display="flex" justifyContent="center" flexWrap="wrap" gap={4}>
-            {SECTIONS.map((item, idx) => (
-              <Paper
-                key={idx}
-                elevation={4}
-                sx={{
-                  bgcolor: "#3b2f1e",
-                  color: "#fefce8",
-                  border: "1px solid #fbbf24",
-                  borderRadius: 4,
-                  p: 4,
-                  width: { xs: "100%", sm: "90%", md: "30%" },
-                  minWidth: 280,
-                  transition: "all 0.3s",
-                  "&:hover": {
-                    transform: "scale(1.03)",
-                    boxShadow: 6,
-                  },
-                }}
-              >
-                <Typography variant="h6" fontWeight="bold" gutterBottom color="#fbbf24">
-                  {item.title}
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>{item.description}</Typography>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={() => router.push(item.route)}
-                  sx={{
-                    color: "#fbbf24",
-                    borderColor: "#fbbf24",
-                    "&:hover": { bgcolor: "#fbbf2411" },
-                  }}
-                >
-                  {item.button}
-                </Button>
-              </Paper>
-            ))}
-          </Box>
-        </Container>
+      {/* BOTONES */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        mt={4}
+        alignItems="center"
+        justifyContent="center"
+        zIndex={2}
+      >
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: "#4A2502",
+            color: "#fff",
+            px: 4,
+            py: 1.5,
+            borderRadius: "999px",
+            fontWeight: "bold",
+            "&:hover": { backgroundColor: "#3a1f00" },
+          }}
+          onClick={() => router.push("/auth/login")}
+        >
+          Explorar Cervezas
+        </Button>
+
+        <Button
+          variant="outlined"
+          sx={{
+            borderColor: "#4A2502",
+            color: "#4A2502",
+            px: 4,
+            py: 1.5,
+            borderRadius: "999px",
+            fontWeight: "bold",
+            "&:hover": { backgroundColor: "#4A250220" },
+          }}
+          onClick={() => router.push("/auth/login")}
+        >
+          Conocer Comunidad
+        </Button>
+      </Stack>
+
+      {/* PERSONAJES */}
+      <Box
+        sx={{
+          mt: 8,
+          width: { xs: 280, md: 420 },
+          animation: "float 5s ease-in-out infinite",
+          zIndex: 2,
+        }}
+      >
+        <Image
+          src="/assets/personajes/lupinvikingoylupincervesota.png"
+          alt="personajes cerveza y lúpulo"
+          width={600}
+          height={400}
+          style={{ width: "100%", height: "auto" }}
+        />
       </Box>
 
-      <Footer />
+      {/* ANIMACIONES */}
+      <style jsx global>{`
+        @keyframes starsMove {
+          0% {
+            background-position: 0 0;
+          }
+          100% {
+            background-position: 1000px 1000px;
+          }
+        }
+
+        @keyframes float {
+          0% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-8px);
+          }
+          100% {
+            transform: translateY(0px);
+          }
+        }
+
+        @keyframes twinkle {
+          0%, 100% {
+            opacity: 0.15;
+          }
+          50% {
+            opacity: 0.3;
+          }
+        }
+      `}</style>
     </Box>
   );
 }

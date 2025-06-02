@@ -2,33 +2,49 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  Typography,
+  LinearProgress,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import useAuth from "@/hooks/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
 export default function GoogleSuccessPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [openToast, setOpenToast] = useState(false);
   const { setUser, setToken } = useAuth();
 
+  const [progress, setProgress] = useState(0);
+  const [openToast, setOpenToast] = useState(false);
+
   useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("token");
+
+    if (!token) {
+      router.push("/auth/login");
+      return;
+    }
+
+    // Simula una barra de progreso visual
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 180);
+
+    // Autenticación
     const fetchUser = async () => {
       try {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get("token");
-
-        if (!token) {
-          router.push("/auth/login");
-          return;
-        }
-
-        // ✅ Guardar token en localStorage y contexto
         localStorage.setItem("authToken", token);
         setToken(token);
 
-        // ✅ Obtener perfil del backend
         const res = await fetch(`${API_URL}/api/auth/perfil`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -40,35 +56,69 @@ export default function GoogleSuccessPage() {
         const data = await res.json();
 
         if (data?.usuario) {
-          // ✅ Guardar usuario en localStorage y contexto
           localStorage.setItem("user", JSON.stringify(data.usuario));
           setUser(data.usuario);
 
-          // ✅ Mostrar bienvenida y redirigir
           setOpenToast(true);
+
           setTimeout(() => {
             router.push("/cervezas");
-          }, 1200);
+          }, 2500);
         }
       } catch (error) {
-        console.error("❌ Error en autenticación:", error);
+        console.error("❌ Error autenticando:", error);
         router.push("/auth/login");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchUser();
+
+    return () => clearInterval(interval);
   }, [router, setUser, setToken]);
 
   return (
-    <div className="text-white text-center mt-10">
-      {loading ? "Autenticando con Google... 🍻" : "Redirigiendo..."}
-      <Snackbar open={openToast} autoHideDuration={3000}>
-        <Alert severity="success" variant="filled">
+    <Box
+      sx={{
+        backgroundColor: "#3a1f00",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        px: 4,
+        color: "#fff",
+        textAlign: "center",
+      }}
+    >
+      <Typography variant="h5" sx={{ mb: 3 }}>
+        Redirigiendo... 🍻
+      </Typography>
+
+      <Box sx={{ width: "80%", maxWidth: 420 }}>
+        <LinearProgress
+          variant="determinate"
+          value={progress}
+          sx={{
+            height: 10,
+            borderRadius: "5px",
+            backgroundColor: "#5c3825",
+            "& .MuiLinearProgress-bar": {
+              backgroundColor: "#D7981C",
+            },
+          }}
+        />
+      </Box>
+
+      {/* Toast de bienvenida */}
+      <Snackbar
+        open={openToast}
+        autoHideDuration={3000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity="success" variant="filled" sx={{ fontWeight: "bold" }}>
           ¡Bienvenido a Lúpulos App! 🍺
         </Alert>
       </Snackbar>
-    </div>
+    </Box>
   );
 }

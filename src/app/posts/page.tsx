@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Box, Typography, TextField, Button, Container, Stack, Modal,
-  CircularProgress, IconButton, Tooltip, Zoom
+  CircularProgress, IconButton, Tooltip, Zoom, Snackbar, Avatar
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Navbar from "@/components/Navbar";
@@ -46,6 +46,7 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [filtro, setFiltro] = useState("");
+  const [toastOpen, setToastOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -119,6 +120,7 @@ export default function PostPage() {
       setImagen(null);
       setPreview(null);
       setModalAbierto(false);
+      setToastOpen(true);
       fetchPosts();
     } catch (err) {
       console.error("❌ Error al subir post:", err);
@@ -134,7 +136,7 @@ export default function PostPage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh",color: "white", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ minHeight: "100vh", color: "white", display: "flex", flexDirection: "column" }}>
       <GoldenBackground />
       <Navbar />
 
@@ -159,9 +161,6 @@ export default function PostPage() {
                   key={post._id}
                   onClick={() => router.push(`/posts/${post._id}`)}
                   className="cursor-pointer bg-[#1f2937] text-white rounded-2xl p-4 shadow-md space-y-3 transition-transform hover:-translate-y-2 hover:scale-[1.02] hover:shadow-xl active:scale-95"
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === "Enter" && router.push(`/posts/${post._id}`)}
                 >
                   {post.imagenes?.[0] && (
                     <img
@@ -238,6 +237,36 @@ export default function PostPage() {
           </Button>
         </Box>
       </Modal>
+
+      {/* Toast de éxito */}
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={6000}
+        onClose={() => setToastOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            px: 3,
+            py: 2,
+            bgcolor: "#fbbf24",
+            color: "#1f2937",
+            borderRadius: "12px",
+            boxShadow: 4,
+            minWidth: 320,
+          }}
+        >
+          <Avatar src={user?.fotoPerfil || ""} sx={{ width: 48, height: 48 }}>
+            {user?.username?.charAt(0).toUpperCase()}
+          </Avatar>
+          <Typography sx={{ fontWeight: "bold" }}>
+            {user?.username} subiste un artículo interesante 🍺
+          </Typography>
+        </Box>
+      </Snackbar>
 
       <Footer />
     </Box>
