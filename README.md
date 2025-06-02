@@ -230,8 +230,9 @@ Inspirado por el espíritu del lúpulo y el poder del código abierto 🍻
 
 ![Preview](./public/assets/logo.gif)
 
+
 ---
 
 ## 📄 Licencia
 
-MIT © Ignacio Sergio Díaz 2025 
+MIT © Ignacio Sergio Díaz
