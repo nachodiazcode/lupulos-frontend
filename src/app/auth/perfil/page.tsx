@@ -23,8 +23,22 @@ import Footer from "@/components/Footer";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
+interface Perfil {
+  usuario: {
+    _id: string;
+    username: string;
+    email?: string;
+    ciudad?: string;
+    pais?: string;
+    sitioWeb?: string;
+    bio?: string;
+    pronombres?: string;
+    fotoPerfil?: string;
+  };
+}
+
 export default function PerfilPage() {
-  const [perfil, setPerfil] = useState<any>(null);
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -100,9 +114,9 @@ export default function PerfilPage() {
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        const actualizado = { ...perfil.usuario, fotoPerfil: ruta };
+        const actualizado = { ...perfil!.usuario, fotoPerfil: ruta };
         localStorage.setItem("user", JSON.stringify(actualizado));
-        setPerfil((prev: any) => ({ ...prev, usuario: actualizado }));
+        setPerfil((prev: Perfil | null) => ({ ...prev!, usuario: actualizado }));
         setFormData((prev) => ({ ...prev, fotoPerfil: ruta }));
       }
     } catch (error) {
@@ -131,7 +145,7 @@ export default function PerfilPage() {
       <Container maxWidth="lg" sx={{ py: 6, flex: 1 }}>
         <Paper
           sx={{
-            bgcolor: "#3b2f1e", // Ámbar/café oscuro
+            bgcolor: "#3b2f1e",
             p: { xs: 3, md: 6 },
             borderRadius: 4,
             boxShadow: 4,
