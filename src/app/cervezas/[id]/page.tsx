@@ -80,7 +80,7 @@ export default function DetalleCervezaPage() {
     fetchBeer();
   }, [id]);
 
-const fetchBeer = React.useCallback(async () => {
+  const fetchBeer = React.useCallback(async () => {
   try {
     const res = await axios.get(`${API_URL}/api/beer/${id}`);
     const data = Array.isArray(res.data?.datos) ? res.data?.datos[0] : res.data?.datos;
@@ -91,6 +91,12 @@ const fetchBeer = React.useCallback(async () => {
     setLoading(false);
   }
 }, [id]);
+
+useEffect(() => {
+  const userData = localStorage.getItem("user");
+  if (userData) setUser(JSON.parse(userData));
+  fetchBeer();
+}, [fetchBeer]);
 
 useEffect(() => {
   const userData = localStorage.getItem("user");
