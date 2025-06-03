@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import axios from "axios";
+import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
@@ -21,7 +22,13 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  usuario: { _id: string; username: string; fotoPerfil?: string } | null;
+  usuario: Usuario | null;
+}
+
+interface Usuario {
+  _id: string;
+  username: string;
+  fotoPerfil?: string;
 }
 
 export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Props) {
@@ -34,7 +41,6 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
   const [preview, setPreview] = useState<string | null>(null);
   const [toastOpen, setToastOpen] = useState(false);
   const [calle, setCalle] = useState("");
-
 
   const handleSubmit = async () => {
     if (!nombre || !tipo || !cerveceria || !descripcion || !abv || !imagen) return;
@@ -60,7 +66,6 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
     formData.append("imagen", imagen);
     formData.append("direccion[calle]", calle);
 
-
     try {
       const token = localStorage.getItem("authToken");
 
@@ -74,7 +79,6 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
       setToastOpen(true);
       onSuccess();
 
-      // Limpiar formulario
       setNombre("");
       setTipo("");
       setCerveceria("");
@@ -82,9 +86,14 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
       setDescripcion("");
       setImagen(null);
       setPreview(null);
-    } catch (error: any) {
-      console.error("❌ Error al subir cerveza:", error.response?.data || error.message);
-      alert(error.response?.data?.mensaje || "Ocurrió un error al subir la cerveza.");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error("❌ Error al subir cerveza:", error.response?.data || error.message);
+        alert(error.response?.data?.mensaje || "Ocurrió un error al subir la cerveza.");
+      } else {
+        console.error("❌ Error inesperado:", error);
+        alert("Error inesperado al subir la cerveza.");
+      }
     }
   };
 
@@ -112,9 +121,9 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
             {[["Nombre", nombre, setNombre], ["Tipo", tipo, setTipo], ["Cervecería", cerveceria, setCerveceria]].map(
               ([label, value, setter]) => (
                 <TextField
-                  key={label}
+                  key={label as string}
                   label={label as string}
-                  value={value}
+                  value={value as string}
                   onChange={(e) => (setter as React.Dispatch<React.SetStateAction<string>>)(e.target.value)}
                   fullWidth
                   InputLabelProps={{ sx: { color: "#ccc" } }}
@@ -200,10 +209,12 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
                 <Typography variant="body2" color="#fbbf24">
                   Previsualización:
                 </Typography>
-                <img
+                <Image
                   src={preview}
                   alt="preview"
-                  style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
+                  width={400}
+                  height={300}
+                  style={{ borderRadius: 8, marginTop: 8 }}
                 />
               </Box>
             )}
@@ -224,7 +235,6 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
         </DialogContent>
       </Dialog>
 
-      {/* Toast: fuera del Dialog */}
       <Snackbar
         open={toastOpen}
         autoHideDuration={6000}
@@ -255,7 +265,7 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
             {usuario?.username} subiste la cerveza exitosamente 🍺
           </Typography>
         </Box>
-      </Snackbar>autoHideDuration
+      </Snackbar>
     </>
   );
 }

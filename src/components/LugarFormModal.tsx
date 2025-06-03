@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import axios from "axios";
+import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
@@ -75,9 +76,14 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
       setPais("");
       setImagen(null);
       setPreview(null);
-    } catch (error: any) {
-      console.error("❌ Error al subir lugar:", error.response?.data || error.message);
-      alert(error.response?.data?.mensaje || "Ocurrió un error al subir el lugar.");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("❌ Error al subir lugar:", error.response?.data || error.message);
+        alert(error.response?.data?.mensaje || "Ocurrió un error al subir el lugar.");
+      } else {
+        console.error("❌ Error inesperado:", error);
+        alert("Error inesperado al subir el lugar.");
+      }
     }
   };
 
@@ -190,10 +196,12 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
                 <Typography variant="body2" color="#fbbf24">
                   Previsualización:
                 </Typography>
-                <img
+                <Image
                   src={preview}
                   alt="preview"
-                  style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
+                  width={500}
+                  height={300}
+                  style={{ borderRadius: 8, marginTop: 8, width: "100%", height: "auto" }}
                 />
               </Box>
             )}

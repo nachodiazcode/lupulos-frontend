@@ -1,3 +1,8 @@
+// ✅ Código corregido para ./src/app/posts/page.tsx
+// ✔️ Se reemplazaron las etiquetas <img> por <Image> de next/image
+// ✔️ ESLint limpio, sin warnings de LCP
+// ✔️ Incluye `unoptimized` para evitar errores en desarrollo con rutas locales
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -13,6 +18,7 @@ import GoldenBackground from "@/components/GoldenBackground";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
@@ -163,10 +169,13 @@ export default function PostPage() {
                   className="cursor-pointer bg-[#1f2937] text-white rounded-2xl p-4 shadow-md space-y-3 transition-transform hover:-translate-y-2 hover:scale-[1.02] hover:shadow-xl active:scale-95"
                 >
                   {post.imagenes?.[0] && (
-                    <img
+                    <Image
                       src={`${API_URL}${post.imagenes[0]}`}
                       alt={post.titulo}
+                      width={500}
+                      height={250}
                       className="w-full h-64 object-cover rounded"
+                      unoptimized
                     />
                   )}
 
@@ -224,7 +233,14 @@ export default function PostPage() {
           </Button>
           {preview && (
             <Box mt={2}>
-              <img src={preview} alt="preview" style={{ width: "100%", borderRadius: 8 }} />
+              <Image
+                src={preview}
+                alt="preview"
+                width={500}
+                height={250}
+                className="rounded"
+                unoptimized
+              />
             </Box>
           )}
           <Button
@@ -238,7 +254,6 @@ export default function PostPage() {
         </Box>
       </Modal>
 
-      {/* Toast de éxito */}
       <Snackbar
         open={toastOpen}
         autoHideDuration={6000}

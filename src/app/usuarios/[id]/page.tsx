@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import {
@@ -43,7 +43,7 @@ export default function UsuarioPage() {
   const [loadingFollow, setLoadingFollow] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const fetchPerfil = async () => {
+  const fetchPerfil = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/user/${id}`);
       setPerfil(res.data.usuario);
@@ -55,24 +55,18 @@ export default function UsuarioPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getFotoPerfilUrl = (fotoPerfil?: string): string | undefined => {
-    if (!fotoPerfil) return undefined;
-
-    // Si ya es una URL completa
-    if (fotoPerfil.startsWith("http")) return fotoPerfil;
-
-    // Si empieza con ./ lo corregimos
-    const path = fotoPerfil.startsWith("./") ? fotoPerfil.replace("./", "/") : fotoPerfil;
-
-    return `${API_URL}${path}`;
-  };
-
+  }, [id, user]);
 
   useEffect(() => {
     if (id) fetchPerfil();
-  }, [id]);
+  }, [id, fetchPerfil]);
+
+  const getFotoPerfilUrl = (fotoPerfil?: string): string | undefined => {
+    if (!fotoPerfil) return undefined;
+    if (fotoPerfil.startsWith("http")) return fotoPerfil;
+    const path = fotoPerfil.startsWith("./") ? fotoPerfil.replace("./", "/") : fotoPerfil;
+    return `${API_URL}${path}`;
+  };
 
   const handleFollow = async () => {
     setLoadingFollow(true);
@@ -81,7 +75,7 @@ export default function UsuarioPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setIsFollowing(true);
-      fetchPerfil(); // 🔁 Actualiza contadores
+      fetchPerfil();
     } catch (err) {
       console.error("❌ Error al seguir:", err);
     } finally {
@@ -96,7 +90,7 @@ export default function UsuarioPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setIsFollowing(false);
-      fetchPerfil(); // 🔁 Actualiza contadores
+      fetchPerfil();
     } catch (err) {
       console.error("❌ Error al dejar de seguir:", err);
     } finally {
@@ -115,12 +109,7 @@ export default function UsuarioPage() {
   return (
     <>
       <Navbar />
-      <Box
-        sx={{
-          minHeight: "100vh",
-          py: { xs: 6, md: 10 },
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", py: { xs: 6, md: 10 } }}>
         <Container maxWidth="lg">
           <Paper
             elevation={6}
@@ -138,7 +127,6 @@ export default function UsuarioPage() {
               alignItems="center"
               justifyContent="space-between"
             >
-              {/* Columna izquierda */}
               <Stack spacing={2} alignItems="center" flex={1}>
                 <Avatar
                   src={getFotoPerfilUrl(perfil?.fotoPerfil) || "/default-avatar.jpg"}
@@ -202,7 +190,6 @@ export default function UsuarioPage() {
                 )}
               </Stack>
 
-              {/* Columna derecha */}
               <Box flex={2}>
                 <Typography variant="h6" fontWeight="bold" mb={1} sx={{ color: "#fff" }}>
                   Sobre el usuario
