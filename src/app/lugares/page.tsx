@@ -14,6 +14,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LugarFormModal from "@/components/LugarFormModal";
 import GoldenBackground from '@/components/GoldenBackground';
+import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
@@ -53,7 +54,6 @@ export default function LugaresPage() {
 
   useEffect(() => {
     setMounted(true);
-
     const favs = JSON.parse(localStorage.getItem("favoritos") || "[]");
     setFavoritos(favs);
 
@@ -196,10 +196,14 @@ export default function LugaresPage() {
                 className="bg-[#1f2937] text-white rounded-2xl p-4 shadow-md space-y-3 cursor-pointer transition-transform hover:-translate-y-2 hover:shadow-lg"
               >
                 {lugar.imagen && (
-                  <img
+                  <Image
                     src={`${API_URL}${lugar.imagen}`}
                     alt={lugar.nombre}
-                    className="w-full h-64 object-cover rounded"
+                    width={500}
+                    height={256}
+                    className="rounded"
+                    style={{ objectFit: "cover", width: "100%", height: "256px" }}
+                    priority
                   />
                 )}
 

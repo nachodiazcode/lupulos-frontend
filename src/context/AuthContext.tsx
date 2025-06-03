@@ -1,13 +1,18 @@
 "use client";
 
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, ReactNode } from "react";
 
 interface Usuario {
   _id: string;
   username: string;
   email: string;
   fotoPerfil?: string;
-  [key: string]: any;
+  ciudad?: string;
+  pais?: string;
+  bio?: string;
+  sitioWeb?: string;
+  pronombres?: string;
+  [key: string]: unknown; // permite extensibilidad sin romper TS
 }
 
 interface AuthContextType {
@@ -26,7 +31,7 @@ export const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 });
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Usuario | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
@@ -34,8 +39,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("authToken");
 
-    if (storedUser) setUser(JSON.parse(storedUser));
-    if (storedToken) setToken(storedToken);
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Error parsing user from localStorage:", e);
+      }
+    }
+
+    if (storedToken) {
+      setToken(storedToken);
+    }
   }, []);
 
   const logout = () => {

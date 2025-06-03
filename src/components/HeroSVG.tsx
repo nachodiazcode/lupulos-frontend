@@ -1,6 +1,7 @@
 "use client";
 
 import { Box } from "@mui/material";
+import Image from "next/image";
 
 export default function HeroSVG() {
   return (
@@ -15,11 +16,13 @@ export default function HeroSVG() {
         alignItems: "center",
       }}
     >
-      {/* Inserta aquí tu archivo SVG directamente o como <img /> si lo tienes en /public */}
-      <img
-        src="/images/lupin-lupina-hero.svg" // Asegúrate que esté en la carpeta public/images/
+      <Image
+        src="/images/lupin-lupina-hero.svg" // Asegúrate de que esté en /public/images/
         alt="Lupín y Lupina brindando"
+        width={720}
+        height={400}
         style={{ width: "100%", height: "auto" }}
+        priority
       />
     </Box>
   );

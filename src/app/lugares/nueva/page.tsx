@@ -7,6 +7,9 @@ import {
   Box, Container, Stack, TextField, Button, Typography, Snackbar, Alert, Slide
 } from "@mui/material";
 
+import type { TransitionProps } from "@mui/material/transitions";
+
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
 
@@ -25,7 +28,7 @@ export default function NuevaLugarPage() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
-  const slideTransition = (props: any) => <Slide {...props} direction="down" />;
+const slideTransition = (props: TransitionProps) => <Slide {...props} direction="down" />;
   const handleCloseSnackbar = () => setSnackbarOpen(false);
 
   const handleGuardarLugar = async () => {
