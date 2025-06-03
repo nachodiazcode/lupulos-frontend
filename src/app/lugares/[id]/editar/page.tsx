@@ -1,8 +1,8 @@
 "use client";
 
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
 import {
   Box,
   Container,
@@ -17,36 +17,27 @@ type User = {
   name: string;
 };
 
-interface Lugar {
-  nombre: string;
-  descripcion: string;
-}
-
 export default function EditarLugarPage() {
+  const { id } = useParams();
   const router = useRouter();
-  const params = useParams();
-  const id = typeof params?.id === "string" ? params.id : "";
 
   const [user, setUser] = useState<User | null>(null);
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
+  const [nombre, setNombre] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [loading, setLoading] = useState(true);
-  const [mensaje, setMensaje] = useState("");
+  const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    if (!token) {
-      router.push("/auth/login");
-    } else {
-      setUser({ name: "Usuario" });
-    }
+    if (!token) router.push("/auth/login");
+    else setUser({ name: "Usuario" });
   }, [router]);
 
   useEffect(() => {
     const fetchLugar = async () => {
       try {
         const res = await fetch(`http://localhost:3940/api/location/${id}`);
-        const data: Lugar = await res.json();
+        const data = await res.json();
         setNombre(data.nombre);
         setDescripcion(data.descripcion);
       } catch (error) {
@@ -131,22 +122,22 @@ export default function EditarLugarPage() {
           alignItems: "center",
           borderBottom: "1px solid #1f2937",
         }}
-      >
+        >
         <Typography variant="h6" fontWeight="bold" color="#fbbf24">
           Lúpulos
         </Typography>
         <Stack direction="row" spacing={3} sx={{ display: { xs: "none", md: "flex" } }}>
-          <Link href="/">Inicio</Link>
-          <Link href="/cervezas">Cervezas</Link>
-          <Link href="/lugares" style={{ color: "#fbbf24" }}>Lugares</Link>
-          <Link href="/posts">Comunidad</Link>
-          <Link href="/planes">Planes</Link>
-          <Link href="/auth/perfil">Mi cuenta</Link>
-          {user ? (
-            <button onClick={handleLogout}>Cerrar sesión</button>
-          ) : (
-            <Link href="/auth/login">Ingresar</Link>
-          )}
+            <Link href="/" >Inicio</Link>
+            <Link href="/cervezas">Cervezas</Link>
+            <Link href="/lugares" style={{ color: "#fbbf24" }}>Lugares</Link>
+            <Link href="/posts">Comunidad</Link>
+            <Link href="/planes">Planes</Link>
+            <Link href="/auth/perfil">Mi cuenta</Link>
+            {user ? (
+              <button onClick={handleLogout}>Cerrar sesión</button>
+            ) : (
+              <Link href="/auth/login">Ingresar</Link>
+            )}
         </Stack>
       </Box>
 
