@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
   Box, Container, Typography, CircularProgress, TextField, Stack,
@@ -60,13 +60,7 @@ export default function PostDetailPage() {
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
-  useEffect(() => {
-    if (!id) return;
-    fetchPost();
-    fetchComentarios();
-  }, [id]);
-
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/post/${id}`);
       setPost(res.data.post);
@@ -77,16 +71,22 @@ export default function PostDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchComentarios = async () => {
+  const fetchComentarios = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/post/${id}/comentarios`);
       setComentarios(res.data.comentarios);
     } catch (err) {
       console.error("❌ Error al cargar comentarios:", err);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchPost();
+    fetchComentarios();
+  }, [id, fetchPost, fetchComentarios]);
 
   const toggleLike = async () => {
     if (!user?._id || !post) return;
@@ -169,7 +169,7 @@ export default function PostDetailPage() {
       <Navbar />
       <Container sx={{ py: 6 }}>
         <Grid container spacing={4}>
-          {/* Columna izquierda - contenido del post */}
+          {/* Contenido del post */}
           <Grid item xs={12} md={7}>
             {editMode ? (
               <>
@@ -230,7 +230,7 @@ export default function PostDetailPage() {
             </Stack>
           </Grid>
 
-          {/* Columna derecha - comentarios */}
+          {/* Comentarios */}
           <Grid item xs={12} md={5}>
             <Typography variant="h6" mb={2}>💬 Comentarios</Typography>
 
