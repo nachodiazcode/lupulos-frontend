@@ -1,7 +1,5 @@
-// 👇 al inicio
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -12,6 +10,7 @@ import {
   Container,
   Alert,
 } from "@mui/material";
+import Image from "next/image";
 
 const amarillo = "#fbbf24";
 
@@ -27,7 +26,6 @@ interface Cerveza {
 export default function EditarCervezaPage() {
   const params = useParams();
   const id = typeof params?.id === "string" ? params.id : "";
-  const router = useRouter();
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -65,8 +63,9 @@ export default function EditarCervezaPage() {
         } else {
           setError("No se encontró la cerveza.");
         }
-      } catch (err: any) {
-        console.error("❌ Error al cargar cerveza:", err.message);
+      } catch (err) {
+        const errorMsg = (err as Error).message || "Error desconocido";
+        console.error("❌ Error al cargar cerveza:", errorMsg);
         setError("Error al cargar los datos de la cerveza.");
       }
     };
@@ -102,7 +101,6 @@ export default function EditarCervezaPage() {
     }
 
     try {
-      // Subir nueva imagen si fue seleccionada
       if (nuevaImagen) {
         const formData = new FormData();
         formData.append("imagen", nuevaImagen);
@@ -128,13 +126,13 @@ export default function EditarCervezaPage() {
       );
 
       sessionStorage.setItem("cervezaEditada", `¡Editaste la cerveza con éxito ${user?.username || "usuario"}! Salud 🍻`);
-
       setSuccess(true);
       setTimeout(() => {
         router.push("/cervezas");
       }, 1200);
     } catch (err) {
-      console.error("❌ Error al actualizar cerveza:", err);
+      const errorMsg = (err as Error).message || "Error al actualizar";
+      console.error("❌ Error al actualizar cerveza:", errorMsg);
       setError("No se pudo actualizar la cerveza.");
     }
   };
@@ -155,11 +153,7 @@ export default function EditarCervezaPage() {
       }}
     >
       <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}
-        >
+        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
           🍺 Editar Cerveza
         </Typography>
 
@@ -212,12 +206,7 @@ export default function EditarCervezaPage() {
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
-            <Button
-              variant="outlined"
-              component="label"
-              color="secondary"
-              sx={{ mt: 2 }}
-            >
+            <Button variant="outlined" component="label" color="secondary" sx={{ mt: 2 }}>
               Cambiar imagen
               <input hidden accept="image/*" type="file" onChange={handleImageChange} />
             </Button>
@@ -255,14 +244,17 @@ export default function EditarCervezaPage() {
                 border: "1px solid #374151",
               }}
             >
-              <img
+              <Image
                 src={preview || `http://localhost:3940${cerveza.imagen}`}
                 alt="Vista previa de la cerveza"
+                width={400}
+                height={400}
                 style={{
                   width: "100%",
                   maxWidth: "400px",
                   borderRadius: "12px",
                   objectFit: "contain",
+                  height: "auto",
                 }}
               />
             </Box>

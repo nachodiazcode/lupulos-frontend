@@ -36,7 +36,7 @@ export default function NuevaCervezaForm() {
 
   const handleCloseSnackbar = () => setSnackbarOpen(false);
 
-  const slideTransition = (props: any) => <Slide {...props} direction="down" />;
+const slideTransition = (props: SlideProps) => <Slide {...props} direction="down" />;
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
