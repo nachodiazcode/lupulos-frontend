@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import {
@@ -40,25 +40,32 @@ interface Beer {
   descripcion: string;
   cerveceria: string;
   imagen?: string;
-  usuario: Usuario;
+  usuario?: Usuario;
   calificacionPromedio?: number;
   reviews?: Review[];
 }
 
 const getRatingLabel = (rating: number | null) => {
   switch (rating) {
-    case 1: return "😐 Regular";
-    case 2: return "🍺 Aceptable";
-    case 3: return "🍻 Buena";
-    case 4: return "🔥 Muy buena";
-    case 5: return "🤩 Excelente";
-    default: return "";
+    case 1:
+      return "😐 Regular";
+    case 2:
+      return "🍺 Aceptable";
+    case 3:
+      return "🍻 Buena";
+    case 4:
+      return "🔥 Muy buena";
+    case 5:
+      return "🤩 Excelente";
+    default:
+      return "";
   }
 };
 
 export default function DetalleCervezaPage() {
-  const { id } = useParams();
   const router = useRouter();
+  const params = useParams();
+  const id = typeof params?.id === "string" ? params.id : "";
 
   const [beer, setBeer] = useState<Beer | null>(null);
   const [user, setUser] = useState<Usuario | null>(null);
@@ -74,35 +81,23 @@ export default function DetalleCervezaPage() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarColor, setSnackbarColor] = useState("#6EE7B7");
 
+  const fetchBeer = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/beer/${id}`);
+      const data = Array.isArray(res.data?.datos) ? res.data.datos[0] : res.data.datos;
+      setBeer(data);
+    } catch (error) {
+      console.error("❌ Error al obtener cerveza:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) setUser(JSON.parse(userData));
-    fetchBeer();
-  }, [id]);
-
-  const fetchBeer = React.useCallback(async () => {
-  try {
-    const res = await axios.get(`${API_URL}/api/beer/${id}`);
-    const data = Array.isArray(res.data?.datos) ? res.data?.datos[0] : res.data?.datos;
-    setBeer(data);
-  } catch (error) {
-    console.error("❌ Error al obtener cerveza:", error);
-  } finally {
-    setLoading(false);
-  }
-}, [id]);
-
-useEffect(() => {
-  const userData = localStorage.getItem("user");
-  if (userData) setUser(JSON.parse(userData));
-  fetchBeer();
-}, [fetchBeer]);
-
-useEffect(() => {
-  const userData = localStorage.getItem("user");
-  if (userData) setUser(JSON.parse(userData));
-  fetchBeer();
-}, [fetchBeer]);
+    if (id) fetchBeer();
+  }, [id, fetchBeer]);
 
   const handleEditComentario = (review: Review) => {
     setEditandoId(review._id);
@@ -113,12 +108,16 @@ useEffect(() => {
   const handleGuardarEdicion = async (reviewId: string) => {
     try {
       const token = localStorage.getItem("authToken");
-      await axios.put(`${API_URL}/api/beer/${id}/review/${reviewId}`, {
-        comentario: nuevoComentario,
-        calificacion: nuevaPuntuacion,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        `${API_URL}/api/beer/${id}/review/${reviewId}`,
+        {
+          comentario: nuevoComentario,
+          calificacion: nuevaPuntuacion,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setSnackbarMessage("Comentario editado ✏️");
       setSnackbarColor("#4ade80");
       setSnackbarOpen(true);
@@ -148,9 +147,13 @@ useEffect(() => {
   const handleRatingSubmit = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      await axios.post(`${API_URL}/api/beer/${id}/rate`, { rating }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        `${API_URL}/api/beer/${id}/rate`,
+        { rating },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setSnackbarMessage("Gracias por tu calificación ⭐");
       setSnackbarColor("#facc15");
       setSnackbarOpen(true);
@@ -164,12 +167,16 @@ useEffect(() => {
     if (!comment.trim()) return;
     try {
       const token = localStorage.getItem("authToken");
-      await axios.post(`${API_URL}/api/beer/${id}/review`, {
-        comentario: comment,
-        calificacion: rating || 5,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        `${API_URL}/api/beer/${id}/review`,
+        {
+          comentario: comment,
+          calificacion: rating || 5,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setComment("");
       setSnackbarMessage("Comentario publicado 💬");
       setSnackbarColor("#38bdf8");
@@ -199,8 +206,12 @@ useEffect(() => {
     }
   };
 
-  if (loading || !beer || !beer.nombre) {
+  if (loading) {
     return <div className="p-10 text-white">Cargando cerveza...</div>;
+  }
+
+  if (!beer) {
+    return <div className="p-10 text-red-500">No se encontró la cerveza 😢</div>;
   }
 
   return (
@@ -213,10 +224,11 @@ useEffect(() => {
             <Image
               src={`${API_URL}${beer.imagen}`}
               alt={beer.nombre}
-              unoptimized
               width={500}
               height={500}
-              className="rounded-2xl shadow-2xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain"
+              priority
+              unoptimized
+              className="rounded-2xl shadow-2xl w-full max-w-xs object-contain"
             />
           )}
         </div>
@@ -227,21 +239,25 @@ useEffect(() => {
             <p className="text-gray-400 mt-1">{beer.tipo} · {beer.abv}% ABV</p>
             <p className="mt-4 text-lg">{beer.descripcion}</p>
             <p className="text-sm text-gray-400 mt-2">Cervecería: {beer.cerveceria}</p>
-            <p className="text-sm text-gray-400">Subido por: <b>{beer.usuario?.username}</b></p>
+            {beer.usuario?.username ? (
+              <p className="text-sm text-gray-400">Subido por: <b>{beer.usuario.username}</b></p>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Subido por un usuario desconocido</p>
+            )}
 
-            {user && beer.usuario?._id === user._id && (
+            {user && beer.usuario && beer.usuario._id === user._id && (
               <div className="flex gap-4 mt-6">
                 <Button
                   variant="contained"
                   onClick={() => router.push(`/cervezas/editar/${beer._id}`)}
-                  sx={{ bgcolor: "#3b82f6", "&:hover": { bgcolor: "#2563eb" }, fontWeight: "bold" }}
+                  sx={{ bgcolor: "#3b82f6" }}
                 >
                   ✏️ Editar
                 </Button>
                 <Button
                   variant="contained"
                   onClick={handleDeleteBeer}
-                  sx={{ bgcolor: "#ef4444", "&:hover": { bgcolor: "#dc2626" }, fontWeight: "bold" }}
+                  sx={{ bgcolor: "#ef4444" }}
                 >
                   🗑️ Eliminar
                 </Button>
@@ -249,20 +265,32 @@ useEffect(() => {
             )}
           </div>
 
+          {/* Calificación promedio */}
           <div>
             <p className="text-sm text-gray-400 mb-1">Calificación promedio:</p>
             <div className="flex items-center gap-3">
-              <Rating name="read-only" value={beer.calificacionPromedio || 0} precision={0.5} readOnly size="large" />
+              <Rating
+                name="read-only"
+                value={beer.calificacionPromedio || 0}
+                precision={0.5}
+                readOnly
+                size="large"
+              />
               <span className="text-lg font-semibold text-yellow-400">
                 {beer.calificacionPromedio?.toFixed(1) || "0.0"} / 5
               </span>
             </div>
           </div>
 
+          {/* Comentarios y calificaciones */}
           {user && (
             <div className="bg-[#1f2937] p-6 rounded-xl space-y-4">
               <h2 className="text-lg font-semibold">Tu opinión 🍻</h2>
-              <Rating value={rating} onChange={(_, newValue) => setRating(newValue)} size="large" />
+              <Rating
+                value={rating}
+                onChange={(_, newValue) => setRating(newValue)}
+                size="large"
+              />
               <p className="text-yellow-400 font-medium">{getRatingLabel(rating)}</p>
               <Button
                 onClick={handleRatingSubmit}
@@ -272,11 +300,19 @@ useEffect(() => {
                 Enviar Calificación
               </Button>
               <TextField
-                fullWidth multiline rows={3}
+                fullWidth
+                multiline
+                rows={3}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Escribe tu comentario..."
-                sx={{ bgcolor: "#111827", borderRadius: 2, mt: 4, mb: 2, textarea: { color: "white" } }}
+                sx={{
+                  bgcolor: "#111827",
+                  borderRadius: 2,
+                  mt: 4,
+                  mb: 2,
+                  textarea: { color: "white" },
+                }}
               />
               <Button
                 onClick={handleCommentSubmit}
@@ -323,7 +359,9 @@ useEffect(() => {
                       >
                         Guardar ✅
                       </Button>
-                      <Button variant="outlined" onClick={() => setEditandoId(null)}>Cancelar</Button>
+                      <Button variant="outlined" onClick={() => setEditandoId(null)}>
+                        Cancelar
+                      </Button>
                     </Stack>
                   </>
                 ) : (
