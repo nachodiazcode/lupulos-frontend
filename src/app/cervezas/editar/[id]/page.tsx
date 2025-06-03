@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -34,6 +34,11 @@ export default function EditarCervezaPage() {
   const [mounted, setMounted] = useState(false);
   const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+
+  const router = useRouter();
+const params = useParams();
+const id = typeof params?.id === "string" ? params.id : "";
+
 
   const [cerveza, setCerveza] = useState<Cerveza>({
     nombre: "",
