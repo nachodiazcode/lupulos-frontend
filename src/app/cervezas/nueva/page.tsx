@@ -14,13 +14,22 @@ import {
   Toolbar,
   Snackbar,
   Slide,
+  SlideProps,
 } from "@mui/material";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
+interface CervezaFormData {
+  nombre: string;
+  cerveceria: string;
+  tipo: string;
+  abv: string;
+  descripcion: string;
+}
+
 export default function NuevaCervezaForm() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CervezaFormData>({
     nombre: "",
     cerveceria: "",
     tipo: "",
@@ -36,7 +45,7 @@ export default function NuevaCervezaForm() {
 
   const handleCloseSnackbar = () => setSnackbarOpen(false);
 
-const slideTransition = (props: SlideProps) => <Slide {...props} direction="down" />;
+  const slideTransition = (props: SlideProps) => <Slide {...props} direction="down" />;
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -91,7 +100,13 @@ const slideTransition = (props: SlideProps) => <Slide {...props} direction="down
       setSuccess(true);
       setSnackbarOpen(true);
       setError("");
-      setFormData({ nombre: "", cerveceria: "", tipo: "", abv: "", descripcion: "" });
+      setFormData({
+        nombre: "",
+        cerveceria: "",
+        tipo: "",
+        abv: "",
+        descripcion: "",
+      });
       setImagen(null);
 
       setTimeout(() => {
@@ -153,13 +168,13 @@ const slideTransition = (props: SlideProps) => <Slide {...props} direction="down
           </Typography>
           <Box component="form" onSubmit={handleSubmit}>
             <Stack spacing={2}>
-              {["nombre", "cerveceria", "tipo", "abv"].map((field) => (
+              {(["nombre", "cerveceria", "tipo", "abv"] as (keyof CervezaFormData)[]).map((field) => (
                 <TextField
                   key={field}
                   label={`${field.charAt(0).toUpperCase() + field.slice(1)} *`}
                   name={field}
                   type={field === "abv" ? "number" : "text"}
-                  value={(formData as any)[field]}
+                  value={formData[field]}
                   onChange={handleChange}
                   fullWidth
                   required
