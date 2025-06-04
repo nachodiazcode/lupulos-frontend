@@ -14,6 +14,9 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useRouter } from "next/navigation";
 
+import Image from "next/image";
+
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
 
@@ -177,7 +180,7 @@ export default function PostPage() {
                   onKeyDown={(e) => e.key === "Enter" && router.push(`/posts/${post._id}`)}
                 >
                   {post.imagenes?.[0] && (
-                    <img
+                    <image
                       src={`${API_URL}${post.imagenes[0]}`}
                       alt={post.titulo}
                       className="w-full h-64 object-cover rounded"
@@ -241,7 +244,7 @@ export default function PostPage() {
           </Button>
           {preview && (
             <Box mt={2}>
-              <img src={preview} alt="preview" style={{ width: "100%", borderRadius: 8 }} />
+              <image src={preview} alt="preview" style={{ width: "100%", borderRadius: 8 }} />
             </Box>
           )}
           <Button
