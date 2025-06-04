@@ -26,7 +26,6 @@ import Image from "next/image";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
 
-// Interfaces
 interface Usuario {
   _id: string;
   username: string;
@@ -34,6 +33,7 @@ interface Usuario {
 }
 
 interface Comentario {
+  _id: string;
   comentario: string;
   usuario?: Usuario;
 }
@@ -50,7 +50,8 @@ interface Post {
 }
 
 export default function PostDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = typeof params?.id === "string" ? params.id : "";
   const router = useRouter();
 
   const [post, setPost] = useState<Post | null>(null);
@@ -61,6 +62,8 @@ export default function PostDetailPage() {
   const [editMode, setEditMode] = useState(false);
   const [tituloEditado, setTituloEditado] = useState("");
   const [contenidoEditado, setContenidoEditado] = useState("");
+  const [comentarioEditado, setComentarioEditado] = useState("");
+  const [comentarioEnEdicion, setComentarioEnEdicion] = useState<string | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -68,6 +71,7 @@ export default function PostDetailPage() {
   }, []);
 
   const fetchPost = useCallback(async () => {
+    if (!id) return;
     try {
       const res = await axios.get(`${API_URL}/api/post/${id}`);
       setPost(res.data.post);
@@ -81,6 +85,7 @@ export default function PostDetailPage() {
   }, [id]);
 
   const fetchComentarios = useCallback(async () => {
+    if (!id) return;
     try {
       const res = await axios.get(`${API_URL}/api/post/${id}/comentarios`);
       setComentarios(res.data.comentarios);
@@ -102,13 +107,8 @@ export default function PostDetailPage() {
     try {
       await axios.post(
         `${API_URL}/api/post/${id}/${endpoint}`,
-        {
-          tipo: "meGusta",
-          userId: user._id,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-        }
+        { tipo: "meGusta", userId: user._id },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
       );
       fetchPost();
     } catch (err) {
@@ -121,18 +121,41 @@ export default function PostDetailPage() {
     try {
       await axios.post(
         `${API_URL}/api/post/${id}/comentario`,
-        {
-          contenido: comentario,
-          usuarioId: user._id,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-        }
+        { contenido: comentario, usuarioId: user._id },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
       );
       setComentario("");
       fetchComentarios();
     } catch (error) {
       console.error("❌ Error al comentar:", error);
+    }
+  };
+
+  const guardarComentarioEditado = async () => {
+    if (!comentarioEnEdicion || !comentarioEditado.trim()) return;
+    try {
+      await axios.put(
+        `${API_URL}/api/post/comentario/${comentarioEnEdicion}`,
+        { contenido: comentarioEditado },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
+      );
+      setComentarioEnEdicion(null);
+      setComentarioEditado("");
+      fetchComentarios();
+    } catch (error) {
+      console.error("❌ Error al editar comentario:", error);
+    }
+  };
+
+  const eliminarComentario = async (comentarioId: string) => {
+    if (!window.confirm("¿Eliminar este comentario?")) return;
+    try {
+      await axios.delete(`${API_URL}/api/post/comentario/${comentarioId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+      });
+      fetchComentarios();
+    } catch (error) {
+      console.error("❌ Error al eliminar comentario:", error);
     }
   };
 
@@ -152,13 +175,8 @@ export default function PostDetailPage() {
     try {
       await axios.put(
         `${API_URL}/api/post/${id}`,
-        {
-          titulo: tituloEditado,
-          contenido: contenidoEditado,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-        }
+        { titulo: tituloEditado, contenido: contenidoEditado },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
       );
       setEditMode(false);
       fetchPost();
@@ -176,8 +194,15 @@ export default function PostDetailPage() {
   }
 
   if (!post) {
-    return <Typography color="error">Post no encontrado</Typography>;
-  }
+  return (
+    <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" bgcolor="#1f1f1f">
+      <Typography variant="h5" sx={{ color: amarillo, textAlign: "center", px: 4 }}>
+        🧐 Parece que este post se fue de paseo...<br />
+        ¿No será momento de subir uno con tu cerveza favorita? 🍺
+      </Typography>
+    </Box>
+  );
+}
 
   const yaDioLike = post.reacciones?.meGusta?.usuarios.includes(user?._id || "");
   const esAutor = post.usuario?._id === user?._id;
@@ -188,58 +213,22 @@ export default function PostDetailPage() {
       <Container sx={{ py: 6 }}>
         {editMode ? (
           <>
-            <TextField
-              fullWidth
-              label="Título"
-              value={tituloEditado}
-              onChange={(e) => setTituloEditado(e.target.value)}
-              sx={{ mb: 2, input: { color: "white" }, label: { color: "#bbb" } }}
-            />
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Contenido"
-              value={contenidoEditado}
-              onChange={(e) => setContenidoEditado(e.target.value)}
-              sx={{ mb: 2, textarea: { color: "white" }, label: { color: "#bbb" } }}
-            />
-            <Button variant="contained" onClick={guardarCambios} sx={{ bgcolor: amarillo, color: "black", mr: 2 }}>
-              Guardar cambios
-            </Button>
-            <Button variant="outlined" onClick={() => setEditMode(false)} sx={{ color: "white", borderColor: "gray" }}>
-              Cancelar
-            </Button>
+            <TextField fullWidth label="Título" value={tituloEditado} onChange={(e) => setTituloEditado(e.target.value)} sx={{ mb: 2, input: { color: "white" }, label: { color: "#bbb" } }} />
+            <TextField fullWidth multiline rows={4} label="Contenido" value={contenidoEditado} onChange={(e) => setContenidoEditado(e.target.value)} sx={{ mb: 2, textarea: { color: "white" }, label: { color: "#bbb" } }} />
+            <Button variant="contained" onClick={guardarCambios} sx={{ bgcolor: amarillo, color: "black", mr: 2 }}>Guardar cambios</Button>
+            <Button variant="outlined" onClick={() => setEditMode(false)} sx={{ color: "white", borderColor: "gray" }}>Cancelar</Button>
           </>
         ) : (
           <>
-            <Typography variant="h4" fontWeight="bold" mb={2}>
-              {post.titulo}
-            </Typography>
+            <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
             {post.imagenes?.[0] && (
-              <Image
-                src={`${API_URL}${post.imagenes[0]}`}
-                alt={post.titulo}
-                width={800}
-                height={400}
-                style={{
-                  width: "100%",
-                  height: "auto",
-                  objectFit: "cover",
-                  borderRadius: 8,
-                  marginBottom: 16,
-                }}
-              />
+              <Image src={`${API_URL}${post.imagenes[0]}`} alt={post.titulo} width={800} height={400} style={{ width: "100%", height: "auto", objectFit: "cover", borderRadius: 8, marginBottom: 16 }} />
             )}
-            <Typography variant="body1" mb={3}>
-              {post.contenido}
-            </Typography>
+            <Typography variant="body1" mb={3}>{post.contenido}</Typography>
           </>
         )}
 
-        <Typography variant="subtitle2" color="gray">
-          Publicado por: @{post.usuario?.username}
-        </Typography>
+        <Typography variant="subtitle2" color="gray">Publicado por: @{post.usuario?.username}</Typography>
 
         <Stack direction="row" spacing={2} alignItems="center" mt={2}>
           <Tooltip title={yaDioLike ? "Quitar saludo vikingo" : "Enviar saludo vikingo"} arrow TransitionComponent={Zoom}>
@@ -252,31 +241,45 @@ export default function PostDetailPage() {
           {esAutor && !editMode && (
             <>
               <Tooltip title="Editar" arrow>
-                <IconButton sx={{ color: "white" }} onClick={() => setEditMode(true)}>
-                  <EditIcon />
-                </IconButton>
+                <IconButton sx={{ color: "white" }} onClick={() => setEditMode(true)}><EditIcon /></IconButton>
               </Tooltip>
               <Tooltip title="Eliminar" arrow>
-                <IconButton sx={{ color: "white" }} onClick={eliminarPost}>
-                  <DeleteIcon />
-                </IconButton>
+                <IconButton sx={{ color: "white" }} onClick={eliminarPost}><DeleteIcon /></IconButton>
               </Tooltip>
             </>
           )}
         </Stack>
 
         <Box mt={5}>
-          <Typography variant="h6" mb={2}>
-            💬 Comentarios
-          </Typography>
-          {comentarios.map((c, i) => (
-            <Box key={i} mb={2} p={2} bgcolor="#111827" borderRadius={2}>
-              <Typography fontWeight="bold">@{c.usuario?.username}</Typography>
-              <Typography variant="body2" color="gray">
-                {c.comentario}
-              </Typography>
-            </Box>
-          ))}
+          <Typography variant="h6" mb={2}>💬 Comentarios</Typography>
+
+          {comentarios.map((c) => {
+            const esAutorComentario = c.usuario?._id === user?._id;
+            const enEdicion = comentarioEnEdicion === c._id;
+            return (
+              <Box key={c._id} mb={2} p={2} bgcolor="#111827" borderRadius={2}>
+                <Typography fontWeight="bold">@{c.usuario?.username}</Typography>
+                {enEdicion ? (
+                  <>
+                    <TextField fullWidth multiline value={comentarioEditado} onChange={(e) => setComentarioEditado(e.target.value)} sx={{ mt: 1, bgcolor: "#1f2937", input: { color: "white" }, textarea: { color: "white" } }} />
+                    <Stack direction="row" spacing={1} mt={1}>
+                      <Button size="small" onClick={guardarComentarioEditado} sx={{ bgcolor: amarillo, color: "black" }}>Guardar</Button>
+                      <Button size="small" onClick={() => setComentarioEnEdicion(null)} sx={{ color: "white", borderColor: "gray" }}>Cancelar</Button>
+                    </Stack>
+                  </>
+                ) : (
+                  <Typography variant="body2" color="gray">{c.comentario}</Typography>
+                )}
+
+                {esAutorComentario && !enEdicion && (
+                  <Stack direction="row" spacing={1} mt={1}>
+                    <Button size="small" onClick={() => { setComentarioEditado(c.comentario); setComentarioEnEdicion(c._id); }} sx={{ color: amarillo }}>Editar</Button>
+                    <Button size="small" onClick={() => eliminarComentario(c._id)} sx={{ color: "red" }}>Eliminar</Button>
+                  </Stack>
+                )}
+              </Box>
+            );
+          })}
 
           <TextField
             fullWidth
@@ -285,13 +288,16 @@ export default function PostDetailPage() {
             onChange={(e) => setComentario(e.target.value)}
             sx={{ mt: 2, bgcolor: "#111827", input: { color: "white" }, borderRadius: 1 }}
           />
-
-          <Button variant="contained" sx={{ mt: 2, bgcolor: amarillo, color: "black" }} onClick={enviarComentario}>
+          <Button
+            variant="contained"
+            sx={{ mt: 2, bgcolor: amarillo, color: "black" }}
+            onClick={enviarComentario}
+          >
             Comentar 💬
           </Button>
         </Box>
       </Container>
       <Footer />
     </Box>
-  );
-}
+  
+)}; 

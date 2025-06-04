@@ -1,15 +1,10 @@
-// ✅ Código corregido para ./src/app/posts/page.tsx
-// ✔️ Se reemplazaron las etiquetas <img> por <Image> de next/image
-// ✔️ ESLint limpio, sin warnings de LCP
-// ✔️ Incluye `unoptimized` para evitar errores en desarrollo con rutas locales
-
 "use client";
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Box, Typography, TextField, Button, Container, Stack, Modal,
-  CircularProgress, IconButton, Tooltip, Zoom, Snackbar, Avatar
+  CircularProgress, IconButton, Tooltip, Zoom
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Navbar from "@/components/Navbar";
@@ -18,7 +13,6 @@ import GoldenBackground from "@/components/GoldenBackground";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
@@ -52,7 +46,6 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [filtro, setFiltro] = useState("");
-  const [toastOpen, setToastOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -126,7 +119,6 @@ export default function PostPage() {
       setImagen(null);
       setPreview(null);
       setModalAbierto(false);
-      setToastOpen(true);
       fetchPosts();
     } catch (err) {
       console.error("❌ Error al subir post:", err);
@@ -141,6 +133,11 @@ export default function PostPage() {
     );
   }
 
+  const postsFiltrados = posts.filter(p =>
+    p.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
+    p.contenido.toLowerCase().includes(filtro.toLowerCase())
+  );
+
   return (
     <Box sx={{ minHeight: "100vh", color: "white", display: "flex", flexDirection: "column" }}>
       <GoldenBackground />
@@ -154,28 +151,36 @@ export default function PostPage() {
           </Button>
         </Stack>
 
-        <TextField fullWidth placeholder="🔍 Buscar por título o contenido..." value={filtro} onChange={(e) => setFiltro(e.target.value)}
-          sx={{ mb: 6, bgcolor: "#1f2937", borderRadius: 2, input: { color: "white" } }} />
+        <TextField
+          fullWidth
+          placeholder="🔍 Buscar por título o contenido..."
+          value={filtro}
+          onChange={(e) => setFiltro(e.target.value)}
+          sx={{ mb: 6, bgcolor: "#1f2937", borderRadius: 2, input: { color: "white" } }}
+        />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts
-            .filter(p => p.titulo.toLowerCase().includes(filtro.toLowerCase()) || p.contenido.toLowerCase().includes(filtro.toLowerCase()))
-            .map(post => {
+        {postsFiltrados.length === 0 ? (
+          <Typography textAlign="center" sx={{ color: amarillo, fontSize: "1.2rem" }}>
+            😢 Aún no has subido ningún artículo. ¡Comparte tu historia cervecera y anima esta comunidad! 🍺
+          </Typography>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {postsFiltrados.map(post => {
               const yaDioLike = post.reacciones?.meGusta?.usuarios.includes(user?._id || "");
               return (
                 <div
                   key={post._id}
                   onClick={() => router.push(`/posts/${post._id}`)}
                   className="cursor-pointer bg-[#1f2937] text-white rounded-2xl p-4 shadow-md space-y-3 transition-transform hover:-translate-y-2 hover:scale-[1.02] hover:shadow-xl active:scale-95"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && router.push(`/posts/${post._id}`)}
                 >
                   {post.imagenes?.[0] && (
-                    <Image
+                    <img
                       src={`${API_URL}${post.imagenes[0]}`}
                       alt={post.titulo}
-                      width={500}
-                      height={250}
                       className="w-full h-64 object-cover rounded"
-                      unoptimized
                     />
                   )}
 
@@ -189,7 +194,9 @@ export default function PostPage() {
                         }}
                         sx={{ color: yaDioLike ? amarillo : "white", transition: "transform 0.2s ease" }}
                       >
-                        {yaDioLike ? <FavoriteIcon sx={{ "&:hover": { transform: "scale(1.2)" } }} /> : <FavoriteBorderIcon sx={{ "&:hover": { transform: "scale(1.2)" } }} />}
+                        {yaDioLike
+                          ? <FavoriteIcon sx={{ "&:hover": { transform: "scale(1.2)" } }} />
+                          : <FavoriteBorderIcon sx={{ "&:hover": { transform: "scale(1.2)" } }} />}
                       </IconButton>
                     </Tooltip>
                   </div>
@@ -200,7 +207,8 @@ export default function PostPage() {
                 </div>
               );
             })}
-        </div>
+          </div>
+        )}
       </Container>
 
       <Modal open={modalAbierto} onClose={() => setModalAbierto(false)}>
@@ -233,14 +241,7 @@ export default function PostPage() {
           </Button>
           {preview && (
             <Box mt={2}>
-              <Image
-                src={preview}
-                alt="preview"
-                width={500}
-                height={250}
-                className="rounded"
-                unoptimized
-              />
+              <img src={preview} alt="preview" style={{ width: "100%", borderRadius: 8 }} />
             </Box>
           )}
           <Button
@@ -253,35 +254,6 @@ export default function PostPage() {
           </Button>
         </Box>
       </Modal>
-
-      <Snackbar
-        open={toastOpen}
-        autoHideDuration={6000}
-        onClose={() => setToastOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            px: 3,
-            py: 2,
-            bgcolor: "#fbbf24",
-            color: "#1f2937",
-            borderRadius: "12px",
-            boxShadow: 4,
-            minWidth: 320,
-          }}
-        >
-          <Avatar src={user?.fotoPerfil || ""} sx={{ width: 48, height: 48 }}>
-            {user?.username?.charAt(0).toUpperCase()}
-          </Avatar>
-          <Typography sx={{ fontWeight: "bold" }}>
-            {user?.username} subiste un artículo interesante 🍺
-          </Typography>
-        </Box>
-      </Snackbar>
 
       <Footer />
     </Box>
