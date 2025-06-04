@@ -180,7 +180,7 @@ export default function PostPage() {
                   onKeyDown={(e) => e.key === "Enter" && router.push(`/posts/${post._id}`)}
                 >
                   {post.imagenes?.[0] && (
-                    <image
+                    <Image
                       src={`${API_URL}${post.imagenes[0]}`}
                       alt={post.titulo}
                       className="w-full h-64 object-cover rounded"
@@ -244,7 +244,7 @@ export default function PostPage() {
           </Button>
           {preview && (
             <Box mt={2}>
-              <image src={preview} alt="preview" style={{ width: "100%", borderRadius: 8 }} />
+              <Image src={preview} alt="preview" style={{ width: "100%", borderRadius: 8 }} />
             </Box>
           )}
           <Button
