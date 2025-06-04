@@ -4,16 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
-  Box,
-  Container,
-  Typography,
-  CircularProgress,
-  TextField,
-  Stack,
-  Button,
-  IconButton,
-  Tooltip,
-  Zoom,
+  Box, Container, Typography, CircularProgress, TextField, Stack,
+  Button, IconButton, Tooltip, Zoom
 } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -50,10 +42,10 @@ interface Post {
 }
 
 export default function PostDetailPage() {
-  const params = useParams();
-  const id = typeof params?.id === "string" ? params.id : "";
+  const { id } = useParams() as { id: string };
   const router = useRouter();
 
+  const [isClient, setIsClient] = useState(false);
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<Usuario | null>(null);
@@ -65,13 +57,14 @@ export default function PostDetailPage() {
   const [comentarioEditado, setComentarioEditado] = useState("");
   const [comentarioEnEdicion, setComentarioEnEdicion] = useState<string | null>(null);
 
+  // ✅ Setea estado cuando ya estamos en el cliente
   useEffect(() => {
+    setIsClient(true);
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
   const fetchPost = useCallback(async () => {
-    if (!id) return;
     try {
       const res = await axios.get(`${API_URL}/api/post/${id}`);
       setPost(res.data.post);
@@ -85,7 +78,6 @@ export default function PostDetailPage() {
   }, [id]);
 
   const fetchComentarios = useCallback(async () => {
-    if (!id) return;
     try {
       const res = await axios.get(`${API_URL}/api/post/${id}/comentarios`);
       setComentarios(res.data.comentarios);
@@ -95,13 +87,36 @@ export default function PostDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    fetchPost();
-    fetchComentarios();
-  }, [fetchPost, fetchComentarios]);
+    if (id) {
+      fetchPost();
+      fetchComentarios();
+    }
+  }, [id, fetchPost, fetchComentarios]);
+
+  // ✅ Previene error de hidratación
+  if (!isClient || loading) {
+    return (
+      <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" sx={{ background: "#111827" }}>
+        <CircularProgress sx={{ color: amarillo }} />
+      </Box>
+    );
+  }
+
+  if (!post) {
+    return (
+      <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" bgcolor="#111827">
+        <Typography color="error" fontSize="1.2rem">
+          😵‍💫 No encontramos este post. Puede que haya sido eliminado.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const yaDioLike = post.reacciones?.meGusta?.usuarios.includes(user?._id || "");
+  const esAutor = post.usuario?._id === user?._id;
 
   const toggleLike = async () => {
     if (!user?._id || !post) return;
-    const yaDioLike = post.reacciones?.meGusta?.usuarios.includes(user._id);
     const endpoint = yaDioLike ? "unlike" : "like";
 
     try {
@@ -134,11 +149,12 @@ export default function PostDetailPage() {
   const guardarComentarioEditado = async () => {
     if (!comentarioEnEdicion || !comentarioEditado.trim()) return;
     try {
-      await axios.put(
-        `${API_URL}/api/post/comentario/${comentarioEnEdicion}`,
-        { contenido: comentarioEditado },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
-      );
+      const res =await axios.put(
+  `${API_URL}/api/post/comentario/${comentarioEnEdicion}`,
+  { comentario: comentarioEditado }, // ✅ CAMBIO CRUCIAL AQUÍ
+  { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
+);
+      console.log("📝 Comentario editado:", res.data);
       setComentarioEnEdicion(null);
       setComentarioEditado("");
       fetchComentarios();
@@ -184,28 +200,6 @@ export default function PostDetailPage() {
       console.error("❌ Error al actualizar post:", error);
     }
   };
-
-  if (loading) {
-    return (
-      <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" sx={{ background: "#111827" }}>
-        <CircularProgress sx={{ color: amarillo }} />
-      </Box>
-    );
-  }
-
-  if (!post) {
-  return (
-    <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" bgcolor="#1f1f1f">
-      <Typography variant="h5" sx={{ color: amarillo, textAlign: "center", px: 4 }}>
-        🧐 Parece que este post se fue de paseo...<br />
-        ¿No será momento de subir uno con tu cerveza favorita? 🍺
-      </Typography>
-    </Box>
-  );
-}
-
-  const yaDioLike = post.reacciones?.meGusta?.usuarios.includes(user?._id || "");
-  const esAutor = post.usuario?._id === user?._id;
 
   return (
     <Box sx={{ minHeight: "100vh", color: "white" }}>
@@ -299,5 +293,5 @@ export default function PostDetailPage() {
       </Container>
       <Footer />
     </Box>
-  
-)}; 
+  );
+}
