@@ -1,11 +1,19 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
-  Box, Container, Typography, CircularProgress, TextField, Stack,
-  Button, IconButton, Tooltip, Zoom
+  Box,
+  Container,
+  Typography,
+  CircularProgress,
+  TextField,
+  Stack,
+  Button,
+  IconButton,
+  Tooltip,
+  Zoom,
 } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -15,13 +23,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 
-// y luego
-<Image src={url} alt="..." width={400} height={300} />
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
 
-// Interfaces necesarias
+// Interfaces
 interface Usuario {
   _id: string;
   username: string;
@@ -62,13 +67,7 @@ export default function PostDetailPage() {
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
- useEffect(() => {
-  fetchPost();
-  fetchComentarios();
-}, [fetchPost, fetchComentarios]);
-
-
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/post/${id}`);
       setPost(res.data.post);
@@ -79,16 +78,21 @@ export default function PostDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchComentarios = async () => {
+  const fetchComentarios = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/post/${id}/comentarios`);
       setComentarios(res.data.comentarios);
     } catch (err) {
       console.error("❌ Error al cargar comentarios:", err);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchPost();
+    fetchComentarios();
+  }, [fetchPost, fetchComentarios]);
 
   const toggleLike = async () => {
     if (!user?._id || !post) return;
@@ -96,12 +100,16 @@ export default function PostDetailPage() {
     const endpoint = yaDioLike ? "unlike" : "like";
 
     try {
-      await axios.post(`${API_URL}/api/post/${id}/${endpoint}`, {
-        tipo: "meGusta",
-        userId: user._id
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
-      });
+      await axios.post(
+        `${API_URL}/api/post/${id}/${endpoint}`,
+        {
+          tipo: "meGusta",
+          userId: user._id,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+        }
+      );
       fetchPost();
     } catch (err) {
       console.error("❌ Error al alternar like:", err);
@@ -111,12 +119,16 @@ export default function PostDetailPage() {
   const enviarComentario = async () => {
     if (!comentario.trim() || !user?._id) return;
     try {
-      await axios.post(`${API_URL}/api/post/${id}/comentario`, {
-        contenido: comentario,
-        usuarioId: user._id
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
-      });
+      await axios.post(
+        `${API_URL}/api/post/${id}/comentario`,
+        {
+          contenido: comentario,
+          usuarioId: user._id,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+        }
+      );
       setComentario("");
       fetchComentarios();
     } catch (error) {
@@ -128,7 +140,7 @@ export default function PostDetailPage() {
     if (!window.confirm("¿Estás seguro que quieres eliminar este post?")) return;
     try {
       await axios.delete(`${API_URL}/api/post/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
       });
       router.push("/posts");
     } catch (error) {
@@ -138,12 +150,16 @@ export default function PostDetailPage() {
 
   const guardarCambios = async () => {
     try {
-      await axios.put(`${API_URL}/api/post/${id}`, {
-        titulo: tituloEditado,
-        contenido: contenidoEditado
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
-      });
+      await axios.put(
+        `${API_URL}/api/post/${id}`,
+        {
+          titulo: tituloEditado,
+          contenido: contenidoEditado,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
+        }
+      );
       setEditMode(false);
       fetchPost();
     } catch (error) {
@@ -197,15 +213,27 @@ export default function PostDetailPage() {
           </>
         ) : (
           <>
-            <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
+            <Typography variant="h4" fontWeight="bold" mb={2}>
+              {post.titulo}
+            </Typography>
             {post.imagenes?.[0] && (
-              <image
+              <Image
                 src={`${API_URL}${post.imagenes[0]}`}
                 alt={post.titulo}
-                style={{ width: "100%", maxHeight: 400, objectFit: "cover", borderRadius: 8, marginBottom: 16 }}
+                width={800}
+                height={400}
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  objectFit: "cover",
+                  borderRadius: 8,
+                  marginBottom: 16,
+                }}
               />
             )}
-            <Typography variant="body1" mb={3}>{post.contenido}</Typography>
+            <Typography variant="body1" mb={3}>
+              {post.contenido}
+            </Typography>
           </>
         )}
 
@@ -238,11 +266,15 @@ export default function PostDetailPage() {
         </Stack>
 
         <Box mt={5}>
-          <Typography variant="h6" mb={2}>💬 Comentarios</Typography>
+          <Typography variant="h6" mb={2}>
+            💬 Comentarios
+          </Typography>
           {comentarios.map((c, i) => (
             <Box key={i} mb={2} p={2} bgcolor="#111827" borderRadius={2}>
               <Typography fontWeight="bold">@{c.usuario?.username}</Typography>
-              <Typography variant="body2" color="gray">{c.comentario}</Typography>
+              <Typography variant="body2" color="gray">
+                {c.comentario}
+              </Typography>
             </Box>
           ))}
 
@@ -254,11 +286,7 @@ export default function PostDetailPage() {
             sx={{ mt: 2, bgcolor: "#111827", input: { color: "white" }, borderRadius: 1 }}
           />
 
-          <Button
-            variant="contained"
-            sx={{ mt: 2, bgcolor: amarillo, color: "black" }}
-            onClick={enviarComentario}
-          >
+          <Button variant="contained" sx={{ mt: 2, bgcolor: amarillo, color: "black" }} onClick={enviarComentario}>
             Comentar 💬
           </Button>
         </Box>
