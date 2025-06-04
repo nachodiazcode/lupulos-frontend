@@ -62,10 +62,12 @@ export default function UsuariosPage() {
     const fetchUsuarios = async () => {
       try {
         const res = await axios.get(`${API_URL}/api/user`);
-        const data = (Array.isArray(res.data) ? res.data : res.data.usuarios || []).map((u, i) => ({
-          ...u,
-          tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
-        }));
+       const data = (Array.isArray(res.data) ? res.data : res.data.usuarios || []).map(
+  (u: Usuario, i) => ({
+    ...u,
+    tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
+  })
+);
         setUsuarios(data);
         setUsuariosFiltrados(data);
       } catch (error) {

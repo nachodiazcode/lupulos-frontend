@@ -13,6 +13,10 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Image from "next/image";
+
+// y luego
+<Image src={url} alt="..." width={400} height={300} />
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 const amarillo = "#fbbf24";
@@ -58,11 +62,11 @@ export default function PostDetailPage() {
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
-  useEffect(() => {
-    if (!id) return;
-    fetchPost();
-    fetchComentarios();
-  }, [id]);
+ useEffect(() => {
+  fetchPost();
+  fetchComentarios();
+}, [fetchPost, fetchComentarios]);
+
 
   const fetchPost = async () => {
     try {
@@ -195,7 +199,7 @@ export default function PostDetailPage() {
           <>
             <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
             {post.imagenes?.[0] && (
-              <img
+              <image
                 src={`${API_URL}${post.imagenes[0]}`}
                 alt={post.titulo}
                 style={{ width: "100%", maxHeight: 400, objectFit: "cover", borderRadius: 8, marginBottom: 16 }}
