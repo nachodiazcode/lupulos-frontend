@@ -24,11 +24,14 @@ import GoldenBackground from "@/components/GoldenBackground";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
-const tipoColor: Record<string, { bg: string; icon: React.ReactNode; label: string }> = {
-  legendario: { bg: "#fbbf24", icon: <EmojiEventsIcon />, label: "LEGENDARIO" },
-  activo: { bg: "#34d399", icon: <FlashOnIcon />, label: "ACTIVO" },
-  nuevo: { bg: "#60a5fa", icon: <SpaIcon />, label: "NUEVO" },
-  default: { bg: "#9ca3af", icon: <SpaIcon />, label: "DESCONOCIDO" },
+const tipoColor: Record<
+  string,
+  { bg: string; icon: React.ElementType; label: string }
+> = {
+  legendario: { bg: "#fbbf24", icon: EmojiEventsIcon, label: "LEGENDARIO" },
+  activo: { bg: "#34d399", icon: FlashOnIcon, label: "ACTIVO" },
+  nuevo: { bg: "#60a5fa", icon: SpaIcon, label: "NUEVO" },
+  default: { bg: "#9ca3af", icon: SpaIcon, label: "DESCONOCIDO" },
 };
 
 interface Usuario {
@@ -62,12 +65,12 @@ export default function UsuariosPage() {
     const fetchUsuarios = async () => {
       try {
         const res = await axios.get(`${API_URL}/api/user`);
-       const data = (Array.isArray(res.data) ? res.data : res.data.usuarios || []).map(
-  (u: Usuario, i) => ({
-    ...u,
-    tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
-  })
-);
+        const data = (Array.isArray(res.data) ? res.data : res.data.usuarios || []).map(
+          (u: Usuario, i: number) => ({
+            ...u,
+            tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
+          })
+        );
         setUsuarios(data);
         setUsuariosFiltrados(data);
       } catch (error) {
@@ -147,6 +150,7 @@ export default function UsuariosPage() {
             {usuariosFiltrados.map((user) => {
               const tipo = user.tipo?.toLowerCase() || "default";
               const estilo = tipoColor[tipo];
+              const Icono = estilo.icon;
 
               return (
                 <Box
@@ -191,7 +195,7 @@ export default function UsuariosPage() {
                   </Typography>
 
                   <Chip
-                    icon={estilo.icon}
+                    icon={<Icono />}
                     label={estilo.label}
                     sx={{
                       mt: 2,
