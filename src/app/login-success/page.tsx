@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,7 +19,7 @@ export default function LoginSuccessPage() {
         _id: userId,
         email,
         username,
-        fotoPerfil: "https://www.example.com/default-avatar.jpg", // Puedes personalizar esto
+        fotoPerfil: "https://www.example.com/default-avatar.jpg",
       };
 
       localStorage.setItem("authToken", token);
