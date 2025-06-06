@@ -13,6 +13,14 @@ ssh root@64.23.255.101 << 'EOF'
   echo "🛠️  Compilando producción..."
   npm run build
 
-  echo "🔁 Reiniciando PM2..."
+  echo "📤 Exportando sitio estático..."
+  npm run export
+
+  echo "🔁 Reiniciando PM2 (API)..."
   pm2 restart lupulosapp
+
+  echo "🌀 Reiniciando Nginx..."
+  sudo systemctl restart nginx
+
+  echo "✅ ¡Despliegue completo!"
 EOF
