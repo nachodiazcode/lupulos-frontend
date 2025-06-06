@@ -232,3 +232,5 @@ Inspirado por el espíritu del lúpulo y el poder del código abierto 🍻
 ## 📄 Licencia
 
 MIT © Ignacio Sergio Díaz
+
+## npm run export 
