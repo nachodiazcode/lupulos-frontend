@@ -68,7 +68,7 @@ export default function HomePage() {
           position: "relative",
         }}
       >
-        Encuentra cervezas únicas, bares escondidos, eventos vikingos y comparte tu pasión por el lúpulo. Bienvenido a tu comunidad cervecera.
+        Encuentra cervezas artesanales, bares escondidos, eventos vikingos y comparte tu pasión por el lúpulo. Bienvenido a tu comunidad cervecera.
       </Typography>
 
       {/* BOTONES */}
@@ -93,7 +93,7 @@ export default function HomePage() {
           }}
           onClick={() => router.push("/auth/login")}
         >
-          Iniciar Sesión
+          Explorar Cervezas
         </Button>
 
         <Button
