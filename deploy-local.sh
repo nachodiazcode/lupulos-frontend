@@ -1,44 +1,40 @@
 #!/bin/bash
 
-echo "🚀 Deploying Lúpulos Frontend..."
+echo "🚀 Deploying Lúpulos Frontend locally..."
 
-# ✅ Ir al directorio del frontend
-cd /var/www/lupulos-frontend || {
-  echo "❌ No se pudo acceder a /var/www/lupulos-frontend"
+# 📁 Ir al directorio del proyecto
+cd /Users/ignaciodiaz/Documents/proyectos/lupulos-api/lupulos-frontend || {
+  echo "❌ Project directory not found. Aborting..."
   exit 1
 }
 
-# 📁 Mostrar en qué ruta estamos (debug útil)
-echo "📂 Ubicación actual: $(pwd)"
-
-# ✅ Cargar variables de entorno
-if [ -f .env.production ]; then
-  export $(cat .env.production | grep -v '^#' | xargs)
+# 🌍 Cargar variables de entorno locales
+if [ -f .env.local ]; then
+  export $(cat .env.local | grep -v '^#' | xargs)
 else
-  echo "⚠️ No se encontró .env.production. Abortando..."
-  exit 1
+  echo "⚠️ .env.local file not found. Skipping environment loading..."
 fi
 
-# ✅ Instalar dependencias
-echo "📦 Instalando dependencias..."
+# 📦 Instalar dependencias
+echo "📦 Installing dependencies..."
 npm install || {
-  echo "❌ Error al instalar dependencias"
+  echo "❌ Failed to install dependencies"
   exit 1
 }
 
-# ✅ Generar build de producción
-echo "🔧 Generando build..."
+# 🔧 Build de producción local
+echo "🔧 Building project..."
 npm run build || {
-  echo "❌ Error al generar el build"
+  echo "❌ Build failed"
   exit 1
 }
 
-# ✅ Iniciar con PM2
-echo "♻️ Iniciando Frontend con PM2..."
-pm2 delete lupulos-frontend || true
-pm2 start npm --name "lupulos-frontend" -- run start
+# 🚀 Ejecutar con PM2
+echo "♻️ Starting local frontend with PM2..."
+pm2 delete lupulos-frontend-local || true
+pm2 start npm --name "lupulos-frontend-local" -- run start
 
-# ✅ Guardar configuración de PM2
+# 💾 Guardar estado de PM2
 pm2 save
 
-echo "✅ Frontend desplegado correctamente!"
+echo "✅ Lúpulos Frontend is running locally with success!"
