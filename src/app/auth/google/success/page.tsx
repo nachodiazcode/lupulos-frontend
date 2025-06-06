@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import useAuth from "@/hooks/useAuth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://64.23.255.101:3940";
 
 export default function GoogleSuccessPage() {
   const router = useRouter();

@@ -56,7 +56,7 @@ const navItems: NavItem[] = [
   { text: "Usuarios", href: "/usuarios", icon: <GroupIcon /> },
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://64.23.255.101:3940";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);

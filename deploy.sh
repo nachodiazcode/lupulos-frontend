@@ -1,23 +1,27 @@
 #!/bin/bash
 
-echo "🚀 Conectando al servidor remoto..."
-ssh root@64.23.255.101 << 'EOF'
-  cd /var/www/lupulos-frontend || exit
+echo "🚀 Deploying Lúpulos Frontend..."
 
-  echo "📥 Haciendo git pull..."
-  git pull origin main
+# Ir al directorio del frontend
+cd /var/www/lupulos-frontend
 
-  echo "📦 Instalando dependencias..."
-  npm install
+# Cargar variables de entorno
+export $(cat .env.production | grep -v '^#' | xargs)
 
-  echo "🛠️  Compilando producción (Next.js export)..."
-  npm run build
+# Instalar dependencias
+echo "📦 Instalando dependencias..."
+npm install
 
-  echo "🔁 Reiniciando API con PM2..."
-  pm2 restart lupulos-api
+# Build de producción
+echo "🔧 Generando build..."
+npm run build
 
-  echo "🌀 Reiniciando Nginx..."
-  sudo systemctl restart nginx
+# Iniciar con PM2
+echo "♻️ Iniciando Frontend con PM2..."
+pm2 delete lupulos-frontend
+pm2 start npm --name "lupulos-frontend" -- run start
 
-  echo "✅ ¡Despliegue completo!"
-EOF
+# Guardar configuración de PM2
+pm2 save
+
+echo "✅ Frontend desplegado correctamente!"

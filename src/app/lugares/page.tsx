@@ -16,7 +16,7 @@ import LugarFormModal from "@/components/LugarFormModal";
 import GoldenBackground from '@/components/GoldenBackground';
 import Image from "next/image";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://64.23.255.101:3940";
 const amarillo = "#fbbf24";
 
 interface Comentario {

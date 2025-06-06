@@ -51,7 +51,7 @@ export default function EditarCervezaPage() {
   useEffect(() => {
     const fetchCerveza = async () => {
       try {
-        const res = await axios.get(`http://localhost:3940/api/beer/${id}`);
+        const res = await axios.get(`http://64.23.255.101/api/beer/${id}`);
         const data = res.data?.datos;
         if (data) {
           setCerveza({
@@ -108,7 +108,7 @@ export default function EditarCervezaPage() {
         formData.append("imagen", nuevaImagen);
 
         const resUpload = await axios.post(
-          `http://localhost:3940/api/beer/${id}/upload-image`,
+          `http://64.23.255.101:3940/api/beer/${id}/upload-image`,
           formData,
           {
             headers: {
@@ -122,7 +122,7 @@ export default function EditarCervezaPage() {
       }
 
       await axios.put(
-        `http://localhost:3940/api/beer/${id}`,
+        `http://64.23.255.101:3940/api/beer/${id}`,
         { ...cerveza, abv: parseFloat(cerveza.abv) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -247,7 +247,7 @@ export default function EditarCervezaPage() {
               }}
             >
               <Image
-                src={preview || `http://localhost:3940${cerveza.imagen}`}
+                src={preview || `http://64.23.255.101:3940${cerveza.imagen}`}
                 alt="Vista previa de la cerveza"
                 width={400}
                 height={400}

@@ -22,7 +22,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:3940/api/auth/register", {
+      const res = await fetch("http://64.23.255.101:3940/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

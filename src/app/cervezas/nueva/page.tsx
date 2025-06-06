@@ -79,7 +79,7 @@ export default function NuevaCervezaForm() {
       const token = localStorage.getItem("authToken");
 
       const resCrear = await axios.post(
-        "http://localhost:3940/api/beer",
+        "http://64.23.255.101:3940/api/beer",
         { ...formData, abv: Number(abv) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -91,7 +91,7 @@ export default function NuevaCervezaForm() {
         formImg.append("imagen", imagen);
 
         await axios.post(
-          `http://localhost:3940/api/beer/${cervezaId}/upload`,
+          `http://64.23.255.101:3940api/beer/${cervezaId}/upload`,
           formImg,
           { headers: { Authorization: `Bearer ${token}` } }
         );
