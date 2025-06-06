@@ -10,14 +10,11 @@ ssh root@64.23.255.101 << 'EOF'
   echo "📦 Instalando dependencias..."
   npm install
 
-  echo "🛠️  Compilando producción..."
+  echo "🛠️  Compilando producción (Next.js export)..."
   npm run build
 
-  echo "📤 Exportando sitio estático..."
-  npm run export
-
-  echo "🔁 Reiniciando PM2 (API)..."
-  pm2 restart lupulosapp
+  echo "🔁 Reiniciando API con PM2..."
+  pm2 restart lupulos-api
 
   echo "🌀 Reiniciando Nginx..."
   sudo systemctl restart nginx
