@@ -93,7 +93,7 @@ export default function HomePage() {
           }}
           onClick={() => router.push("/auth/login")}
         >
-          Explorar Cervezas
+          Explorar Cervezas 🍺
         </Button>
 
         <Button
