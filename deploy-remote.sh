@@ -1,26 +1,24 @@
 #!/bin/bash
 
-echo "🚀 Conectando al servidor remoto..."
+echo "🚀 Desplegando Lúpulos Frontend localmente..."
 
-ssh -tt root@64.23.255.101 << 'EOF'
-  echo "📁 Entrando al directorio del frontend..."
-  cd /var/www/lupulos-frontend
+# Cargar variables de entorno
+export $(cat .env.local | grep -v '^#' | xargs)
 
-  echo "🔄 Haciendo git pull..."
-  git pull origin main
+# Instalar dependencias
+echo "📦 Instalando dependencias..."
+npm install
 
-  echo "📦 Instalando dependencias..."
-  npm install
+# Generar build local
+echo "🔧 Generando build..."
+npm run build
 
-  echo "🔧 Generando build de producción..."
-  npm run build
+# Iniciar con PM2
+echo "♻️ Iniciando Frontend con PM2 local..."
+pm2 delete lupulos-frontend-local || true
+pm2 start npm --name "lupulos-frontend-local" -- run start
 
-  echo "♻️ Reiniciando Frontend con PM2..."
-  pm2 delete lupulos-frontend || true
-  pm2 start npm --name "lupulos-frontend" -- run start
+# Guardar proceso en PM2
+pm2 save
 
-  echo "💾 Guardando configuración de PM2..."
-  pm2 save
-
-  echo "✅ ¡Deploy completado en el servidor remoto!"
-EOF
+echo "✅ Frontend local corriendo con éxito!"
