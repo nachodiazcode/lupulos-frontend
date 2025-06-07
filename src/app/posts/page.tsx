@@ -182,6 +182,7 @@ export default function PostPage() {
                   {post.imagenes?.[0] && (
                     <Image
                       src={`${API_URL}${post.imagenes[0]}`}
+                      unoptimized
                       alt={post.titulo}
                       className="w-full h-64 object-cover rounded"
                     />

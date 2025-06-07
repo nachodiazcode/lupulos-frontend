@@ -201,6 +201,7 @@ export default function LugaresPage() {
                     alt={lugar.nombre}
                     width={500}
                     height={256}
+                    unoptimized
                     className="rounded"
                     style={{ objectFit: "cover", width: "100%", height: "256px" }}
                     priority
