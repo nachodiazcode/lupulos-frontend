@@ -108,7 +108,7 @@ export default function EditarCervezaPage() {
         formData.append("imagen", nuevaImagen);
 
         const resUpload = await axios.post(
-          `http://64.23.255.101:3940/api/beer/${id}/upload-image`,
+          `https://lupulos.app/api/beer/${id}/upload-image`,
           formData,
           {
             headers: {
@@ -122,7 +122,7 @@ export default function EditarCervezaPage() {
       }
 
       await axios.put(
-        `http://64.23.255.101:3940/api/beer/${id}`,
+        `https://lupulos.app/api/api/beer/${id}`,
         { ...cerveza, abv: parseFloat(cerveza.abv) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -247,7 +247,7 @@ export default function EditarCervezaPage() {
               }}
             >
               <Image
-                src={preview || `http://64.23.255.101:3940${cerveza.imagen}`}
+                src={preview || `https://lupulos.app/api0${cerveza.imagen}`}
                 alt="Vista previa de la cerveza"
                 width={400}
                 height={400}

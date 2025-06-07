@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://64.23.255.101:3940";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 const amarillo = "#fbbf24";
 
 interface Usuario {

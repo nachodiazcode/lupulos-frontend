@@ -36,7 +36,7 @@ export default function EditarLugarPage() {
   useEffect(() => {
     const fetchLugar = async () => {
       try {
-        const res = await fetch(`http://64.23.255.101:3940/api/location/${id}`);
+        const res = await fetch(`https://lupulos.app/api/location/${id}`);
         const data = await res.json();
         setNombre(data.nombre);
         setDescripcion(data.descripcion);
@@ -60,7 +60,7 @@ export default function EditarLugarPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("authToken");
-      const res = await fetch(`http://64.23.255.101:3940/api/location/${id}`, {
+      const res = await fetch(`https://lupulos.app/api/location/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

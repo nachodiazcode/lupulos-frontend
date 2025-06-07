@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import type { TransitionProps } from "@mui/material/transitions";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://64.23.255.101:3940";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 const amarillo = "#fbbf24";
 
 // ✅ Transición corregida con forwardRef
