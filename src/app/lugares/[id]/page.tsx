@@ -138,6 +138,7 @@ export default function LugarDetallePage() {
               alt={lugar.nombre}
               width={400}
               height={400}
+              unoptimized
               className="rounded-lg object-cover shadow-xl"
               priority
             />

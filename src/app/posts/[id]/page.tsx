@@ -149,11 +149,11 @@ export default function PostDetailPage() {
   const guardarComentarioEditado = async () => {
     if (!comentarioEnEdicion || !comentarioEditado.trim()) return;
     try {
-      const res =await axios.put(
-  `${API_URL}/api/post/comentario/${comentarioEnEdicion}`,
-  { comentario: comentarioEditado }, // ✅ CAMBIO CRUCIAL AQUÍ
-  { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
-);
+      const res = await axios.put(
+        `${API_URL}/api/post/comentario/${comentarioEnEdicion}`,
+        { comentario: comentarioEditado }, // ✅ CAMBIO CRUCIAL AQUÍ
+        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
+      );
       console.log("📝 Comentario editado:", res.data);
       setComentarioEnEdicion(null);
       setComentarioEditado("");
@@ -216,7 +216,8 @@ export default function PostDetailPage() {
           <>
             <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
             {post.imagenes?.[0] && (
-              <Image src={`${API_URL}${post.imagenes[0]}`} alt={post.titulo} width={800} height={400} style={{ width: "100%", height: "auto", objectFit: "cover", borderRadius: 8, marginBottom: 16 }} />
+              <Image src={`${API_URL}${post.imagenes[0]}`}
+                alt={post.titulo} width={800} height={400} unoptimized style={{ width: "100%", height: "auto", objectFit: "cover", borderRadius: 8, marginBottom: 16 }} />
             )}
             <Typography variant="body1" mb={3}>{post.contenido}</Typography>
           </>
