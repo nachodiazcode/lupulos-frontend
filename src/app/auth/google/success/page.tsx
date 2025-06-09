@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import useAuth from "@/hooks/useAuth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 export default function GoogleSuccessPage() {
   const router = useRouter();
