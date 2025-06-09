@@ -22,7 +22,7 @@ export default function RegisterPage() {
     }
 
     const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940"; // fallback local
-    
+
     try {
       const res = await fetch(`${API}/auth/register`, {
         method: "POST",
@@ -113,3 +113,4 @@ export default function RegisterPage() {
       </div>
     );
   }
+}
