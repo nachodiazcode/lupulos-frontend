@@ -16,7 +16,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
 
 interface Usuario {
   _id: string;

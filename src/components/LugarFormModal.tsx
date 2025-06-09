@@ -16,7 +16,7 @@ import { useState } from "react";
 import axios from "axios";
 import Image from "next/image";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
 
 interface Props {
   open: boolean;
