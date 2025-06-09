@@ -64,8 +64,8 @@ export default function CervezasPage() {
   const fetchCervezas = async (query = "") => {
     try {
       const url = query
-        ? `${API_URL}/beer/search?nombre=${query}`
-        : `${API_URL}/beer`;
+        ? `${API_URL}/api/beer/search?nombre=${query}`
+        : `${API_URL}/api/beer`;
       const res = await axios.get(url);
       if (res.data.exito) setCervezas(res.data.datos);
     } catch (error) {
@@ -86,7 +86,7 @@ export default function CervezasPage() {
     if (!token) return;
 
     try {
-      await axios.post(`${API_URL}/beer/${beerId}/${userHasLiked ? "unlike" : "like"}`, {}, {
+      await axios.post(`${API_URL}/api/beer/${beerId}/${userHasLiked ? "unlike" : "like"}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSnackbarMessage(userHasLiked ? "Like eliminado ❌" : "¡Saludo vikingo enviado! 🍻");
@@ -102,7 +102,7 @@ export default function CervezasPage() {
     if (!user || !newComments[beerId]?.trim()) return;
     try {
       const token = localStorage.getItem("authToken");
-      await axios.post(`${API_URL}/beer/${beerId}/review`, {
+      await axios.post(`${API_URL}/api/beer/${beerId}/review`, {
         comentario: newComments[beerId],
         calificacion: 5,
       }, {
