@@ -56,7 +56,7 @@ const navItems: NavItem[] = [
   { text: "Usuarios", href: "/usuarios", icon: <GroupIcon /> },
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);

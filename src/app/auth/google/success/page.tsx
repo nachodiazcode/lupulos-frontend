@@ -11,12 +11,11 @@ import {
 } from "@mui/material";
 import useAuth from "@/hooks/useAuth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
 
 export default function GoogleSuccessPage() {
   const router = useRouter();
   const { setUser, setToken } = useAuth();
-
   const [progress, setProgress] = useState(0);
   const [openToast, setOpenToast] = useState(false);
 

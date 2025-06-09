@@ -21,7 +21,7 @@ export default function RegisterPage() {
       return;
     }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
 
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
