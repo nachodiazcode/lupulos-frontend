@@ -83,7 +83,7 @@ export default function DetalleCervezaPage() {
 
   const fetchBeer = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/beer/${id}`);
+      const res = await axios.get(`${API_URL}/beer/${id}`);
       const data = Array.isArray(res.data?.datos) ? res.data.datos[0] : res.data.datos;
       setBeer(data);
     } catch (error) {
@@ -109,7 +109,7 @@ export default function DetalleCervezaPage() {
     try {
       const token = localStorage.getItem("authToken");
       await axios.put(
-        `${API_URL}/api/beer/${id}/review/${reviewId}`,
+        `${API_URL}/beer/${id}/review/${reviewId}`,
         {
           comentario: nuevoComentario,
           calificacion: nuevaPuntuacion,
@@ -148,7 +148,7 @@ export default function DetalleCervezaPage() {
     try {
       const token = localStorage.getItem("authToken");
       await axios.post(
-        `${API_URL}/api/beer/${id}/rate`,
+        `${API_URL}/beer/${id}/rate`,
         { rating },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -168,7 +168,7 @@ export default function DetalleCervezaPage() {
     try {
       const token = localStorage.getItem("authToken");
       await axios.post(
-        `${API_URL}/api/beer/${id}/review`,
+        `${API_URL}/beer/${id}/review`,
         {
           comentario: comment,
           calificacion: rating || 5,
@@ -191,7 +191,7 @@ export default function DetalleCervezaPage() {
     if (!window.confirm("¿Estás seguro de que quieres eliminar esta cerveza?")) return;
     try {
       const token = localStorage.getItem("authToken");
-      await axios.delete(`${API_URL}/api/beer/${id}`, {
+      await axios.delete(`${API_URL}/beer/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSnackbarMessage("Cerveza eliminada correctamente 🍺❌");

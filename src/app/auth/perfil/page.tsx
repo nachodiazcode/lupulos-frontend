@@ -56,7 +56,7 @@ export default function PerfilPage() {
         if (!userStr || !token) return;
 
         const user = JSON.parse(userStr);
-        const { data } = await axios.get(`${API_URL}/api/auth/perfil/${user._id}`, {
+        const { data } = await axios.get(`${API_URL}/auth/perfil/${user._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -82,7 +82,7 @@ export default function PerfilPage() {
   const handleGuardar = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      await axios.put(`${API_URL}/api/auth/perfil/${perfil?.usuario._id}`, formData, {
+      await axios.put(`${API_URL}/auth/perfil/${perfil?.usuario._id}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEditMode(false);
@@ -100,7 +100,7 @@ export default function PerfilPage() {
     try {
       const form = new FormData();
       form.append("fotoPerfil", file);
-      const res = await axios.post(`${API_URL}/api/auth/upload/profile`, form, {
+      const res = await axios.post(`${API_URL}/auth/upload/profile`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -109,7 +109,7 @@ export default function PerfilPage() {
         const token = localStorage.getItem("authToken");
 
         await axios.put(
-          `${API_URL}/api/auth/perfil/${perfil?.usuario._id}`,
+          `${API_URL}/auth/perfil/${perfil?.usuario._id}`,
           { fotoPerfil: ruta },
           { headers: { Authorization: `Bearer ${token}` } }
         );
