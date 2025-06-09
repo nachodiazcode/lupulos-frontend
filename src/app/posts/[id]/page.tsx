@@ -15,7 +15,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 const amarillo = "#fbbf24";
 
 interface Usuario {

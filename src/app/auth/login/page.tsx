@@ -9,7 +9,7 @@ import { Box, Snackbar, Alert } from "@mui/material";
 import GoldenBackground from "@/components/GoldenBackground";
 import useAuth from "@/hooks/useAuth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 export default function LoginPage() {
   const router = useRouter();

@@ -22,7 +22,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 const tipoColor: Record<
   string,
