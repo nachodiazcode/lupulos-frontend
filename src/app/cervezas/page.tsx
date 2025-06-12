@@ -18,8 +18,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 import BeerFormModal from "@/components/BeerFormModal";
+import Image from "next/image";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://64.23.255.101:3940";
 
 interface Review {
   comentario: string;
@@ -127,7 +128,7 @@ export default function CervezasPage() {
       <GoldenBackground />
       <Navbar />
 
-      <Container maxWidth="lg" sx={{   px: 2, mt: 4, mb: 6, flex: 1, position: "relative", zIndex: 2 }}>
+      <Container maxWidth="lg" sx={{ px: 2, mt: 4, mb: 6, flex: 1, position: "relative", zIndex: 2 }}>
         <Box component="form" onSubmit={handleSearchSubmit} sx={{ mb: 4 }}>
           <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" spacing={3}>
             <Typography variant="h5">🔍 Buscar cervezas</Typography>
@@ -167,11 +168,13 @@ export default function CervezasPage() {
                 sx={{ backgroundColor: "#1f2937", color: "white", borderRadius: 4, p: 3, boxShadow: 2, cursor: "pointer", display: "flex", flexDirection: "column", gap: 1.5 }}
               >
                 {beer.imagen && (
-                  <Box
-                    component="img"
+                  <Image
                     src={`${API_URL}${beer.imagen}`}
                     alt={beer.nombre}
-                    sx={{ width: "100%", borderRadius: 2, objectFit: "cover" }}
+                    width={500}
+                    height={300}
+                    unoptimized
+                    style={{ width: "100%", height: "auto", borderRadius: "12px", objectFit: "cover" }}
                   />
                 )}
                 <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -231,7 +234,6 @@ export default function CervezasPage() {
           })}
         </Box>
 
-        {/* MODAL */}
         <BeerFormModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
