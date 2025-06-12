@@ -19,7 +19,7 @@ import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 import BeerFormModal from "@/components/BeerFormModal";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://lupulos.app/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
 interface Review {
   comentario: string;
