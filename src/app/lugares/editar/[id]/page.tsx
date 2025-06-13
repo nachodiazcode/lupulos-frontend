@@ -44,7 +44,6 @@ export default function EditarLugarPage() {
         console.log("✅ Respuesta lugar:", data);
 
         const lugar = data.data;
-
         if (!lugar) throw new Error("Lugar no encontrado");
 
         setNombre(lugar.nombre || "");
@@ -85,14 +84,11 @@ export default function EditarLugarPage() {
         const formData = new FormData();
         formData.append("imagen", nuevaImagen);
 
-        const resUpload = await fetch(
-          `${API_URL}/api/location/${id}/upload-image`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData,
-          }
-        );
+        const resUpload = await fetch(`${API_URL}/api/location/${id}/upload-image`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
 
         const dataUpload = await resUpload.json();
         setImagen(dataUpload.datos.imagen);
@@ -187,9 +183,7 @@ export default function EditarLugarPage() {
               onChange={(e) => setNombre(e.target.value)}
               margin="normal"
               required
-              InputProps={{
-                style: { backgroundColor: "#374151", color: "white" },
-              }}
+              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
@@ -202,9 +196,7 @@ export default function EditarLugarPage() {
               multiline
               rows={4}
               required
-              InputProps={{
-                style: { backgroundColor: "#374151", color: "white" },
-              }}
+              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
@@ -223,16 +215,8 @@ export default function EditarLugarPage() {
               />
             </Button>
 
-            {mensaje && (
-              <Alert severity="warning" sx={{ mt: 2 }}>
-                {mensaje}
-              </Alert>
-            )}
-            {success && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                ¡Lugar actualizado con éxito!
-              </Alert>
-            )}
+            {mensaje && <Alert severity="warning" sx={{ mt: 2 }}>{mensaje}</Alert>}
+            {success && <Alert severity="success" sx={{ mt: 2 }}>¡Lugar actualizado con éxito!</Alert>}
 
             <Button
               type="submit"
@@ -269,6 +253,9 @@ export default function EditarLugarPage() {
                 alt="Vista previa del lugar"
                 width={400}
                 height={400}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/no-image.png";
+                }}
                 style={{
                   width: "100%",
                   maxWidth: "400px",
@@ -281,15 +268,7 @@ export default function EditarLugarPage() {
         </Box>
       </Container>
 
-      <Box
-        sx={{
-          textAlign: "center",
-          py: 4,
-          fontSize: 14,
-          color: "#aaa",
-          borderTop: "1px solid #1f2937",
-        }}
-      >
+      <Box sx={{ textAlign: "center", py: 4, fontSize: 14, color: "#aaa", borderTop: "1px solid #1f2937" }}>
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍺 por Nacho Díaz
       </Box>
     </Box>
