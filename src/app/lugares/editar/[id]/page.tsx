@@ -2,47 +2,42 @@
 
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import {
-  Box,
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Stack,
-  Alert,
+  Box, Container, Typography, TextField, Button,
+  Alert
 } from "@mui/material";
 import Image from "next/image";
 
-type User = { name: string };
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
+const amarillo = "#fbbf24";
+
+const getImagenUrl = (img: string) => {
+  if (!img) return "/no-image.png";
+  const base = API_URL.replace(/\/+$/, "");
+  const path = img.replace(/^\/+/, "");
+  return `${base}/${path}`;
+};
 
 export default function EditarLugarPage() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [user, setUser] = useState<User | null>(null);
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [imagen, setImagen] = useState("");
+  const [nombre, setNombre] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [imagen, setImagen] = useState('');
+  const [preview, setPreview] = useState<string | null>(null);
+  const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mensaje, setMensaje] = useState("");
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) router.push("/auth/login");
-    else setUser({ name: "Usuario" });
-  }, [router]);
+  const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
     const fetchLugar = async () => {
       try {
-        const res = await fetch(`${API_URL}/location/${id}`);
+        const res = await fetch(`${API_URL}/api/location/${id}`);
         const data = await res.json();
-        setNombre(data.nombre);
-        setDescripcion(data.descripcion);
-        setImagen(data.imagen);
+        setNombre(data.nombre || "");
+        setDescripcion(data.descripcion || "");
+        setImagen(data.imagen || "");
       } catch (error) {
         console.error("❌ Error al cargar lugar:", error);
         setMensaje("❌ No se pudo cargar el lugar");
@@ -53,11 +48,41 @@ export default function EditarLugarPage() {
     if (id) fetchLugar();
   }, [id]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNuevaImagen(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMensaje("");
+
     try {
       const token = localStorage.getItem("authToken");
-      const res = await fetch(`${API_URL}/location/${id}`, {
+
+      if (!token) {
+        setMensaje("No autenticado");
+        return;
+      }
+
+      if (nuevaImagen) {
+        const formData = new FormData();
+        formData.append("imagen", nuevaImagen);
+
+        const resUpload = await fetch(`${API_URL}/api/location/${id}/upload-image`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+
+        const dataUpload = await resUpload.json();
+        setImagen(dataUpload.datos.imagen);
+      }
+
+      const res = await fetch(`${API_URL}/api/location/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -66,11 +91,11 @@ export default function EditarLugarPage() {
         body: JSON.stringify({ nombre, descripcion }),
       });
 
-      if (res.ok) {
-        router.push("/lugares");
-      } else {
+      if (!res.ok) {
         const data = await res.json();
         setMensaje(`❌ ${data.message}`);
+      } else {
+        router.push("/lugares");
       }
     } catch (error) {
       console.error("❌ Error al enviar:", error);
@@ -78,90 +103,24 @@ export default function EditarLugarPage() {
     }
   };
 
-  const getImagenUrl = (img: string) => {
-    if (!img) return "/no-image.png";
-    const base = API_URL.replace(/\/+$/, "");
-    const path = img.replace(/^\/+/, "");
-    return `${base}/${path}`;
-  };
-
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          bgcolor: "#0e0e0e",
-          color: "#fbbf24",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", color: amarillo, display: "flex", justifyContent: "center", alignItems: "center" }}>
         <Typography variant="h6" sx={{ animation: "pulse 1.5s infinite" }}>
-          Cargando lugar... 🍻
+          Cargando Lugar... 🍻
         </Typography>
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#0e0e0e",
-        background: "linear-gradient(to bottom, #111827, #0f0f0f)",
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Box
-        component="header"
-        sx={{
-          px: 4,
-          py: 3,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderBottom: "1px solid #1f2937",
-        }}
-      >
-        <Typography variant="h6" fontWeight="bold" color="#fbbf24">
-          Lúpulos
-        </Typography>
-        <Stack direction="row" spacing={3} sx={{ display: { xs: "none", md: "flex" } }}>
-          <Link href="/">Inicio</Link>
-          <Link href="/cervezas">Cervezas</Link>
-          <Link href="/lugares" style={{ color: "#fbbf24" }}>Lugares</Link>
-          <Link href="/posts">Comunidad</Link>
-          <Link href="/planes">Planes</Link>
-          <Link href="/auth/perfil">Mi cuenta</Link>
-          {user ? (
-            <button onClick={() => {
-              localStorage.removeItem("authToken");
-              setUser(null);
-              router.push("/auth/login");
-            }}>
-              Cerrar sesión
-            </button>
-          ) : (
-            <Link href="/auth/login">Ingresar</Link>
-          )}
-        </Stack>
-      </Box>
-
+    <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", background: "linear-gradient(to bottom, #111827, #0f0f0f)", color: "white", display: "flex", flexDirection: "column" }}>
       <Container maxWidth="md" sx={{ py: 6, flexGrow: 1 }}>
-        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: "#fbbf24", mb: 4 }}>
+        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
           🏙️ Editar Lugar
         </Typography>
 
-        <Box sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: 4,
-          alignItems: "flex-start",
-          justifyContent: "center",
-        }}>
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, alignItems: "flex-start", justifyContent: "center" }}>
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -175,26 +134,33 @@ export default function EditarLugarPage() {
             }}
           >
             <TextField
+              fullWidth
               label="Nombre"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
+              margin="normal"
               required
-              fullWidth
               InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
               InputLabelProps={{ style: { color: "#ccc" } }}
-              sx={{ mb: 2 }}
             />
+
             <TextField
+              fullWidth
               label="Descripción"
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              required
+              margin="normal"
               multiline
               rows={4}
-              fullWidth
+              required
               InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
+
+            <Button variant="outlined" component="label" color="secondary" sx={{ mt: 2 }}>
+              Cambiar imagen
+              <input hidden accept="image/*" type="file" onChange={handleImageChange} />
+            </Button>
 
             {mensaje && <Alert severity="warning" sx={{ mt: 2 }}>{mensaje}</Alert>}
 
@@ -204,7 +170,7 @@ export default function EditarLugarPage() {
               variant="contained"
               sx={{
                 mt: 4,
-                bgcolor: "#fbbf24",
+                bgcolor: amarillo,
                 color: "#000",
                 fontWeight: "bold",
                 "&:hover": { bgcolor: "#facc15" },
@@ -214,7 +180,7 @@ export default function EditarLugarPage() {
             </Button>
           </Box>
 
-          {imagen && (
+          {(preview || imagen) && (
             <Box
               sx={{
                 flex: 1,
@@ -229,8 +195,8 @@ export default function EditarLugarPage() {
               }}
             >
               <Image
-                src={getImagenUrl(imagen)}
-                alt="Imagen del lugar"
+                src={preview || getImagenUrl(imagen)}
+                alt="Vista previa del lugar"
                 width={400}
                 height={400}
                 style={{
@@ -245,13 +211,7 @@ export default function EditarLugarPage() {
         </Box>
       </Container>
 
-      <Box sx={{
-        textAlign: "center",
-        py: 4,
-        fontSize: 14,
-        color: "#aaa",
-        borderTop: "1px solid #1f2937",
-      }}>
+      <Box sx={{ textAlign: "center", py: 4, fontSize: 14, color: "#aaa", borderTop: "1px solid #1f2937" }}>
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍺 por Nacho Díaz
       </Box>
     </Box>
