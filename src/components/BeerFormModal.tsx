@@ -13,6 +13,8 @@ import {
 import { useState } from "react";
 import axios from "axios";
 
+import Image from "next/image";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 interface Props {
@@ -203,7 +205,7 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
               <Typography variant="body2" color="#fbbf24">
                 Previsualización:
               </Typography>
-              <img
+              <Image
                 src={preview}
                 alt="preview"
                 style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
