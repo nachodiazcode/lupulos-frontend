@@ -13,7 +13,7 @@ import {
 import { useState } from "react";
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 interface Props {
   open: boolean;
@@ -100,10 +100,17 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
     setPreview(null);
 
   } catch (error: unknown) {
-    const err = error as any;
-    console.error("❌ Error al subir cerveza:", err.response?.data || err.message);
-    alert(err.response?.data?.mensaje || "Ocurrió un error al subir la cerveza.");
+  if (axios.isAxiosError(error)) {
+    console.error("❌ Error al subir cerveza:", error.response?.data || error.message);
+    alert(error.response?.data?.mensaje || "Ocurrió un error al subir la cerveza.");
+  } else if (error instanceof Error) {
+    console.error("❌ Error inesperado:", error.message);
+    alert("Error inesperado al subir la cerveza.");
+  } else {
+    console.error("❌ Error desconocido:", error);
+    alert("Error desconocido al subir la cerveza.");
   }
+}
 };
 
 

@@ -10,12 +10,13 @@ import {
   Button,
   Typography,
   Container,
-  Alert,
-  Image
+  Alert
 } from "@mui/material";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
+import Image from "next/image";
 
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 const amarillo = "#fbbf24";
 
@@ -55,7 +56,7 @@ export default function EditarCervezaPage() {
   useEffect(() => {
     const fetchCerveza = async () => {
       try {
-        const res = await axios.get(`http://localhost:3940/api/beer/${id}`);
+        const res = await axios.get(`${API_URL}/api/beer/${id}`);
         const data = res.data?.datos;
         if (data) {
           setCerveza({
@@ -69,10 +70,16 @@ export default function EditarCervezaPage() {
         } else {
           setError("No se encontró la cerveza.");
         }
-      } catch (err: any) {
-        console.error("❌ Error al cargar cerveza:", err.message);
-        setError("Error al cargar los datos de la cerveza.");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error("❌ Error al cargar cerveza:", err.message);
+          setError("Error al cargar los datos de la cerveza.");
+        } else {
+          console.error("❌ Error desconocido:", err);
+          setError("Ocurrió un error inesperado.");
+        }
       }
+
     };
 
     if (id) fetchCerveza();
