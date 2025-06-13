@@ -1,4 +1,3 @@
-// 👇 al inicio
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
@@ -12,12 +11,9 @@ import {
   Container,
   Alert
 } from "@mui/material";
-
 import Image from "next/image";
 
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-
 const amarillo = "#fbbf24";
 
 interface Cerveza {
@@ -28,6 +24,12 @@ interface Cerveza {
   descripcion: string;
   imagen: string;
 }
+
+// ✅ Función para corregir el doble /api en la imagen
+const getImagenUrl = (imagen: string): string => {
+  const baseUrl = API_URL.replace(/\/api$/, "");
+  return `${baseUrl}/${imagen}`;
+};
 
 export default function EditarCervezaPage() {
   const params = useParams();
@@ -79,7 +81,6 @@ export default function EditarCervezaPage() {
           setError("Ocurrió un error inesperado.");
         }
       }
-
     };
 
     if (id) fetchCerveza();
@@ -113,7 +114,6 @@ export default function EditarCervezaPage() {
     }
 
     try {
-      // Subir nueva imagen si fue seleccionada
       if (nuevaImagen) {
         const formData = new FormData();
         formData.append("imagen", nuevaImagen);
@@ -139,11 +139,8 @@ export default function EditarCervezaPage() {
       );
 
       sessionStorage.setItem("cervezaEditada", `¡Editaste la cerveza con éxito ${user?.username || "usuario"}! Salud 🍻`);
-
       setSuccess(true);
-      setTimeout(() => {
-        router.push("/cervezas");
-      }, 1200);
+      setTimeout(() => router.push("/cervezas"), 1200);
     } catch (err) {
       console.error("❌ Error al actualizar cerveza:", err);
       setError("No se pudo actualizar la cerveza.");
@@ -166,11 +163,7 @@ export default function EditarCervezaPage() {
       }}
     >
       <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}
-        >
+        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
           🍺 Editar Cerveza
         </Typography>
 
@@ -223,12 +216,7 @@ export default function EditarCervezaPage() {
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
-            <Button
-              variant="outlined"
-              component="label"
-              color="secondary"
-              sx={{ mt: 2 }}
-            >
+            <Button variant="outlined" component="label" color="secondary" sx={{ mt: 2 }}>
               Cambiar imagen
               <input hidden accept="image/*" type="file" onChange={handleImageChange} />
             </Button>
@@ -267,10 +255,7 @@ export default function EditarCervezaPage() {
               }}
             >
               <Image
-                src={
-                  preview
-                  || (cerveza.imagen ? `${API_URL}/api/${cerveza.imagen}` : "/no-image.png")
-                }
+                src={preview || getImagenUrl(cerveza.imagen)}
                 alt="Vista previa de la cerveza"
                 style={{
                   width: "100%",
@@ -279,7 +264,6 @@ export default function EditarCervezaPage() {
                   objectFit: "contain",
                 }}
               />
-
             </Box>
           )}
         </Box>
