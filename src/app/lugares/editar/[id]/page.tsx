@@ -8,15 +8,16 @@ import {
   Typography,
   TextField,
   Button,
-  Alert,
+  Alert
 } from "@mui/material";
 import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 const amarillo = "#fbbf24";
 
-const getImagenUrl = (img: string) => {
+const getImagenUrl = (img: string): string => {
   if (!img) return "/no-image.png";
+  if (img.startsWith("http")) return img;
   const base = API_URL.replace(/\/+$/, "");
   const path = img.replace(/^\/+/, "");
   return `${base}/${path}`;
@@ -105,7 +106,7 @@ export default function EditarLugarPage() {
         setTimeout(() => router.push("/lugares"), 1200);
       }
     } catch (error) {
-      console.error("❌ Error al enviar:", error);
+      console.error("❌ Error al guardar:", error);
       setMensaje("❌ Error inesperado al guardar.");
     }
   };
@@ -141,11 +142,7 @@ export default function EditarLugarPage() {
       }}
     >
       <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}
-        >
+        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
           🏙️ Editar Lugar
         </Typography>
 
@@ -158,6 +155,7 @@ export default function EditarLugarPage() {
             justifyContent: "center",
           }}
         >
+          {/* Formulario */}
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -177,9 +175,7 @@ export default function EditarLugarPage() {
               onChange={(e) => setNombre(e.target.value)}
               margin="normal"
               required
-              InputProps={{
-                style: { backgroundColor: "#374151", color: "white" },
-              }}
+              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
@@ -190,39 +186,19 @@ export default function EditarLugarPage() {
               onChange={(e) => setDescripcion(e.target.value)}
               margin="normal"
               multiline
-              rows={4}
+              rows={3}
               required
-              InputProps={{
-                style: { backgroundColor: "#374151", color: "white" },
-              }}
+              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
-            <Button
-              variant="outlined"
-              component="label"
-              color="secondary"
-              sx={{ mt: 2 }}
-            >
+            <Button variant="outlined" component="label" color="secondary" sx={{ mt: 2 }}>
               Cambiar imagen
-              <input
-                hidden
-                accept="image/*"
-                type="file"
-                onChange={handleImageChange}
-              />
+              <input hidden accept="image/*" type="file" onChange={handleImageChange} />
             </Button>
 
-            {mensaje && (
-              <Alert severity="warning" sx={{ mt: 2 }}>
-                {mensaje}
-              </Alert>
-            )}
-            {success && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                ¡Lugar actualizado con éxito!
-              </Alert>
-            )}
+            {mensaje && <Alert severity="warning" sx={{ mt: 2 }}>{mensaje}</Alert>}
+            {success && <Alert severity="success" sx={{ mt: 2 }}>¡Lugar actualizado con éxito!</Alert>}
 
             <Button
               type="submit"
@@ -240,6 +216,7 @@ export default function EditarLugarPage() {
             </Button>
           </Box>
 
+          {/* Imagen */}
           {(preview || imagen) && (
             <Box
               sx={{
