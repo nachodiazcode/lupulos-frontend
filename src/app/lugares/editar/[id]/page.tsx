@@ -35,29 +35,33 @@ export default function EditarLugarPage() {
   const [mensaje, setMensaje] = useState("");
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    const fetchLugar = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/location/${id}`);
-        if (!res.ok) throw new Error("Lugar no encontrado");
+ useEffect(() => {
+  const fetchLugar = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/location/${id}`);
+      const data = await res.json();
 
-        const data = await res.json();
-        console.log("✅ Respuesta lugar:", data);
-        const lugar = data.datos;
+      console.log("✅ Respuesta lugar:", data);
 
-        setNombre(lugar.nombre || "");
-        setDescripcion(lugar.descripcion || "");
-        setImagen(lugar.imagen || "");
-      } catch (error) {
-        console.error("❌ Error al cargar lugar:", error);
-        setMensaje("❌ No se pudo cargar el lugar.");
-      } finally {
-        setLoading(false);
+      if (!data?.datos) {
+        throw new Error("Lugar no encontrado");
       }
-    };
 
-    if (id) fetchLugar();
-  }, [id]);
+      const lugar = data.datos;
+      setNombre(lugar.nombre || "");
+      setDescripcion(lugar.descripcion || "");
+      setImagen(lugar.imagen || "");
+    } catch (error) {
+      console.error("❌ Error al cargar lugar:", error);
+      setMensaje("❌ No se pudo cargar el lugar.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (id) fetchLugar();
+}, [id]);
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
