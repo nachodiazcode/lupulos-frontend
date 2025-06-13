@@ -60,7 +60,7 @@ export default function EditarCervezaPage() {
   useEffect(() => {
     const fetchCerveza = async () => {
       try {
-        const res = await axios.get(`${API_URL}api/beer/${id}`);
+        const res = await axios.get(`${API_URL}/api/beer/${id}`);
         const data = res.data?.datos;
         if (data) {
           setCerveza({
@@ -116,7 +116,8 @@ export default function EditarCervezaPage() {
         formData.append("imagen", nuevaImagen);
 
         const resUpload = await axios.post(
-          `${API_URL}/beer/${id}/upload-image`,
+          `${API_URL}/api
+          /beer/${id}/upload-image`,
           formData,
           {
             headers: {
@@ -130,7 +131,7 @@ export default function EditarCervezaPage() {
       }
 
       await axios.put(
-        `${API_URL}/beer/${id}`,
+        `${API_URL}/api/beer/${id}`,
         { ...cerveza, abv: parseFloat(cerveza.abv) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
