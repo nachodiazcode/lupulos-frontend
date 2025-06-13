@@ -34,6 +34,7 @@ export default function EditarLugarPage() {
   const [imagen, setImagen] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
+  const [imagenError, setImagenError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState("");
   const [success, setSuccess] = useState(false);
@@ -66,6 +67,7 @@ export default function EditarLugarPage() {
     if (file) {
       setNuevaImagen(file);
       setPreview(URL.createObjectURL(file));
+      setImagenError(false); // reinicia si había error anterior
     }
   };
 
@@ -81,7 +83,6 @@ export default function EditarLugarPage() {
         return;
       }
 
-      // Subida de nueva imagen
       if (nuevaImagen) {
         const formData = new FormData();
         formData.append("imagen", nuevaImagen);
@@ -96,7 +97,6 @@ export default function EditarLugarPage() {
         setImagen(dataUpload.datos.imagen);
       }
 
-      // Actualización del lugar
       const res = await fetch(`${API_URL}/api/location/${id}`, {
         method: "PATCH",
         headers: {
@@ -203,21 +203,25 @@ export default function EditarLugarPage() {
                 border: "1px solid #374151",
               }}
             >
-             <img
-  src={preview || getImagenUrl(imagen)}
-  alt="Vista previa del lugar"
-  width={400}
-  height={400}
-  onError={(e) => {
-    (e.currentTarget as HTMLImageElement).src = "/no-image.png";
-  }}
-  style={{
-    width: "100%",
-    maxWidth: "400px",
-    borderRadius: "12px",
-    objectFit: "contain",
-  }}
-/>
+              <Image
+                src={
+                  preview
+                    ? preview
+                    : imagenError
+                    ? "/no-image.png"
+                    : getImagenUrl(imagen)
+                }
+                alt="Vista previa del lugar"
+                width={400}
+                height={400}
+                onError={() => setImagenError(true)}
+                style={{
+                  width: "100%",
+                  maxWidth: "400px",
+                  borderRadius: "12px",
+                  objectFit: "contain",
+                }}
+              />
             </Box>
           )}
         </Box>
