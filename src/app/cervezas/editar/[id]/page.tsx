@@ -116,8 +116,7 @@ export default function EditarCervezaPage() {
         formData.append("imagen", nuevaImagen);
 
         const resUpload = await axios.post(
-          `${API_URL}/api
-          /beer/${id}/upload-image`,
+          `${API_URL}/api/beer/${id}/upload-image`,
           formData,
           {
             headers: {
