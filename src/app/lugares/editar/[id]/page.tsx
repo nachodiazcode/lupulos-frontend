@@ -35,33 +35,31 @@ export default function EditarLugarPage() {
   const [mensaje, setMensaje] = useState("");
   const [success, setSuccess] = useState(false);
 
- useEffect(() => {
-  const fetchLugar = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/location/${id}`);
-      const data = await res.json();
+  useEffect(() => {
+    const fetchLugar = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/location/${id}`);
+        const data = await res.json();
 
-      console.log("✅ Respuesta lugar:", data);
+        console.log("✅ Respuesta lugar:", data);
 
-      if (!data?.datos) {
-        throw new Error("Lugar no encontrado");
+        const lugar = data.data;
+
+        if (!lugar) throw new Error("Lugar no encontrado");
+
+        setNombre(lugar.nombre || "");
+        setDescripcion(lugar.descripcion || "");
+        setImagen(lugar.imagen || "");
+      } catch (error) {
+        console.error("❌ Error al cargar lugar:", error);
+        setMensaje("❌ No se pudo cargar el lugar.");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const lugar = data.datos;
-      setNombre(lugar.nombre || "");
-      setDescripcion(lugar.descripcion || "");
-      setImagen(lugar.imagen || "");
-    } catch (error) {
-      console.error("❌ Error al cargar lugar:", error);
-      setMensaje("❌ No se pudo cargar el lugar.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (id) fetchLugar();
-}, [id]);
-
+    if (id) fetchLugar();
+  }, [id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,22 +81,23 @@ export default function EditarLugarPage() {
         return;
       }
 
-      // Subir imagen si se seleccionó una nueva
       if (nuevaImagen) {
         const formData = new FormData();
         formData.append("imagen", nuevaImagen);
 
-        const resUpload = await fetch(`${API_URL}/api/location/${id}/upload-image`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
+        const resUpload = await fetch(
+          `${API_URL}/api/location/${id}/upload-image`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          }
+        );
 
         const dataUpload = await resUpload.json();
         setImagen(dataUpload.datos.imagen);
       }
 
-      // Actualizar datos del lugar
       const res = await fetch(`${API_URL}/api/location/${id}`, {
         method: "PATCH",
         headers: {
@@ -123,7 +122,16 @@ export default function EditarLugarPage() {
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", color: amarillo, display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "#0e0e0e",
+          color: amarillo,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Typography variant="h6" sx={{ animation: "pulse 1.5s infinite" }}>
           Cargando Lugar... 🍻
         </Typography>
@@ -143,11 +151,23 @@ export default function EditarLugarPage() {
       }}
     >
       <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
-        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
+        <Typography
+          variant="h4"
+          align="center"
+          sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}
+        >
           🏙️ Editar Lugar
         </Typography>
 
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, alignItems: "flex-start", justifyContent: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 4,
+            alignItems: "flex-start",
+            justifyContent: "center",
+          }}
+        >
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -167,7 +187,9 @@ export default function EditarLugarPage() {
               onChange={(e) => setNombre(e.target.value)}
               margin="normal"
               required
-              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
+              InputProps={{
+                style: { backgroundColor: "#374151", color: "white" },
+              }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
@@ -180,17 +202,37 @@ export default function EditarLugarPage() {
               multiline
               rows={4}
               required
-              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
+              InputProps={{
+                style: { backgroundColor: "#374151", color: "white" },
+              }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
-            <Button variant="outlined" component="label" color="secondary" sx={{ mt: 2 }}>
+            <Button
+              variant="outlined"
+              component="label"
+              color="secondary"
+              sx={{ mt: 2 }}
+            >
               Cambiar imagen
-              <input hidden accept="image/*" type="file" onChange={handleImageChange} />
+              <input
+                hidden
+                accept="image/*"
+                type="file"
+                onChange={handleImageChange}
+              />
             </Button>
 
-            {mensaje && <Alert severity="warning" sx={{ mt: 2 }}>{mensaje}</Alert>}
-            {success && <Alert severity="success" sx={{ mt: 2 }}>¡Lugar actualizado con éxito!</Alert>}
+            {mensaje && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                {mensaje}
+              </Alert>
+            )}
+            {success && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                ¡Lugar actualizado con éxito!
+              </Alert>
+            )}
 
             <Button
               type="submit"
@@ -239,7 +281,15 @@ export default function EditarLugarPage() {
         </Box>
       </Container>
 
-      <Box sx={{ textAlign: "center", py: 4, fontSize: 14, color: "#aaa", borderTop: "1px solid #1f2937" }}>
+      <Box
+        sx={{
+          textAlign: "center",
+          py: 4,
+          fontSize: 14,
+          color: "#aaa",
+          borderTop: "1px solid #1f2937",
+        }}
+      >
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍺 por Nacho Díaz
       </Box>
     </Box>
