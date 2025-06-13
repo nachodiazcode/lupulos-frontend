@@ -25,7 +25,7 @@ interface Cerveza {
   imagen: string;
 }
 
-// ✅ Función para corregir el doble /api en la imagen
+// ✅ Evitar doble /api en la ruta de imagen
 const getImagenUrl = (imagen: string): string => {
   const baseUrl = API_URL.replace(/\/api$/, "");
   return `${baseUrl}/${imagen}`;
@@ -73,13 +73,8 @@ export default function EditarCervezaPage() {
           setError("No se encontró la cerveza.");
         }
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.error("❌ Error al cargar cerveza:", err.message);
-          setError("Error al cargar los datos de la cerveza.");
-        } else {
-          console.error("❌ Error desconocido:", err);
-          setError("Ocurrió un error inesperado.");
-        }
+        console.error("❌ Error al cargar cerveza:", err);
+        setError("Ocurrió un error al cargar los datos.");
       }
     };
 
@@ -257,6 +252,8 @@ export default function EditarCervezaPage() {
               <Image
                 src={preview || getImagenUrl(cerveza.imagen)}
                 alt="Vista previa de la cerveza"
+                width={400}
+                height={400}
                 style={{
                   width: "100%",
                   maxWidth: "400px",
