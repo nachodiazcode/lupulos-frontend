@@ -266,19 +266,19 @@ export default function EditarCervezaPage() {
                 border: "1px solid #374151",
               }}
             >
-             <Image
-  src={
-    preview
-      || (cerveza.imagen ? `${API_URL}${cerveza.imagen}` : "/no-image.png")
-  }
-  alt="Vista previa de la cerveza"
-  style={{
-    width: "100%",
-    maxWidth: "400px",
-    borderRadius: "12px",
-    objectFit: "contain",
-  }}
-/>
+              <Image
+                src={
+                  preview
+                  || (cerveza.imagen ? `${API_URL}/api/${cerveza.imagen}` : "/no-image.png")
+                }
+                alt="Vista previa de la cerveza"
+                style={{
+                  width: "100%",
+                  maxWidth: "400px",
+                  borderRadius: "12px",
+                  objectFit: "contain",
+                }}
+              />
 
             </Box>
           )}
