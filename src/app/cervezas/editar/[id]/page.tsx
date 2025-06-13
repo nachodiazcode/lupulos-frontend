@@ -25,10 +25,15 @@ interface Cerveza {
   imagen: string;
 }
 
-// ✅ Evitar doble /api en la ruta de imagen
+// ✅ Manejo robusto de URL de imagen (respeta /api si es necesario)
 const getImagenUrl = (imagen: string): string => {
-  const baseUrl = API_URL.replace(/\/api$/, "");
-  return `${baseUrl}/${imagen}`;
+  if (!imagen) return "/no-image.png";
+  const isAbsolute = imagen.startsWith("http");
+  if (isAbsolute) return imagen;
+
+  const needsApi = API_URL.endsWith("/api");
+  const prefix = needsApi ? API_URL : `${API_URL}/api`;
+  return `${prefix}/${imagen}`;
 };
 
 export default function EditarCervezaPage() {
@@ -51,9 +56,7 @@ export default function EditarCervezaPage() {
     imagen: "",
   });
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const fetchCerveza = async () => {
@@ -72,7 +75,7 @@ export default function EditarCervezaPage() {
         } else {
           setError("No se encontró la cerveza.");
         }
-      } catch (err: unknown) {
+      } catch (err) {
         console.error("❌ Error al cargar cerveza:", err);
         setError("Ocurrió un error al cargar los datos.");
       }
@@ -147,30 +150,26 @@ export default function EditarCervezaPage() {
   if (!mounted) return null;
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#0e0e0e",
-        background: "linear-gradient(to bottom, #111827, #0f0f0f)",
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <Box sx={{
+      minHeight: "100vh",
+      bgcolor: "#0e0e0e",
+      background: "linear-gradient(to bottom, #111827, #0f0f0f)",
+      color: "white",
+      display: "flex",
+      flexDirection: "column",
+    }}>
       <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
         <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
           🍺 Editar Cerveza
         </Typography>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            gap: 4,
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
-        >
+        <Box sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: 4,
+          alignItems: "flex-start",
+          justifyContent: "center",
+        }}>
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -266,15 +265,13 @@ export default function EditarCervezaPage() {
         </Box>
       </Container>
 
-      <Box
-        sx={{
-          textAlign: "center",
-          py: 4,
-          fontSize: 14,
-          color: "#aaa",
-          borderTop: "1px solid #1f2937",
-        }}
-      >
+      <Box sx={{
+        textAlign: "center",
+        py: 4,
+        fontSize: 14,
+        color: "#aaa",
+        borderTop: "1px solid #1f2937",
+      }}>
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍻 por Nacho Díaz
       </Box>
     </Box>
