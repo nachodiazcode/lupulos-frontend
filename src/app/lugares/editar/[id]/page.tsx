@@ -15,10 +15,13 @@ import Image from "next/image";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 const amarillo = "#fbbf24";
 
-const getImagenUrl = (img: string) => {
-  if (!img) return "/no-image.png";
+const getImagenUrl = (imagen: string): string => {
+  if (!imagen) return "/no-image.png";
+  if (imagen.startsWith("http")) return imagen;
+
   const base = API_URL.replace(/\/+$/, "");
-  const path = img.replace(/^\/+/, "");
+  const path = imagen.replace(/^\/+/, "");
+
   return `${base}/${path}`;
 };
 
@@ -40,10 +43,8 @@ export default function EditarLugarPage() {
       try {
         const res = await fetch(`${API_URL}/api/location/${id}`);
         const data = await res.json();
+        const lugar = data?.datos || data?.data;
 
-        console.log("✅ Respuesta lugar:", data);
-
-        const lugar = data.data;
         if (!lugar) throw new Error("Lugar no encontrado");
 
         setNombre(lugar.nombre || "");
@@ -80,6 +81,7 @@ export default function EditarLugarPage() {
         return;
       }
 
+      // Subida de nueva imagen
       if (nuevaImagen) {
         const formData = new FormData();
         formData.append("imagen", nuevaImagen);
@@ -94,6 +96,7 @@ export default function EditarLugarPage() {
         setImagen(dataUpload.datos.imagen);
       }
 
+      // Actualización del lugar
       const res = await fetch(`${API_URL}/api/location/${id}`, {
         method: "PATCH",
         headers: {
@@ -118,52 +121,20 @@ export default function EditarLugarPage() {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          bgcolor: "#0e0e0e",
-          color: amarillo,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h6" sx={{ animation: "pulse 1.5s infinite" }}>
-          Cargando Lugar... 🍻
-        </Typography>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", color: amarillo, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <Typography variant="h6">Cargando Lugar... 🍻</Typography>
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#0e0e0e",
-        background: "linear-gradient(to bottom, #111827, #0f0f0f)",
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", background: "linear-gradient(to bottom, #111827, #0f0f0f)", color: "white", display: "flex", flexDirection: "column" }}>
       <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}
-        >
+        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
           🏙️ Editar Lugar
         </Typography>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            gap: 4,
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
-        >
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, alignItems: "flex-start", justifyContent: "center" }}>
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -200,19 +171,9 @@ export default function EditarLugarPage() {
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
-            <Button
-              variant="outlined"
-              component="label"
-              color="secondary"
-              sx={{ mt: 2 }}
-            >
+            <Button variant="outlined" component="label" color="secondary" sx={{ mt: 2 }}>
               Cambiar imagen
-              <input
-                hidden
-                accept="image/*"
-                type="file"
-                onChange={handleImageChange}
-              />
+              <input hidden accept="image/*" type="file" onChange={handleImageChange} />
             </Button>
 
             {mensaje && <Alert severity="warning" sx={{ mt: 2 }}>{mensaje}</Alert>}
@@ -222,13 +183,7 @@ export default function EditarLugarPage() {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{
-                mt: 4,
-                bgcolor: amarillo,
-                color: "#000",
-                fontWeight: "bold",
-                "&:hover": { bgcolor: "#facc15" },
-              }}
+              sx={{ mt: 4, bgcolor: amarillo, color: "#000", fontWeight: "bold", "&:hover": { bgcolor: "#facc15" } }}
             >
               Guardar Cambios
             </Button>
@@ -253,8 +208,8 @@ export default function EditarLugarPage() {
                 alt="Vista previa del lugar"
                 width={400}
                 height={400}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = "/no-image.png";
+                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                  e.currentTarget.src = "/no-image.png";
                 }}
                 style={{
                   width: "100%",
