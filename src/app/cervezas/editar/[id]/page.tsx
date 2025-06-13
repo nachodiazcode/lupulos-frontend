@@ -60,7 +60,7 @@ export default function EditarCervezaPage() {
   useEffect(() => {
     const fetchCerveza = async () => {
       try {
-        const res = await axios.get(`${API_URL}/beer/${id}`);
+        const res = await axios.get(`${API_URL}api/beer/${id}`);
         const data = res.data?.datos;
         if (data) {
           setCerveza({
