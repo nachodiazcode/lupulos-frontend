@@ -3,8 +3,12 @@
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
-  Box, Container, Typography, TextField, Button,
-  Alert
+  Box,
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Alert,
 } from "@mui/material";
 import Image from "next/image";
 
@@ -22,13 +26,14 @@ export default function EditarLugarPage() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [nombre, setNombre] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [imagen, setImagen] = useState('');
+  const [nombre, setNombre] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [imagen, setImagen] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mensaje, setMensaje] = useState('');
+  const [mensaje, setMensaje] = useState("");
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const fetchLugar = async () => {
@@ -40,11 +45,12 @@ export default function EditarLugarPage() {
         setImagen(data.imagen || "");
       } catch (error) {
         console.error("❌ Error al cargar lugar:", error);
-        setMensaje("❌ No se pudo cargar el lugar");
+        setMensaje("❌ No se pudo cargar el lugar.");
       } finally {
         setLoading(false);
       }
     };
+
     if (id) fetchLugar();
   }, [id]);
 
@@ -59,10 +65,10 @@ export default function EditarLugarPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensaje("");
+    setSuccess(false);
 
     try {
       const token = localStorage.getItem("authToken");
-
       if (!token) {
         setMensaje("No autenticado");
         return;
@@ -95,7 +101,8 @@ export default function EditarLugarPage() {
         const data = await res.json();
         setMensaje(`❌ ${data.message}`);
       } else {
-        router.push("/lugares");
+        setSuccess(true);
+        setTimeout(() => router.push("/lugares"), 1200);
       }
     } catch (error) {
       console.error("❌ Error al enviar:", error);
@@ -105,7 +112,16 @@ export default function EditarLugarPage() {
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", color: amarillo, display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "#0e0e0e",
+          color: amarillo,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Typography variant="h6" sx={{ animation: "pulse 1.5s infinite" }}>
           Cargando Lugar... 🍻
         </Typography>
@@ -114,13 +130,34 @@ export default function EditarLugarPage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", background: "linear-gradient(to bottom, #111827, #0f0f0f)", color: "white", display: "flex", flexDirection: "column" }}>
-      <Container maxWidth="md" sx={{ py: 6, flexGrow: 1 }}>
-        <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#0e0e0e",
+        background: "linear-gradient(to bottom, #111827, #0f0f0f)",
+        color: "white",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
+        <Typography
+          variant="h4"
+          align="center"
+          sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}
+        >
           🏙️ Editar Lugar
         </Typography>
 
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, alignItems: "flex-start", justifyContent: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 4,
+            alignItems: "flex-start",
+            justifyContent: "center",
+          }}
+        >
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -140,7 +177,9 @@ export default function EditarLugarPage() {
               onChange={(e) => setNombre(e.target.value)}
               margin="normal"
               required
-              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
+              InputProps={{
+                style: { backgroundColor: "#374151", color: "white" },
+              }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
@@ -153,16 +192,37 @@ export default function EditarLugarPage() {
               multiline
               rows={4}
               required
-              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
+              InputProps={{
+                style: { backgroundColor: "#374151", color: "white" },
+              }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
-            <Button variant="outlined" component="label" color="secondary" sx={{ mt: 2 }}>
+            <Button
+              variant="outlined"
+              component="label"
+              color="secondary"
+              sx={{ mt: 2 }}
+            >
               Cambiar imagen
-              <input hidden accept="image/*" type="file" onChange={handleImageChange} />
+              <input
+                hidden
+                accept="image/*"
+                type="file"
+                onChange={handleImageChange}
+              />
             </Button>
 
-            {mensaje && <Alert severity="warning" sx={{ mt: 2 }}>{mensaje}</Alert>}
+            {mensaje && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                {mensaje}
+              </Alert>
+            )}
+            {success && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                ¡Lugar actualizado con éxito!
+              </Alert>
+            )}
 
             <Button
               type="submit"
@@ -211,7 +271,15 @@ export default function EditarLugarPage() {
         </Box>
       </Container>
 
-      <Box sx={{ textAlign: "center", py: 4, fontSize: 14, color: "#aaa", borderTop: "1px solid #1f2937" }}>
+      <Box
+        sx={{
+          textAlign: "center",
+          py: 4,
+          fontSize: 14,
+          color: "#aaa",
+          borderTop: "1px solid #1f2937",
+        }}
+      >
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍺 por Nacho Díaz
       </Box>
     </Box>
