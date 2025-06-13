@@ -8,16 +8,15 @@ import {
   Typography,
   TextField,
   Button,
-  Alert
+  Alert,
 } from "@mui/material";
 import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 const amarillo = "#fbbf24";
 
-const getImagenUrl = (img: string): string => {
+const getImagenUrl = (img: string) => {
   if (!img) return "/no-image.png";
-  if (img.startsWith("http")) return img;
   const base = API_URL.replace(/\/+$/, "");
   const path = img.replace(/^\/+/, "");
   return `${base}/${path}`;
@@ -40,10 +39,15 @@ export default function EditarLugarPage() {
     const fetchLugar = async () => {
       try {
         const res = await fetch(`${API_URL}/api/location/${id}`);
+        if (!res.ok) throw new Error("Lugar no encontrado");
+
         const data = await res.json();
-        setNombre(data.nombre || "");
-        setDescripcion(data.descripcion || "");
-        setImagen(data.imagen || "");
+        console.log("✅ Respuesta lugar:", data);
+        const lugar = data.datos;
+
+        setNombre(lugar.nombre || "");
+        setDescripcion(lugar.descripcion || "");
+        setImagen(lugar.imagen || "");
       } catch (error) {
         console.error("❌ Error al cargar lugar:", error);
         setMensaje("❌ No se pudo cargar el lugar.");
@@ -75,6 +79,7 @@ export default function EditarLugarPage() {
         return;
       }
 
+      // Subir imagen si se seleccionó una nueva
       if (nuevaImagen) {
         const formData = new FormData();
         formData.append("imagen", nuevaImagen);
@@ -89,6 +94,7 @@ export default function EditarLugarPage() {
         setImagen(dataUpload.datos.imagen);
       }
 
+      // Actualizar datos del lugar
       const res = await fetch(`${API_URL}/api/location/${id}`, {
         method: "PATCH",
         headers: {
@@ -106,23 +112,14 @@ export default function EditarLugarPage() {
         setTimeout(() => router.push("/lugares"), 1200);
       }
     } catch (error) {
-      console.error("❌ Error al guardar:", error);
+      console.error("❌ Error al enviar:", error);
       setMensaje("❌ Error inesperado al guardar.");
     }
   };
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          bgcolor: "#0e0e0e",
-          color: amarillo,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", color: amarillo, display: "flex", justifyContent: "center", alignItems: "center" }}>
         <Typography variant="h6" sx={{ animation: "pulse 1.5s infinite" }}>
           Cargando Lugar... 🍻
         </Typography>
@@ -146,16 +143,7 @@ export default function EditarLugarPage() {
           🏙️ Editar Lugar
         </Typography>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            gap: 4,
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
-        >
-          {/* Formulario */}
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, alignItems: "flex-start", justifyContent: "center" }}>
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -186,7 +174,7 @@ export default function EditarLugarPage() {
               onChange={(e) => setDescripcion(e.target.value)}
               margin="normal"
               multiline
-              rows={3}
+              rows={4}
               required
               InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
               InputLabelProps={{ style: { color: "#ccc" } }}
@@ -216,7 +204,6 @@ export default function EditarLugarPage() {
             </Button>
           </Box>
 
-          {/* Imagen */}
           {(preview || imagen) && (
             <Box
               sx={{
@@ -248,15 +235,7 @@ export default function EditarLugarPage() {
         </Box>
       </Container>
 
-      <Box
-        sx={{
-          textAlign: "center",
-          py: 4,
-          fontSize: 14,
-          color: "#aaa",
-          borderTop: "1px solid #1f2937",
-        }}
-      >
+      <Box sx={{ textAlign: "center", py: 4, fontSize: 14, color: "#aaa", borderTop: "1px solid #1f2937" }}>
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍺 por Nacho Díaz
       </Box>
     </Box>
