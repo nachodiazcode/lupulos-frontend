@@ -203,21 +203,21 @@ export default function EditarLugarPage() {
                 border: "1px solid #374151",
               }}
             >
-              <Image
-                src={preview || getImagenUrl(imagen)}
-                alt="Vista previa del lugar"
-                width={400}
-                height={400}
-                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                  e.currentTarget.src = "/no-image.png";
-                }}
-                style={{
-                  width: "100%",
-                  maxWidth: "400px",
-                  borderRadius: "12px",
-                  objectFit: "contain",
-                }}
-              />
+             <img
+  src={preview || getImagenUrl(imagen)}
+  alt="Vista previa del lugar"
+  width={400}
+  height={400}
+  onError={(e) => {
+    (e.currentTarget as HTMLImageElement).src = "/no-image.png";
+  }}
+  style={{
+    width: "100%",
+    maxWidth: "400px",
+    borderRadius: "12px",
+    objectFit: "contain",
+  }}
+/>
             </Box>
           )}
         </Box>
