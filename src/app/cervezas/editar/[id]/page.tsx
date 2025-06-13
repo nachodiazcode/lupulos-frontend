@@ -11,7 +11,6 @@ import {
   Container,
   Alert
 } from "@mui/material";
-import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 const amarillo = "#fbbf24";
@@ -25,12 +24,12 @@ interface Cerveza {
   imagen: string;
 }
 
-// ✅ Manejo seguro de la URL de imagen
 const getImagenUrl = (imagen: string): string => {
   if (!imagen) return "/no-image.png";
+  if (imagen.startsWith("http")) return imagen;
 
-  const base = API_URL.replace(/\/+$/, "");      // sin slashes al final
-  const path = imagen.replace(/^\/+/, "");        // sin slashes al inicio
+  const base = API_URL.replace(/\/+$/, "");
+  const path = imagen.replace(/^\/+/, "");
 
   return `${base}/${path}`;
 };
@@ -251,11 +250,14 @@ export default function EditarCervezaPage() {
                 border: "1px solid #374151",
               }}
             >
-              <Image
+              <img
                 src={preview || getImagenUrl(cerveza.imagen)}
                 alt="Vista previa de la cerveza"
                 width={400}
                 height={400}
+                onError={(e) => {
+                  e.currentTarget.src = "/no-image.png";
+                }}
                 style={{
                   width: "100%",
                   maxWidth: "400px",
