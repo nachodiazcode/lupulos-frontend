@@ -51,15 +51,15 @@ export default function LugaresPage() {
   const [usuario, setUsuario] = useState<{ _id: string; username: string } | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-    const favs = JSON.parse(localStorage.getItem("favoritos") || "[]");
-    setFavoritos(favs);
+  setMounted(true);
+  const favs = JSON.parse(localStorage.getItem("favoritos") || "[]");
+  setFavoritos(favs);
 
-    const user = localStorage.getItem("usuario");
-    if (user) setUsuario(JSON.parse(user));
+  const user = localStorage.getItem("user"); // 🔥 fix aquí
+  if (user) setUsuario(JSON.parse(user));
 
-    fetchLugares();
-  }, []);
+  fetchLugares();
+}, []);
 
   const fetchLugares = async () => {
     try {
