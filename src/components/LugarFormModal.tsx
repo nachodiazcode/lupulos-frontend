@@ -17,7 +17,7 @@ const style = {
   width: 400,
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 interface Props {
   open: boolean;
