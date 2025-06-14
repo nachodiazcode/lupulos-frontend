@@ -67,11 +67,16 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     }
 
     const formData = new FormData();
+
     formData.append("nombre", nombre);
     formData.append("descripcion", descripcion);
-    formData.append("direccion", JSON.stringify({ calle, ciudad, estado, pais }));
     formData.append("usuario", usuarioInterno._id);
     formData.append("imagen", imagen);
+
+    formData.append("direccion.calle", calle);
+    formData.append("direccion.ciudad", ciudad);
+    formData.append("direccion.estado", estado);
+    formData.append("direccion.pais", pais);
 
     try {
       const token = localStorage.getItem("authToken");
