@@ -1,25 +1,22 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Box,
+  Container,
+  Typography,
   TextField,
   Button,
-  Typography,
-  Container,
-  Alert
+  Alert,
 } from "@mui/material";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 const amarillo = "#fbbf24";
 
-interface Cerveza {
+interface Lugar {
   nombre: string;
-  cerveceria: string;
-  tipo: string;
-  abv: string;
   descripcion: string;
   imagen: string;
 }
@@ -28,63 +25,55 @@ const getImagenUrl = (imagen: string): string => {
   if (!imagen) return "/no-image.png";
   if (imagen.startsWith("http")) return imagen;
 
-  const base = API_URL.replace(/\/+$/, ""); // mantiene /api
+  const base = API_URL.replace(/\/+$/, "");
   const path = imagen.replace(/^\/+/, "");
 
   return `${base}/${path}`;
 };
 
-export default function EditarCervezaPage() {
-  const params = useParams();
-  const id = typeof params?.id === "string" ? params.id : "";
+export default function EditarLugarPage() {
+  const { id } = useParams();
   const router = useRouter();
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-
-  const [cerveza, setCerveza] = useState<Cerveza>({
+  const [lugar, setLugar] = useState<Lugar>({
     nombre: "",
-    cerveceria: "",
-    tipo: "",
-    abv: "",
     descripcion: "",
     imagen: "",
   });
 
-  useEffect(() => setMounted(true), []);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCerveza = async () => {
+    const fetchLugar = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/beer/${id}`);
-        const data = res.data?.datos;
-        if (data) {
-          setCerveza({
-            nombre: data.nombre || "",
-            cerveceria: data.cerveceria || "",
-            tipo: data.tipo || "",
-            abv: data.abv?.toString() || "",
-            descripcion: data.descripcion || "",
-            imagen: data.imagen || "",
-          });
-        } else {
-          setError("No se encontró la cerveza.");
-        }
+        const res = await axios.get(`${API_URL}/api/location/${id}`);
+        const data = res.data?.datos || res.data?.data;
+
+        if (!data) throw new Error("Lugar no encontrado");
+
+        setLugar({
+          nombre: data.nombre || "",
+          descripcion: data.descripcion || "",
+          imagen: data.imagen || "",
+        });
       } catch (err) {
-        console.error("❌ Error al cargar cerveza:", err);
-        setError("Ocurrió un error al cargar los datos.");
+        console.error("❌ Error al cargar lugar:", err);
+        setError("No se pudo cargar el lugar.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (id) fetchCerveza();
+    if (id) fetchLugar();
   }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setCerveza((prev) => ({ ...prev, [name]: value }));
+    setLugar((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,9 +90,6 @@ export default function EditarCervezaPage() {
     setSuccess(false);
 
     const token = localStorage.getItem("authToken");
-    const userData = localStorage.getItem("user");
-    const user = userData ? JSON.parse(userData) : null;
-
     if (!token) {
       setError("No estás autenticado.");
       return;
@@ -115,7 +101,7 @@ export default function EditarCervezaPage() {
         formData.append("imagen", nuevaImagen);
 
         const resUpload = await axios.post(
-          `${API_URL}/api/beer/${id}/upload-image`,
+          `${API_URL}/api/location/${id}/upload-image`,
           formData,
           {
             headers: {
@@ -125,53 +111,42 @@ export default function EditarCervezaPage() {
           }
         );
 
-        cerveza.imagen = resUpload.data.datos.imagen;
+        lugar.imagen = resUpload.data.datos.imagen;
       }
 
-      await axios.put(
-        `${API_URL}/api/beer/${id}`,
-        { ...cerveza, abv: parseFloat(cerveza.abv) },
+      await axios.patch(
+        `${API_URL}/api/location/${id}`,
+        {
+          nombre: lugar.nombre,
+          descripcion: lugar.descripcion,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      sessionStorage.setItem("cervezaEditada", `¡Editaste la cerveza con éxito ${user?.username || "usuario"}! Salud 🍻`);
       setSuccess(true);
-      setTimeout(() => router.push("/cervezas"), 1200);
+      setTimeout(() => router.push("/lugares"), 1200);
     } catch (err) {
-      console.error("❌ Error al actualizar cerveza:", err);
-      setError("No se pudo actualizar la cerveza.");
+      console.error("❌ Error al actualizar lugar:", err);
+      setError("No se pudo actualizar el lugar.");
     }
   };
 
-  const campos: (keyof Cerveza)[] = ["nombre", "cerveceria", "tipo", "abv"];
-
-  if (!mounted) return null;
+  if (loading) {
+    return (
+      <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", color: amarillo, display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <Typography variant="h6">Cargando lugar... 🍻</Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#0e0e0e",
-        background: "linear-gradient(to bottom, #111827, #0f0f0f)",
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", background: "linear-gradient(to bottom, #111827, #0f0f0f)", color: "white", display: "flex", flexDirection: "column" }}>
       <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
         <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
-          🍺 Editar Cerveza
+          🏙️ Editar Lugar
         </Typography>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            gap: 4,
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
-        >
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, alignItems: "flex-start", justifyContent: "center" }}>
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -184,30 +159,28 @@ export default function EditarCervezaPage() {
               minWidth: "300px",
             }}
           >
-            {campos.map((campo) => (
-              <TextField
-                key={campo}
-                fullWidth
-                label={campo.charAt(0).toUpperCase() + campo.slice(1)}
-                name={campo}
-                value={cerveza[campo]}
-                onChange={handleChange}
-                margin="normal"
-                type={campo === "abv" ? "number" : "text"}
-                InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
-                InputLabelProps={{ style: { color: "#ccc" } }}
-              />
-            ))}
+            <TextField
+              fullWidth
+              label="Nombre"
+              name="nombre"
+              value={lugar.nombre}
+              onChange={handleChange}
+              margin="normal"
+              required
+              InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
+              InputLabelProps={{ style: { color: "#ccc" } }}
+            />
 
             <TextField
               fullWidth
               label="Descripción"
               name="descripcion"
-              value={cerveza.descripcion}
+              value={lugar.descripcion}
               onChange={handleChange}
               margin="normal"
               multiline
-              rows={3}
+              rows={4}
+              required
               InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
@@ -218,25 +191,19 @@ export default function EditarCervezaPage() {
             </Button>
 
             {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-            {success && <Alert severity="success" sx={{ mt: 2 }}>¡Cerveza actualizada con éxito!</Alert>}
+            {success && <Alert severity="success" sx={{ mt: 2 }}>¡Lugar actualizado con éxito!</Alert>}
 
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{
-                mt: 4,
-                bgcolor: amarillo,
-                color: "#000",
-                fontWeight: "bold",
-                "&:hover": { bgcolor: "#facc15" },
-              }}
+              sx={{ mt: 4, bgcolor: amarillo, color: "#000", fontWeight: "bold", "&:hover": { bgcolor: "#facc15" } }}
             >
               Guardar Cambios
             </Button>
           </Box>
 
-          {(preview || cerveza.imagen) && (
+          {(preview || lugar.imagen) && (
             <Box
               sx={{
                 flex: 1,
@@ -251,8 +218,8 @@ export default function EditarCervezaPage() {
               }}
             >
               <img
-                src={preview || getImagenUrl(cerveza.imagen)}
-                alt="Vista previa de la cerveza"
+                src={preview || getImagenUrl(lugar.imagen)}
+                alt="Vista previa del lugar"
                 width={400}
                 height={400}
                 onError={(e) => {
@@ -270,15 +237,7 @@ export default function EditarCervezaPage() {
         </Box>
       </Container>
 
-      <Box
-        sx={{
-          textAlign: "center",
-          py: 4,
-          fontSize: 14,
-          color: "#aaa",
-          borderTop: "1px solid #1f2937",
-        }}
-      >
+      <Box sx={{ textAlign: "center", py: 4, fontSize: 14, color: "#aaa", borderTop: "1px solid #1f2937" }}>
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍺 por Nacho Díaz
       </Box>
     </Box>
