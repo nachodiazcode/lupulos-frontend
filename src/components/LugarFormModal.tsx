@@ -16,7 +16,7 @@ import { useState } from "react";
 import axios from "axios";
 import Image from "next/image";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 interface Props {
   open: boolean;
@@ -60,7 +60,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     try {
       const token = localStorage.getItem("authToken");
 
-      await axios.post(`${API_URL}/locations`, formData, {
+      await axios.post(`${API_URL}/api/locations`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
