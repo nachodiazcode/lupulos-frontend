@@ -62,16 +62,20 @@ export default function CervezasPage() {
   }, []);
 
   const fetchCervezas = async (query = "") => {
-    try {
-      const url = query
-        ? `${API_URL}/api/beer/search?nombre=${query}`
-        : `${API_URL}/api/beer`;
-      const res = await axios.get(url);
-      if (res.data.exito) setCervezas(res.data.datos);
-    } catch (error) {
-      console.error("❌ Error al obtener cervezas:", error);
+  try {
+    const url = query
+      ? `${API_URL}/api/beer/search?nombre=${query}`
+      : `${API_URL}/api/beer`;
+    const res = await axios.get(url);
+    if (res.data.exito) {
+      const ordenadas = [...res.data.datos].reverse(); // 🟡 Más reciente primero
+      setCervezas(ordenadas);
     }
-  };
+  } catch (error) {
+    console.error("❌ Error al obtener cervezas:", error);
+  }
+};
+
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
