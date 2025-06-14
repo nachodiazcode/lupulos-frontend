@@ -60,7 +60,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     try {
       const token = localStorage.getItem("authToken");
 
-      await axios.post(`${API_URL}/api/locations`, formData, {
+      await axios.post(`${API_URL}/api/location`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
