@@ -78,10 +78,15 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
       setPais("");
       setImagen(null);
       setPreview(null);
-    } catch (error: any) {
-      console.error("❌ Error al subir lugar:", error.response?.data || error.message);
-      alert(error.response?.data?.mensaje || "Ocurrió un error al subir el lugar.");
-    }
+    } catch (error: unknown) {
+  if (axios.isAxiosError(error)) {
+    console.error("❌ Error al subir lugar:", error.response?.data || error.message);
+    alert(error.response?.data?.mensaje || "Ocurrió un error al subir el lugar.");
+  } else {
+    console.error("❌ Error inesperado:", error);
+    alert("Error inesperado al subir el lugar.");
+  }
+}
   };
 
   return (
