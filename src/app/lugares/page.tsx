@@ -62,14 +62,16 @@ export default function LugaresPage() {
   }, []);
 
   const fetchLugares = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/location`);
-      setLugares(Array.isArray(res.data.data) ? res.data.data : []);
-    } catch (error) {
-      console.error("❌ Error al obtener lugares:", error);
-      setLugares([]);
-    }
-  };
+  try {
+    const res = await axios.get(`${API_URL}/api/location`);
+    const lugaresData = Array.isArray(res.data.data) ? res.data.data : [];
+    // 🔁 Ordenar para que los más recientes aparezcan primero
+    setLugares(lugaresData.reverse());
+  } catch (error) {
+    console.error("❌ Error al obtener lugares:", error);
+    setLugares([]);
+  }
+};
 
   const toggleFavorito = (id: string) => {
     const nuevosFavoritos = favoritos.includes(id)
