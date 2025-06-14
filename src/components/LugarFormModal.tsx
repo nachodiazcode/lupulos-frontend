@@ -15,6 +15,9 @@ import {
 import { useState } from "react";
 import axios from "axios";
 
+import Image from "next/image";
+
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
 interface Props {
@@ -185,18 +188,20 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
               />
             </Button>
 
-            {preview && (
-              <Box>
-                <Typography variant="body2" color="#fbbf24">
-                  Previsualización:
-                </Typography>
-                <img
-                  src={preview}
-                  alt="preview"
-                  style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
-                />
-              </Box>
-            )}
+           {preview && (
+  <Box>
+    <Typography variant="body2" color="#fbbf24">
+      Previsualización:
+    </Typography>
+    <Image
+      src={preview}
+      alt="preview"
+      width={500}
+      height={300}
+      style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
+    />
+  </Box>
+)}
 
             <Button
               variant="contained"
