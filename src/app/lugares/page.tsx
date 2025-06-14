@@ -129,7 +129,6 @@ export default function LugaresPage() {
     <Box sx={{
       minHeight: "100vh",
       position: "relative",
-      background: "linear-gradient(to bottom, rgb(43,65,114), rgb(24,39,84))",
       color: "white",
       display: "flex",
       flexDirection: "column",
