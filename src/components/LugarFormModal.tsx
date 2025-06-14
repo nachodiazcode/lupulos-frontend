@@ -8,18 +8,6 @@ import {
 import Image from "next/image";
 
 
-const style = {
-  position: "absolute" as const,
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  bgcolor: "white",
-  borderRadius: 2,
-  boxShadow: 24,
-  p: 4,
-  width: 400,
-};
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
 interface Props {
@@ -80,17 +68,26 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          bgcolor: "#3e2723", // Fondo café oscuro
-          borderRadius: 4,
-          boxShadow: 24,
+          bgcolor: "#3e2723",
+          borderRadius: 5,
+          boxShadow: 10,
           p: 4,
           width: "90%",
-          maxWidth: 420,
-          maxHeight: "90vh", // scroll vertical
+          maxWidth: 440,
+          maxHeight: "90vh",
           overflowY: "auto",
+          "&::-webkit-scrollbar": { width: 6 },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "#8d6e63",
+            borderRadius: 3,
+          },
         }}
       >
-        <Typography variant="h6" mb={2} sx={{ color: "#fbbf24", fontWeight: "bold" }}>
+        <Typography
+          variant="h5"
+          gutterBottom
+          sx={{ color: "#fbbf24", fontWeight: 600 }}
+        >
           🏙️ Nuevo Lugar
         </Typography>
 
@@ -100,44 +97,55 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
           name="nombre"
           value={form.nombre}
           onChange={handleInputChange}
-          sx={{ mb: 2, input: { color: "#fff" } }}
+          sx={{ mb: 2 }}
           InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
         />
+
         <TextField
           fullWidth
+          multiline
+          minRows={3}
           label="Descripción"
           name="descripcion"
           value={form.descripcion}
           onChange={handleInputChange}
-          sx={{ mb: 2, input: { color: "#fff" } }}
+          sx={{ mb: 2 }}
           InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
         />
+
         <TextField
           fullWidth
           label="Ciudad"
           name="ciudad"
           value={form.ciudad}
           onChange={handleInputChange}
-          sx={{ mb: 2, input: { color: "#fff" } }}
+          sx={{ mb: 2 }}
           InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
         />
+
         <TextField
           fullWidth
           label="País"
           name="pais"
           value={form.pais}
           onChange={handleInputChange}
-          sx={{ mb: 2, input: { color: "#fff" } }}
+          sx={{ mb: 2 }}
           InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
         />
+
         <TextField
           fullWidth
           label="Calle"
           name="calle"
           value={form.calle}
           onChange={handleInputChange}
-          sx={{ mb: 2, input: { color: "#fff" } }}
+          sx={{ mb: 2 }}
           InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
         />
 
         <Button
@@ -147,7 +155,12 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
             mb: 2,
             borderColor: "#fbbf24",
             color: "#fbbf24",
-            "&:hover": { bgcolor: "#fbbf24", color: "#3e2723" },
+            transition: "all 0.3s",
+            "&:hover": {
+              bgcolor: "#fbbf24",
+              color: "#3e2723",
+              boxShadow: 2,
+            },
           }}
         >
           Subir Imagen
@@ -156,13 +169,19 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
 
         {preview && (
           <Box mb={2}>
- <Image
-      src={preview}
-      alt="Vista previa"
-      width={400}
-      height={300}
-      style={{ borderRadius: 8, objectFit: "cover", width: "100%", height: "auto" }}
-    />          </Box>
+            <Image
+              src={preview}
+              alt="Vista previa"
+              width={400}
+              height={300}
+              style={{
+                borderRadius: 8,
+                objectFit: "cover",
+                width: "100%",
+                height: "auto",
+              }}
+            />
+          </Box>
         )}
 
         <Button
@@ -173,13 +192,19 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
             bgcolor: "#fbbf24",
             color: "#3e2723",
             fontWeight: "bold",
-            "&:hover": { bgcolor: "#f59e0b" },
+            mt: 1,
+            transition: "all 0.3s",
+            "&:hover": {
+              bgcolor: "#f59e0b",
+              boxShadow: 3,
+            },
           }}
         >
           Publicar Lugar 🚀
         </Button>
       </Box>
     </Modal>
+
 
   );
 }
