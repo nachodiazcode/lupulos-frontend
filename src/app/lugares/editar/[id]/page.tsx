@@ -67,7 +67,7 @@ export default function EditarLugarPage() {
     if (file) {
       setNuevaImagen(file);
       setPreview(URL.createObjectURL(file));
-      setImagenError(false); // reinicia si había error anterior
+      setImagenError(false);
     }
   };
 
@@ -207,7 +207,7 @@ export default function EditarLugarPage() {
                 src={
                   preview
                     ? preview
-                    : imagenError
+                    : imagenError || !imagen
                     ? "/no-image.png"
                     : getImagenUrl(imagen)
                 }
