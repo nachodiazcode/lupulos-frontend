@@ -1,3 +1,4 @@
+// ✅ PostDetailPage.tsx
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -57,7 +58,6 @@ export default function PostDetailPage() {
   const [comentarioEditado, setComentarioEditado] = useState("");
   const [comentarioEnEdicion, setComentarioEnEdicion] = useState<string | null>(null);
 
-  // ✅ Setea estado cuando ya estamos en el cliente
   useEffect(() => {
     setIsClient(true);
     const storedUser = localStorage.getItem("user");
@@ -93,7 +93,6 @@ export default function PostDetailPage() {
     }
   }, [id, fetchPost, fetchComentarios]);
 
-  // ✅ Previene error de hidratación
   if (!isClient || loading) {
     return (
       <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" sx={{ background: "#111827" }}>
@@ -149,12 +148,11 @@ export default function PostDetailPage() {
   const guardarComentarioEditado = async () => {
     if (!comentarioEnEdicion || !comentarioEditado.trim()) return;
     try {
-      const res = await axios.put(
+      await axios.put(
         `${API_URL}/api/post/comentario/${comentarioEnEdicion}`,
-        { comentario: comentarioEditado }, // ✅ CAMBIO CRUCIAL AQUÍ
+        { comentario: comentarioEditado },
         { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
       );
-      console.log("📝 Comentario editado:", res.data);
       setComentarioEnEdicion(null);
       setComentarioEditado("");
       fetchComentarios();
@@ -205,92 +203,96 @@ export default function PostDetailPage() {
     <Box sx={{ minHeight: "100vh", color: "white" }}>
       <Navbar />
       <Container sx={{ py: 6 }}>
-        {editMode ? (
-          <>
-            <TextField fullWidth label="Título" value={tituloEditado} onChange={(e) => setTituloEditado(e.target.value)} sx={{ mb: 2, input: { color: "white" }, label: { color: "#bbb" } }} />
-            <TextField fullWidth multiline rows={4} label="Contenido" value={contenidoEditado} onChange={(e) => setContenidoEditado(e.target.value)} sx={{ mb: 2, textarea: { color: "white" }, label: { color: "#bbb" } }} />
-            <Button variant="contained" onClick={guardarCambios} sx={{ bgcolor: amarillo, color: "black", mr: 2 }}>Guardar cambios</Button>
-            <Button variant="outlined" onClick={() => setEditMode(false)} sx={{ color: "white", borderColor: "gray" }}>Cancelar</Button>
-          </>
-        ) : (
-          <>
-            <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
-            {post.imagenes?.[0] && (
-              <Image src={`${API_URL}${post.imagenes[0]}`}
-                alt={post.titulo} width={800} height={400} unoptimized style={{ width: "100%", height: "auto", objectFit: "cover", borderRadius: 8, marginBottom: 16 }} />
+        <Stack direction={{ xs: "column", md: "row" }} spacing={4}>
+          {/* 🖼️ COLUMNA IZQUIERDA */}
+          <Box flex={3}>
+            {editMode ? (
+              <>
+                <TextField fullWidth label="Título" value={tituloEditado} onChange={(e) => setTituloEditado(e.target.value)} sx={{ mb: 2, input: { color: "white" }, label: { color: "#bbb" } }} />
+                <TextField fullWidth multiline rows={4} label="Contenido" value={contenidoEditado} onChange={(e) => setContenidoEditado(e.target.value)} sx={{ mb: 2, textarea: { color: "white" }, label: { color: "#bbb" } }} />
+                <Button variant="contained" onClick={guardarCambios} sx={{ bgcolor: amarillo, color: "black", mr: 2 }}>Guardar cambios</Button>
+                <Button variant="outlined" onClick={() => setEditMode(false)} sx={{ color: "white", borderColor: "gray" }}>Cancelar</Button>
+              </>
+            ) : (
+              <>
+                <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
+                {post.imagenes?.[0] && (
+                  <Image src={`${API_URL}${post.imagenes[0]}`} alt={post.titulo} width={800} height={400} unoptimized style={{ width: "100%", height: "auto", objectFit: "cover", borderRadius: 8, marginBottom: 16 }} />
+                )}
+                <Typography variant="body1" mb={3}>{post.contenido}</Typography>
+              </>
             )}
-            <Typography variant="body1" mb={3}>{post.contenido}</Typography>
-          </>
-        )}
+          </Box>
 
-        <Typography variant="subtitle2" color="gray">Publicado por: @{post.usuario?.username}</Typography>
+          {/* 💬 COLUMNA DERECHA */}
+          <Box flex={2} sx={{ borderLeft: { md: "1px solid #333" }, pl: { md: 3 }, mt: { xs: 4, md: 0 } }}>
+            <Typography variant="subtitle2" color="gray" mb={2}>Publicado por: @{post.usuario?.username}</Typography>
 
-        <Stack direction="row" spacing={2} alignItems="center" mt={2}>
-          <Tooltip title={yaDioLike ? "Quitar saludo vikingo" : "Enviar saludo vikingo"} arrow TransitionComponent={Zoom}>
-            <IconButton onClick={toggleLike} sx={{ color: yaDioLike ? amarillo : "white" }}>
-              {yaDioLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-            </IconButton>
-          </Tooltip>
-          <Typography>💛 {post.reacciones?.meGusta?.count ?? 0} saludos vikingos</Typography>
-
-          {esAutor && !editMode && (
-            <>
-              <Tooltip title="Editar" arrow>
-                <IconButton sx={{ color: "white" }} onClick={() => setEditMode(true)}><EditIcon /></IconButton>
+            <Stack direction="row" spacing={2} alignItems="center" mb={3}>
+              <Tooltip title={yaDioLike ? "Quitar saludo vikingo" : "Enviar saludo vikingo"} arrow TransitionComponent={Zoom}>
+                <IconButton onClick={toggleLike} sx={{ color: yaDioLike ? amarillo : "white" }}>
+                  {yaDioLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                </IconButton>
               </Tooltip>
-              <Tooltip title="Eliminar" arrow>
-                <IconButton sx={{ color: "white" }} onClick={eliminarPost}><DeleteIcon /></IconButton>
-              </Tooltip>
-            </>
-          )}
-        </Stack>
+              <Typography>💛 {post.reacciones?.meGusta?.count ?? 0} saludos vikingos</Typography>
 
-        <Box mt={5}>
-          <Typography variant="h6" mb={2}>💬 Comentarios</Typography>
+              {esAutor && !editMode && (
+                <>
+                  <Tooltip title="Editar" arrow>
+                    <IconButton sx={{ color: "white" }} onClick={() => setEditMode(true)}><EditIcon /></IconButton>
+                  </Tooltip>
+                  <Tooltip title="Eliminar" arrow>
+                    <IconButton sx={{ color: "white" }} onClick={eliminarPost}><DeleteIcon /></IconButton>
+                  </Tooltip>
+                </>
+              )}
+            </Stack>
 
-          {comentarios.map((c) => {
-            const esAutorComentario = c.usuario?._id === user?._id;
-            const enEdicion = comentarioEnEdicion === c._id;
-            return (
-              <Box key={c._id} mb={2} p={2} bgcolor="#111827" borderRadius={2}>
-                <Typography fontWeight="bold">@{c.usuario?.username}</Typography>
-                {enEdicion ? (
-                  <>
-                    <TextField fullWidth multiline value={comentarioEditado} onChange={(e) => setComentarioEditado(e.target.value)} sx={{ mt: 1, bgcolor: "#1f2937", input: { color: "white" }, textarea: { color: "white" } }} />
+            <Typography variant="h6" mb={2}>💬 Comentarios</Typography>
+            {comentarios.map((c) => {
+              const esAutorComentario = c.usuario?._id === user?._id;
+              const enEdicion = comentarioEnEdicion === c._id;
+              return (
+                <Box key={c._id} mb={2} p={2} bgcolor="#111827" borderRadius={2}>
+                  <Typography fontWeight="bold">@{c.usuario?.username}</Typography>
+                  {enEdicion ? (
+                    <>
+                      <TextField fullWidth multiline value={comentarioEditado} onChange={(e) => setComentarioEditado(e.target.value)} sx={{ mt: 1, bgcolor: "#1f2937", input: { color: "white" }, textarea: { color: "white" } }} />
+                      <Stack direction="row" spacing={1} mt={1}>
+                        <Button size="small" onClick={guardarComentarioEditado} sx={{ bgcolor: amarillo, color: "black" }}>Guardar</Button>
+                        <Button size="small" onClick={() => setComentarioEnEdicion(null)} sx={{ color: "white", borderColor: "gray" }}>Cancelar</Button>
+                      </Stack>
+                    </>
+                  ) : (
+                    <Typography variant="body2" color="gray">{c.comentario}</Typography>
+                  )}
+
+                  {esAutorComentario && !enEdicion && (
                     <Stack direction="row" spacing={1} mt={1}>
-                      <Button size="small" onClick={guardarComentarioEditado} sx={{ bgcolor: amarillo, color: "black" }}>Guardar</Button>
-                      <Button size="small" onClick={() => setComentarioEnEdicion(null)} sx={{ color: "white", borderColor: "gray" }}>Cancelar</Button>
+                      <Button size="small" onClick={() => { setComentarioEditado(c.comentario); setComentarioEnEdicion(c._id); }} sx={{ color: amarillo }}>Editar</Button>
+                      <Button size="small" onClick={() => eliminarComentario(c._id)} sx={{ color: "red" }}>Eliminar</Button>
                     </Stack>
-                  </>
-                ) : (
-                  <Typography variant="body2" color="gray">{c.comentario}</Typography>
-                )}
+                  )}
+                </Box>
+              );
+            })}
 
-                {esAutorComentario && !enEdicion && (
-                  <Stack direction="row" spacing={1} mt={1}>
-                    <Button size="small" onClick={() => { setComentarioEditado(c.comentario); setComentarioEnEdicion(c._id); }} sx={{ color: amarillo }}>Editar</Button>
-                    <Button size="small" onClick={() => eliminarComentario(c._id)} sx={{ color: "red" }}>Eliminar</Button>
-                  </Stack>
-                )}
-              </Box>
-            );
-          })}
-
-          <TextField
-            fullWidth
-            placeholder="Escribe tu comentario..."
-            value={comentario}
-            onChange={(e) => setComentario(e.target.value)}
-            sx={{ mt: 2, bgcolor: "#111827", input: { color: "white" }, borderRadius: 1 }}
-          />
-          <Button
-            variant="contained"
-            sx={{ mt: 2, bgcolor: amarillo, color: "black" }}
-            onClick={enviarComentario}
-          >
-            Comentar 💬
-          </Button>
-        </Box>
+            <TextField
+              fullWidth
+              placeholder="Escribe tu comentario..."
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              sx={{ mt: 2, bgcolor: "#111827", input: { color: "white" }, borderRadius: 1 }}
+            />
+            <Button
+              variant="contained"
+              sx={{ mt: 2, bgcolor: amarillo, color: "black" }}
+              onClick={enviarComentario}
+            >
+              Comentar 💬
+            </Button>
+          </Box>
+        </Stack>
       </Container>
       <Footer />
     </Box>
