@@ -12,7 +12,7 @@ import {
   Snackbar,
   Avatar,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Image from "next/image";
 
@@ -35,6 +35,20 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
   const [imagen, setImagen] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [toastOpen, setToastOpen] = useState(false);
+  const [usuarioInterno, setUsuarioInterno] = useState(usuario);
+
+  useEffect(() => {
+    if (!usuario && typeof window !== "undefined") {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          setUsuarioInterno(JSON.parse(stored));
+        } catch (err) {
+          console.warn("⚠️ Error al parsear usuario:", err);
+        }
+      }
+    }
+  }, [usuario]);
 
   const handleSubmit = async () => {
     if (!nombre || !descripcion || !calle || !ciudad || !estado || !pais || !imagen) {
@@ -42,7 +56,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
       return;
     }
 
-    if (!usuario) {
+    if (!usuarioInterno) {
       alert("Usuario no autenticado.");
       return;
     }
@@ -51,12 +65,11 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     formData.append("nombre", nombre);
     formData.append("descripcion", descripcion);
     formData.append("direccion", JSON.stringify({ calle, ciudad, estado, pais }));
-    formData.append("usuario", usuario._id);
+    formData.append("usuario", usuarioInterno._id);
     formData.append("imagen", imagen);
 
     try {
       const token = localStorage.getItem("authToken");
-
       await axios.post(`${API_URL}/api/location`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -67,7 +80,6 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
       setToastOpen(true);
       onSuccess();
 
-      // Limpiar formulario
       setNombre("");
       setDescripcion("");
       setCalle("");
@@ -108,114 +120,29 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
-            <TextField
-              label="Nombre"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "white" } }}
-            />
-
-            <TextField
-              label="Descripción"
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              fullWidth
-              multiline
-              rows={3}
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "white" } }}
-            />
-
-            <TextField
-              label="Calle"
-              value={calle}
-              onChange={(e) => setCalle(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "#facc15" } }}
-            />
-            <TextField
-              label="Ciudad"
-              value={ciudad}
-              onChange={(e) => setCiudad(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "#facc15" } }}
-            />
-            <TextField
-              label="Estado o Región"
-              value={estado}
-              onChange={(e) => setEstado(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "#facc15" } }}
-            />
-            <TextField
-              label="País"
-              value={pais}
-              onChange={(e) => setPais(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "#facc15" } }}
-            />
-
-            <Button
-              component="label"
-              variant="outlined"
-              sx={{
-                borderColor: "#fbbf24",
-                color: "#fbbf24",
-                "&:hover": { bgcolor: "#fbbf24", color: "#1f2937" },
-              }}
-            >
+            <TextField label="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "white" } }} />
+            <TextField label="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} fullWidth multiline rows={3} required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "white" } }} />
+            <TextField label="Calle" value={calle} onChange={(e) => setCalle(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "#facc15" } }} />
+            <TextField label="Ciudad" value={ciudad} onChange={(e) => setCiudad(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "#facc15" } }} />
+            <TextField label="Estado o Región" value={estado} onChange={(e) => setEstado(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "#facc15" } }} />
+            <TextField label="País" value={pais} onChange={(e) => setPais(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "#facc15" } }} />
+            <Button component="label" variant="outlined" sx={{ borderColor: "#fbbf24", color: "#fbbf24", "&:hover": { bgcolor: "#fbbf24", color: "#1f2937" } }}>
               Subir Imagen
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setImagen(file);
-                    setPreview(URL.createObjectURL(file));
-                  }
-                }}
-              />
+              <input type="file" hidden accept="image/*" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setImagen(file);
+                  setPreview(URL.createObjectURL(file));
+                }
+              }} />
             </Button>
-
             {preview && (
               <Box>
-                <Typography variant="body2" color="#fbbf24">
-                  Previsualización:
-                </Typography>
-                <Image
-                  src={preview}
-                  alt="preview"
-                  width={500}
-                  height={300}
-                  style={{ borderRadius: 8, marginTop: 8, width: "100%", height: "auto" }}
-                />
+                <Typography variant="body2" color="#fbbf24">Previsualización:</Typography>
+                <Image src={preview} alt="preview" width={500} height={300} style={{ borderRadius: 8, marginTop: 8, width: "100%", height: "auto" }} />
               </Box>
             )}
-
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              sx={{
-                bgcolor: "#fbbf24",
-                color: "#1f2937",
-                fontWeight: "bold",
-                "&:hover": { bgcolor: "#facc15" },
-              }}
-            >
+            <Button variant="contained" onClick={handleSubmit} sx={{ bgcolor: "#fbbf24", color: "#1f2937", fontWeight: "bold", "&:hover": { bgcolor: "#facc15" } }}>
               Publicar Lugar 🍻
             </Button>
           </Stack>
@@ -228,25 +155,12 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
         onClose={() => setToastOpen(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            px: 3,
-            py: 2,
-            bgcolor: "#fbbf24",
-            color: "#1f2937",
-            borderRadius: "12px",
-            boxShadow: 4,
-            minWidth: 320,
-          }}
-        >
-          <Avatar src={usuario?.fotoPerfil || ""} sx={{ width: 48, height: 48 }}>
-            {usuario?.username?.charAt(0).toUpperCase()}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, px: 3, py: 2, bgcolor: "#fbbf24", color: "#1f2937", borderRadius: "12px", boxShadow: 4, minWidth: 320 }}>
+          <Avatar src={usuarioInterno?.fotoPerfil || ""} sx={{ width: 48, height: 48 }}>
+            {usuarioInterno?.username?.charAt(0).toUpperCase()}
           </Avatar>
           <Typography sx={{ fontWeight: "bold" }}>
-            {usuario?.username} subiste un nuevo lugar 🍺
+            {usuarioInterno?.username} subiste un nuevo lugar 🍺
           </Typography>
         </Box>
       </Snackbar>
