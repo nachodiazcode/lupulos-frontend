@@ -50,50 +50,128 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
   };
 
   const handleSubmit = async () => {
-  const token = localStorage.getItem("authToken"); // 🔐 Agrega el token
+    const token = localStorage.getItem("authToken"); // 🔐 Agrega el token
 
-  const formData = new FormData();
-  Object.entries(form).forEach(([key, value]) => formData.append(key, value));
-  if (imagen) formData.append("imagen", imagen);
+    const formData = new FormData();
+    Object.entries(form).forEach(([key, value]) => formData.append(key, value));
+    if (imagen) formData.append("imagen", imagen);
 
-  try {
-    await fetch(`${API_URL}/api/location`, {
-      method: "POST",
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${token}`, // 👈 Aquí va el token
-      },
-    });
-    onSuccess();
-  } catch (err) {
-    console.error("❌ Error al subir lugar:", err);
-  }
-};
+    try {
+      await fetch(`${API_URL}/api/location`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`, // 👈 Aquí va el token
+        },
+      });
+      onSuccess();
+    } catch (err) {
+      console.error("❌ Error al subir lugar:", err);
+    }
+  };
   return (
     <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        <Typography variant="h6" mb={2}>🏙️ Nuevo Lugar</Typography>
-        <TextField fullWidth label="Nombre" name="nombre" value={form.nombre} onChange={handleInputChange} sx={{ mb: 2 }} />
-        <TextField fullWidth label="Descripción" name="descripcion" value={form.descripcion} onChange={handleInputChange} sx={{ mb: 2 }} />
-        <TextField fullWidth label="Ciudad" name="ciudad" value={form.ciudad} onChange={handleInputChange} sx={{ mb: 2 }} />
-        <TextField fullWidth label="País" name="pais" value={form.pais} onChange={handleInputChange} sx={{ mb: 2 }} />
-        <TextField fullWidth label="Calle" name="calle" value={form.calle} onChange={handleInputChange} sx={{ mb: 2 }} />
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          bgcolor: "#3e2723", // Fondo café oscuro
+          borderRadius: 4,
+          boxShadow: 24,
+          p: 4,
+          width: "90%",
+          maxWidth: 420,
+          maxHeight: "90vh", // scroll vertical
+          overflowY: "auto",
+        }}
+      >
+        <Typography variant="h6" mb={2} sx={{ color: "#fbbf24", fontWeight: "bold" }}>
+          🏙️ Nuevo Lugar
+        </Typography>
 
-        <Button variant="outlined" component="label" sx={{ mb: 2 }}>
+        <TextField
+          fullWidth
+          label="Nombre"
+          name="nombre"
+          value={form.nombre}
+          onChange={handleInputChange}
+          sx={{ mb: 2, input: { color: "#fff" } }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+        />
+        <TextField
+          fullWidth
+          label="Descripción"
+          name="descripcion"
+          value={form.descripcion}
+          onChange={handleInputChange}
+          sx={{ mb: 2, input: { color: "#fff" } }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+        />
+        <TextField
+          fullWidth
+          label="Ciudad"
+          name="ciudad"
+          value={form.ciudad}
+          onChange={handleInputChange}
+          sx={{ mb: 2, input: { color: "#fff" } }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+        />
+        <TextField
+          fullWidth
+          label="País"
+          name="pais"
+          value={form.pais}
+          onChange={handleInputChange}
+          sx={{ mb: 2, input: { color: "#fff" } }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+        />
+        <TextField
+          fullWidth
+          label="Calle"
+          name="calle"
+          value={form.calle}
+          onChange={handleInputChange}
+          sx={{ mb: 2, input: { color: "#fff" } }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+        />
+
+        <Button
+          variant="outlined"
+          component="label"
+          sx={{
+            mb: 2,
+            borderColor: "#fbbf24",
+            color: "#fbbf24",
+            "&:hover": { bgcolor: "#fbbf24", color: "#3e2723" },
+          }}
+        >
           Subir Imagen
           <input type="file" hidden accept="image/*" onChange={handleImageChange} />
         </Button>
 
         {preview && (
           <Box mb={2}>
-            <img src={preview} alt="Vista previa" style={{ width: "100%", borderRadius: 4 }} />
+            <img src={preview} alt="Vista previa" style={{ width: "100%", borderRadius: 8 }} />
           </Box>
         )}
 
-        <Button variant="contained" fullWidth onClick={handleSubmit} sx={{ bgcolor: "#22c55e", color: "black", "&:hover": { bgcolor: "#16a34a" } }}>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleSubmit}
+          sx={{
+            bgcolor: "#fbbf24",
+            color: "#3e2723",
+            fontWeight: "bold",
+            "&:hover": { bgcolor: "#f59e0b" },
+          }}
+        >
           Publicar Lugar 🚀
         </Button>
       </Box>
     </Modal>
+
   );
 }
