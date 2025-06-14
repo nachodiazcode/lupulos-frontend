@@ -11,6 +11,7 @@ import {
   Stack,
   Snackbar,
   Avatar,
+  Alert,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -36,6 +37,8 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
   const [preview, setPreview] = useState<string | null>(null);
   const [toastOpen, setToastOpen] = useState(false);
   const [usuarioInterno, setUsuarioInterno] = useState(usuario);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showError, setShowError] = useState(false);
 
   useEffect(() => {
     if (!usuario && typeof window !== "undefined") {
@@ -52,12 +55,14 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
 
   const handleSubmit = async () => {
     if (!nombre || !descripcion || !calle || !ciudad || !estado || !pais || !imagen) {
-      alert("Por favor completa todos los campos obligatorios.");
+      setErrorMsg("All fields are required.");
+      setShowError(true);
       return;
     }
 
     if (!usuarioInterno) {
-      alert("Usuario no autenticado.");
+      setErrorMsg("User not authenticated.");
+      setShowError(true);
       return;
     }
 
@@ -91,11 +96,12 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error("❌ Error al subir lugar:", error.response?.data || error.message);
-        alert(error.response?.data?.mensaje || "Ocurrió un error al subir el lugar.");
+        setErrorMsg(error.response?.data?.mensaje || "Error uploading the place.");
       } else {
         console.error("❌ Error inesperado:", error);
-        alert("Error inesperado al subir el lugar.");
+        setErrorMsg("Unexpected error uploading the place.");
       }
+      setShowError(true);
     }
   };
 
@@ -163,6 +169,17 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
             {usuarioInterno?.username} subiste un nuevo lugar 🍺
           </Typography>
         </Box>
+      </Snackbar>
+
+      <Snackbar
+        open={showError}
+        autoHideDuration={6000}
+        onClose={() => setShowError(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity="error" onClose={() => setShowError(false)} sx={{ bgcolor: "#f87171", color: "white", fontWeight: "bold" }}>
+          ⚠️ {errorMsg}
+        </Alert>
       </Snackbar>
     </>
   );
