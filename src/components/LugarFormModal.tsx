@@ -5,6 +5,9 @@ import {
   Modal, Box, Typography, TextField, Button
 } from "@mui/material";
 
+import Image from "next/image";
+
+
 const style = {
   position: "absolute" as const,
   top: "50%",
@@ -153,8 +156,13 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
 
         {preview && (
           <Box mb={2}>
-            <img src={preview} alt="Vista previa" style={{ width: "100%", borderRadius: 8 }} />
-          </Box>
+ <Image
+      src={preview}
+      alt="Vista previa"
+      width={400}
+      height={300}
+      style={{ borderRadius: 8, objectFit: "cover", width: "100%", height: "auto" }}
+    />          </Box>
         )}
 
         <Button
