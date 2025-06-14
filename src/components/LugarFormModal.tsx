@@ -14,9 +14,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import axios from "axios";
-
 import Image from "next/image";
-
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3940";
 
@@ -52,14 +50,17 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     const formData = new FormData();
     formData.append("nombre", nombre);
     formData.append("descripcion", descripcion);
-    formData.append("direccion", JSON.stringify({ calle, ciudad, estado, pais }));
-    formData.append("usuario", usuario._id);
+    formData.append("direccion[calle]", calle);
+    formData.append("direccion[ciudad]", ciudad);
+    formData.append("direccion[estado]", estado);
+    formData.append("direccion[pais]", pais);
     formData.append("imagen", imagen);
+    formData.append("usuario", usuario._id); // por si tu backend lo requiere
 
     try {
       const token = localStorage.getItem("authToken");
 
-      await axios.post(`${API_URL}/api/location`, formData, {
+      await axios.post(`${API_URL}/locations`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -69,7 +70,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
       setToastOpen(true);
       onSuccess();
 
-      // Limpiar formulario
+      // Limpiar campos
       setNombre("");
       setDescripcion("");
       setCalle("");
@@ -79,14 +80,14 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
       setImagen(null);
       setPreview(null);
     } catch (error: unknown) {
-  if (axios.isAxiosError(error)) {
-    console.error("❌ Error al subir lugar:", error.response?.data || error.message);
-    alert(error.response?.data?.mensaje || "Ocurrió un error al subir el lugar.");
-  } else {
-    console.error("❌ Error inesperado:", error);
-    alert("Error inesperado al subir el lugar.");
-  }
-}
+      if (axios.isAxiosError(error)) {
+        console.error("❌ Error al subir lugar:", error.response?.data || error.message);
+        alert(error.response?.data?.mensaje || "Ocurrió un error al subir el lugar.");
+      } else {
+        console.error("❌ Error inesperado:", error);
+        alert("Error inesperado al subir el lugar.");
+      }
+    }
   };
 
   return (
@@ -141,6 +142,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
               InputLabelProps={{ sx: { color: "#ccc" } }}
               InputProps={{ sx: { color: "#facc15" } }}
             />
+
             <TextField
               label="Ciudad"
               value={ciudad}
@@ -150,6 +152,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
               InputLabelProps={{ sx: { color: "#ccc" } }}
               InputProps={{ sx: { color: "#facc15" } }}
             />
+
             <TextField
               label="Estado o Región"
               value={estado}
@@ -159,6 +162,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
               InputLabelProps={{ sx: { color: "#ccc" } }}
               InputProps={{ sx: { color: "#facc15" } }}
             />
+
             <TextField
               label="País"
               value={pais}
@@ -193,20 +197,20 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
               />
             </Button>
 
-           {preview && (
-  <Box>
-    <Typography variant="body2" color="#fbbf24">
-      Previsualización:
-    </Typography>
-    <Image
-      src={preview}
-      alt="preview"
-      width={500}
-      height={300}
-      style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
-    />
-  </Box>
-)}
+            {preview && (
+              <Box>
+                <Typography variant="body2" color="#fbbf24">
+                  Previsualización:
+                </Typography>
+                <Image
+                  src={preview}
+                  alt="preview"
+                  width={500}
+                  height={300}
+                  style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
+                />
+              </Box>
+            )}
 
             <Button
               variant="contained"
