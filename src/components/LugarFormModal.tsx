@@ -37,26 +37,37 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
   const [toastOpen, setToastOpen] = useState(false);
 
   const handleSubmit = async () => {
-    
-    if (!nombre || !descripcion || !calle || !ciudad || !estado || !pais || !imagen) {
-      alert("Por favor completa todos los campos obligatorios.");
-      return;
-    }
-
     if (!usuario) {
       alert("Usuario no autenticado.");
       return;
     }
 
+    const direccion = {
+      calle: calle.trim(),
+      ciudad: ciudad.trim(),
+      estado: estado.trim(),
+      pais: pais.trim(),
+    };
+
+    // Validación de todos los campos
+    if (
+      !nombre.trim() ||
+      !descripcion.trim() ||
+      Object.values(direccion).some((v) => !v) ||
+      !imagen
+    ) {
+      alert("Por favor completa todos los campos obligatorios.");
+      return;
+    }
+
     const formData = new FormData();
-    formData.append("nombre", nombre);
-    formData.append("descripcion", descripcion);
-
-    const direccion = { calle, ciudad, estado, pais };
+    formData.append("nombre", nombre.trim());
+    formData.append("descripcion", descripcion.trim());
     formData.append("direccion", JSON.stringify(direccion));
-
     formData.append("imagen", imagen);
     formData.append("usuario", usuario._id);
+
+    // console.log("📤 Enviando lugar:", Object.fromEntries(formData.entries()));
 
     try {
       const token = localStorage.getItem("authToken");
