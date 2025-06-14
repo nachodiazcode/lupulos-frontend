@@ -217,7 +217,20 @@ export default function PostDetailPage() {
               <>
                 <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
                 {post.imagenes?.[0] && (
-                  <Image src={`${API_URL}${post.imagenes[0]}`} alt={post.titulo} width={800} height={400} unoptimized style={{ width: "100%", height: "auto", objectFit: "cover", borderRadius: 8, marginBottom: 16 }} />
+                  <Image
+                    src={`${API_URL}${post.imagenes[0]}`}
+                    alt={post.titulo}
+                    width={800}
+                    height={400}
+                    unoptimized
+                    style={{
+                      width: "100%",
+                      maxHeight: "360px", // 🔥 limita la altura
+                      objectFit: "contain", // para que no se recorte
+                      borderRadius: 8,
+                      marginBottom: 16,
+                    }}
+                  />
                 )}
                 <Typography variant="body1" mb={3}>{post.contenido}</Typography>
               </>
