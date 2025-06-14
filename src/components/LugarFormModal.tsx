@@ -67,16 +67,11 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     }
 
     const formData = new FormData();
-
     formData.append("nombre", nombre);
     formData.append("descripcion", descripcion);
     formData.append("usuario", usuarioInterno._id);
     formData.append("imagen", imagen);
-
-    formData.append("direccion.calle", calle);
-    formData.append("direccion.ciudad", ciudad);
-    formData.append("direccion.estado", estado);
-    formData.append("direccion.pais", pais);
+    formData.append("direccion", JSON.stringify({ calle, ciudad, estado, pais }));
 
     try {
       const token = localStorage.getItem("authToken");
@@ -112,20 +107,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
 
   return (
     <>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            bgcolor: "#1f2937",
-            color: "white",
-            borderRadius: 3,
-            p: 2,
-          },
-        }}
-      >
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: "#1f2937", color: "white", borderRadius: 3, p: 2 } }}>
         <DialogTitle sx={{ fontWeight: "bold", fontSize: 20, color: "white" }}>
           📍 Nuevo Lugar Cervecero
         </DialogTitle>
@@ -160,12 +142,8 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
         </DialogContent>
       </Dialog>
 
-      <Snackbar
-        open={toastOpen}
-        autoHideDuration={6000}
-        onClose={() => setToastOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
+      {/* ✅ Toast éxito */}
+      <Snackbar open={toastOpen} autoHideDuration={6000} onClose={() => setToastOpen(false)} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, px: 3, py: 2, bgcolor: "#fbbf24", color: "#1f2937", borderRadius: "12px", boxShadow: 4, minWidth: 320 }}>
           <Avatar src={usuarioInterno?.fotoPerfil || ""} sx={{ width: 48, height: 48 }}>
             {usuarioInterno?.username?.charAt(0).toUpperCase()}
@@ -176,12 +154,8 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
         </Box>
       </Snackbar>
 
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={() => setShowError(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
+      {/* ❌ Toast error */}
+      <Snackbar open={showError} autoHideDuration={6000} onClose={() => setShowError(false)} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
         <Alert severity="error" onClose={() => setShowError(false)} sx={{ bgcolor: "#f87171", color: "white", fontWeight: "bold" }}>
           ⚠️ {errorMsg}
         </Alert>
