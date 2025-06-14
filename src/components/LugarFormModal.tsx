@@ -37,6 +37,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
   const [toastOpen, setToastOpen] = useState(false);
 
   const handleSubmit = async () => {
+    
     if (!nombre || !descripcion || !calle || !ciudad || !estado || !pais || !imagen) {
       alert("Por favor completa todos los campos obligatorios.");
       return;
