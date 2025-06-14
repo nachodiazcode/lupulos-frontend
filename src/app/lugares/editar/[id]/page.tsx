@@ -19,11 +19,12 @@ const getImagenUrl = (imagen: string): string => {
   if (!imagen) return "/no-image.png";
   if (imagen.startsWith("http")) return imagen;
 
-  const base = API_URL.replace(/\/+$/, "");
+  const base = API_URL.replace(/\/+$/, "").replace("/api", "");
   const path = imagen.replace(/^\/+/, "");
 
   return `${base}/${path}`;
 };
+
 
 export default function EditarLugarPage() {
   const { id } = useParams();
