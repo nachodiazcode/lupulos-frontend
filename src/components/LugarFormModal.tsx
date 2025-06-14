@@ -55,7 +55,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     formData.append("direccion[estado]", estado);
     formData.append("direccion[pais]", pais);
     formData.append("imagen", imagen);
-    formData.append("usuario", usuario._id); // por si tu backend lo requiere
+    formData.append("usuario", usuario._id);
 
     try {
       const token = localStorage.getItem("authToken");
