@@ -50,10 +50,10 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
     const formData = new FormData();
     formData.append("nombre", nombre);
     formData.append("descripcion", descripcion);
-    formData.append("direccion[calle]", calle);
-    formData.append("direccion[ciudad]", ciudad);
-    formData.append("direccion[estado]", estado);
-    formData.append("direccion[pais]", pais);
+
+    const direccion = { calle, ciudad, estado, pais };
+    formData.append("direccion", JSON.stringify(direccion));
+
     formData.append("imagen", imagen);
     formData.append("usuario", usuario._id);
 
@@ -70,7 +70,7 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
       setToastOpen(true);
       onSuccess();
 
-      // Limpiar campos
+      // Resetear formulario
       setNombre("");
       setDescripcion("");
       setCalle("");
@@ -106,95 +106,27 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: "bold", fontSize: 20, color: "white" }}>
+        <DialogTitle sx={{ fontWeight: "bold", fontSize: 20 }}>
           📍 Nuevo Lugar Cervecero
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2}>
-            <TextField
-              label="Nombre"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "white" } }}
-            />
+            <TextField label="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "white" } }} />
+            <TextField label="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} fullWidth multiline rows={3} required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "white" } }} />
+            <TextField label="Calle" value={calle} onChange={(e) => setCalle(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "#facc15" } }} />
+            <TextField label="Ciudad" value={ciudad} onChange={(e) => setCiudad(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "#facc15" } }} />
+            <TextField label="Estado o Región" value={estado} onChange={(e) => setEstado(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "#facc15" } }} />
+            <TextField label="País" value={pais} onChange={(e) => setPais(e.target.value)} fullWidth required InputLabelProps={{ sx: { color: "#ccc" } }} InputProps={{ sx: { color: "#facc15" } }} />
 
-            <TextField
-              label="Descripción"
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              fullWidth
-              multiline
-              rows={3}
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "white" } }}
-            />
-
-            <TextField
-              label="Calle"
-              value={calle}
-              onChange={(e) => setCalle(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "#facc15" } }}
-            />
-
-            <TextField
-              label="Ciudad"
-              value={ciudad}
-              onChange={(e) => setCiudad(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "#facc15" } }}
-            />
-
-            <TextField
-              label="Estado o Región"
-              value={estado}
-              onChange={(e) => setEstado(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "#facc15" } }}
-            />
-
-            <TextField
-              label="País"
-              value={pais}
-              onChange={(e) => setPais(e.target.value)}
-              fullWidth
-              required
-              InputLabelProps={{ sx: { color: "#ccc" } }}
-              InputProps={{ sx: { color: "#facc15" } }}
-            />
-
-            <Button
-              component="label"
-              variant="outlined"
-              sx={{
-                borderColor: "#fbbf24",
-                color: "#fbbf24",
-                "&:hover": { bgcolor: "#fbbf24", color: "#1f2937" },
-              }}
-            >
+            <Button component="label" variant="outlined" sx={{ borderColor: "#fbbf24", color: "#fbbf24", "&:hover": { bgcolor: "#fbbf24", color: "#1f2937" } }}>
               Subir Imagen
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setImagen(file);
-                    setPreview(URL.createObjectURL(file));
-                  }
-                }}
-              />
+              <input type="file" hidden accept="image/*" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setImagen(file);
+                  setPreview(URL.createObjectURL(file));
+                }
+              }} />
             </Button>
 
             {preview && (
@@ -202,52 +134,19 @@ export default function LugarFormModal({ open, onClose, onSuccess, usuario }: Pr
                 <Typography variant="body2" color="#fbbf24">
                   Previsualización:
                 </Typography>
-                <Image
-                  src={preview}
-                  alt="preview"
-                  width={500}
-                  height={300}
-                  style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
-                />
+                <Image src={preview} alt="preview" width={500} height={300} style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }} />
               </Box>
             )}
 
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              sx={{
-                bgcolor: "#fbbf24",
-                color: "#1f2937",
-                fontWeight: "bold",
-                "&:hover": { bgcolor: "#facc15" },
-              }}
-            >
+            <Button variant="contained" onClick={handleSubmit} sx={{ bgcolor: "#fbbf24", color: "#1f2937", fontWeight: "bold", "&:hover": { bgcolor: "#facc15" } }}>
               Publicar Lugar 🍻
             </Button>
           </Stack>
         </DialogContent>
       </Dialog>
 
-      <Snackbar
-        open={toastOpen}
-        autoHideDuration={6000}
-        onClose={() => setToastOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            px: 3,
-            py: 2,
-            bgcolor: "#fbbf24",
-            color: "#1f2937",
-            borderRadius: "12px",
-            boxShadow: 4,
-            minWidth: 320,
-          }}
-        >
+      <Snackbar open={toastOpen} autoHideDuration={6000} onClose={() => setToastOpen(false)} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, px: 3, py: 2, bgcolor: "#fbbf24", color: "#1f2937", borderRadius: "12px", boxShadow: 4, minWidth: 320 }}>
           <Avatar src={usuario?.fotoPerfil || ""} sx={{ width: 48, height: 48 }}>
             {usuario?.username?.charAt(0).toUpperCase()}
           </Avatar>

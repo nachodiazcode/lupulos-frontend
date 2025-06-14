@@ -51,21 +51,20 @@ export default function LugaresPage() {
   const [usuario, setUsuario] = useState<{ _id: string; username: string } | null>(null);
 
   useEffect(() => {
-  setMounted(true);
-  const favs = JSON.parse(localStorage.getItem("favoritos") || "[]");
-  setFavoritos(favs);
+    setMounted(true);
+    const favs = JSON.parse(localStorage.getItem("favoritos") || "[]");
+    setFavoritos(favs);
 
-  const user = localStorage.getItem("user"); // 🔥 fix aquí
-  if (user) setUsuario(JSON.parse(user));
+    const user = localStorage.getItem("user");
+    if (user) setUsuario(JSON.parse(user));
 
-  fetchLugares();
-}, []);
+    fetchLugares();
+  }, []);
 
   const fetchLugares = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/location`);
       const lugaresData = Array.isArray(res.data.data) ? res.data.data : [];
-      // 🔁 Ordenar para que los más recientes aparezcan primero
       setLugares(lugaresData.reverse());
     } catch (error) {
       console.error("❌ Error al obtener lugares:", error);
