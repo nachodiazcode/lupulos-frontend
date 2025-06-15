@@ -23,10 +23,23 @@ import Footer from "@/components/Footer";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
+interface Usuario {
+  _id: string;
+  username: string;
+  email?: string;
+  ciudad?: string;
+  pais?: string;
+  sitioWeb?: string;
+  bio?: string;
+  pronombres?: string;
+  fotoPerfil?: string;
+}
+
 export default function PerfilPage() {
-  const [perfil, setPerfil] = useState<any>(null);
-  const [formData, setFormData] = useState({
+  const [perfil, setPerfil] = useState<Usuario | null>(null);
+  const [formData, setFormData] = useState<Omit<Usuario, "_id">>({
     username: "",
+    email: "",
     ciudad: "",
     pais: "",
     sitioWeb: "",
@@ -38,9 +51,6 @@ export default function PerfilPage() {
   const [loading, setLoading] = useState(true);
   const [alertOpen, setAlertOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => setIsClient(true), []);
 
   useEffect(() => {
     const fetchPerfil = async () => {
@@ -55,15 +65,17 @@ export default function PerfilPage() {
         });
 
         if (data.exito) {
-          setPerfil(data.usuario);
+          const usuario: Usuario = data.usuario;
+          setPerfil(usuario);
           setFormData({
-            username: data.usuario.username || "",
-            ciudad: data.usuario.ciudad || "",
-            pais: data.usuario.pais || "",
-            sitioWeb: data.usuario.sitioWeb || "",
-            bio: data.usuario.bio || "",
-            pronombres: data.usuario.pronombres || "",
-            fotoPerfil: data.usuario.fotoPerfil || "",
+            username: usuario.username || "",
+            email: usuario.email || "",
+            ciudad: usuario.ciudad || "",
+            pais: usuario.pais || "",
+            sitioWeb: usuario.sitioWeb || "",
+            bio: usuario.bio || "",
+            pronombres: usuario.pronombres || "",
+            fotoPerfil: usuario.fotoPerfil || "",
           });
         }
       } catch (error) {
@@ -84,6 +96,8 @@ export default function PerfilPage() {
   const handleGuardar = async () => {
     try {
       const token = localStorage.getItem("authToken");
+      if (!perfil) return;
+
       await axios.put(`${API_URL}/auth/perfil/${perfil._id}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -98,7 +112,7 @@ export default function PerfilPage() {
 
   const handleFotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !perfil) return;
 
     try {
       const form = new FormData();
@@ -116,7 +130,7 @@ export default function PerfilPage() {
         });
 
         setFormData((prev) => ({ ...prev, fotoPerfil: ruta }));
-        setPerfil((prev: unknown) => ({ ...prev, fotoPerfil: ruta }));
+        setPerfil((prev) => prev ? { ...prev, fotoPerfil: ruta } : null);
         localStorage.setItem("user", JSON.stringify({ ...perfil, fotoPerfil: ruta }));
       }
     } catch (error) {
@@ -126,40 +140,32 @@ export default function PerfilPage() {
 
   const triggerFileInput = () => fileInputRef.current?.click();
 
-  if (!isClient || loading) {
+  if (loading) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#1f1b16", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center" }}>
         <Typography color="white">Cargando perfil...</Typography>
       </Box>
     );
   }
 
-  const avatarURL = formData.fotoPerfil?.startsWith("http")
-    ? formData.fotoPerfil
-    : `${API_URL.replace(/\/api$/, "")}${formData.fotoPerfil}`;
+  const avatarURL = formData.fotoPerfil?.startsWith("/uploads")
+    ? `${API_URL.replace(/\/api$/, "")}${formData.fotoPerfil}`
+    : formData.fotoPerfil;
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#1f1b16", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", display: "flex", flexDirection: "column" }}>
       <Navbar />
       <Container maxWidth="lg" sx={{ py: 6, flex: 1 }}>
-        <Paper
-          sx={{
-            bgcolor: "#3b2f1e",
-            p: { xs: 3, md: 6 },
-            borderRadius: 4,
-            boxShadow: 4,
-            mx: { xs: 2, md: "auto" },
-            width: "100%",
-            maxWidth: 900,
-            border: "1px solid #fbbf24",
-            color: "white",
-          }}
-        >
+        <Paper sx={{ bgcolor: "#1e293b", p: { xs: 3, md: 6 }, borderRadius: 4, boxShadow: 4, mx: "auto" }}>
           <Stack direction={{ xs: "column", md: "row" }} spacing={5} alignItems="flex-start">
             <Stack alignItems="center" spacing={2} minWidth={200}>
               <Avatar src={avatarURL} sx={{ width: 100, height: 100, border: "3px solid #fbbf24" }} />
-              <Typography color="#fbbf24" fontWeight="bold" textAlign="center">{formData.username}</Typography>
-              <Typography color="#cbd5e1" fontSize="14px" textAlign="center">{perfil?.email}</Typography>
+              <Typography color="#fbbf24" fontWeight="bold" textAlign="center">
+                {formData.username}
+              </Typography>
+              <Typography color="#cbd5e1" fontSize="14px" textAlign="center">
+                {formData.email}
+              </Typography>
               {editMode && (
                 <>
                   <input type="file" ref={fileInputRef} onChange={handleFotoUpload} accept="image/*" hidden />
@@ -184,33 +190,38 @@ export default function PerfilPage() {
                     </Button>
                   </Tooltip>
                 </Stack>
-                <Divider sx={{ borderColor: "#fbbf24" }} />
+                <Divider sx={{ borderColor: "#334155" }} />
 
-                {[
-                  { name: "username", label: "Nombre de usuario" },
-                  { name: "ciudad", label: "Ciudad" },
-                  { name: "pais", label: "País" },
-                  { name: "sitioWeb", label: "Sitio Web" },
-                  { name: "bio", label: "Biografía", multiline: true },
-                  { name: "pronombres", label: "Pronombres" }
-                ].map(({ name, label, multiline }) => (
-                  <Box key={name}>
-                    <Typography variant="subtitle2" color="#fbbf24" mb={0.5}>{label}</Typography>
-                    {editMode ? (
-                      <TextField
-                        name={name}
-                        value={(formData as unknown)[name] || ""}
-                        onChange={handleInputChange}
-                        fullWidth
-                        multiline={multiline}
-                        rows={multiline ? 2 : undefined}
-                        sx={textFieldStyle}
-                      />
-                    ) : (
-                      <Typography sx={readFieldStyle}>{(formData as unknown)[name] || "No especificado"}</Typography>
-                    )}
-                  </Box>
-                ))}
+                {["username", "ciudad", "pais", "sitioWeb", "bio", "pronombres"].map((name) => {
+                  const labelMap: Record<string, string> = {
+                    username: "Nombre de usuario",
+                    ciudad: "Ciudad",
+                    pais: "País",
+                    sitioWeb: "Sitio Web",
+                    bio: "Biografía",
+                    pronombres: "Pronombres",
+                  };
+                  return (
+                    <Box key={name}>
+                      <Typography variant="subtitle2" color="#fbbf24" mb={0.5}>
+                        {labelMap[name]}
+                      </Typography>
+                      {editMode ? (
+                        <TextField
+                          name={name}
+                          value={formData[name as keyof typeof formData] || ""}
+                          onChange={handleInputChange}
+                          fullWidth
+                          multiline={name === "bio"}
+                          rows={name === "bio" ? 2 : undefined}
+                          sx={textFieldStyle}
+                        />
+                      ) : (
+                        <Typography sx={readFieldStyle}>{formData[name as keyof typeof formData] || "No especificado"}</Typography>
+                      )}
+                    </Box>
+                  );
+                })}
 
                 {editMode && (
                   <Stack direction="row" justifyContent="flex-end" spacing={2} mt={2}>
