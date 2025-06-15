@@ -168,7 +168,7 @@ export default function DetalleCervezaPage() {
     try {
       const token = localStorage.getItem("authToken");
       await axios.post(
-        `${API_URL}/beer/${id}/review`,
+        `${API_URL}/api/beer/${id}/review`,
         {
           comentario: comment,
           calificacion: rating || 5,
@@ -191,7 +191,7 @@ export default function DetalleCervezaPage() {
     if (!window.confirm("¿Estás seguro de que quieres eliminar esta cerveza?")) return;
     try {
       const token = localStorage.getItem("authToken");
-      await axios.delete(`${API_URL}/beer/${id}`, {
+      await axios.delete(`${API_URL}/api/beer/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSnackbarMessage("Cerveza eliminada correctamente 🍺❌");
@@ -249,7 +249,7 @@ export default function DetalleCervezaPage() {
               <div className="flex gap-4 mt-6">
                 <Button
                   variant="contained"
-                  onClick={() => router.push(`/cervezas/editar/${beer._id}`)}
+                  onClick={() => router.push(`/api/cervezas/editar/${beer._id}`)}
                   sx={{ bgcolor: "#3b82f6" }}
                 >
                   ✏️ Editar
