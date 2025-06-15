@@ -23,23 +23,17 @@ import Footer from "@/components/Footer";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
 
-interface Perfil {
-  usuario: {
-    _id: string;
-    username: string;
-    email?: string;
-    ciudad?: string;
-    pais?: string;
-    sitioWeb?: string;
-    bio?: string;
-    pronombres?: string;
-    fotoPerfil?: string;
-  };
-}
-
 export default function PerfilPage() {
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [perfil, setPerfil] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    username: "",
+    ciudad: "",
+    pais: "",
+    sitioWeb: "",
+    bio: "",
+    pronombres: "",
+    fotoPerfil: "",
+  });
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -61,8 +55,16 @@ export default function PerfilPage() {
         });
 
         if (data.exito) {
-          setPerfil(data);
-          setFormData(data.usuario);
+          setPerfil(data.usuario);
+          setFormData({
+            username: data.usuario.username || "",
+            ciudad: data.usuario.ciudad || "",
+            pais: data.usuario.pais || "",
+            sitioWeb: data.usuario.sitioWeb || "",
+            bio: data.usuario.bio || "",
+            pronombres: data.usuario.pronombres || "",
+            fotoPerfil: data.usuario.fotoPerfil || "",
+          });
         }
       } catch (error) {
         console.error("❌ Error al cargar perfil:", error);
@@ -82,12 +84,13 @@ export default function PerfilPage() {
   const handleGuardar = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      await axios.put(`${API_URL}/auth/perfil/${perfil?.usuario._id}`, formData, {
+      await axios.put(`${API_URL}/auth/perfil/${perfil._id}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setEditMode(false);
       setAlertOpen(true);
-      localStorage.setItem("user", JSON.stringify({ ...formData }));
+      localStorage.setItem("user", JSON.stringify({ ...perfil, ...formData }));
     } catch (error) {
       console.error("❌ Error al guardar perfil:", error);
     }
@@ -108,16 +111,13 @@ export default function PerfilPage() {
         const ruta = res.data.ruta;
         const token = localStorage.getItem("authToken");
 
-        await axios.put(
-          `${API_URL}/auth/perfil/${perfil?.usuario._id}`,
-          { fotoPerfil: ruta },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await axios.put(`${API_URL}/auth/perfil/${perfil._id}`, { fotoPerfil: ruta }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        const actualizado = { ...perfil!.usuario, fotoPerfil: ruta };
-        localStorage.setItem("user", JSON.stringify(actualizado));
-        setPerfil((prev: Perfil | null) => ({ ...prev!, usuario: actualizado }));
         setFormData((prev) => ({ ...prev, fotoPerfil: ruta }));
+        setPerfil((prev: any) => ({ ...prev, fotoPerfil: ruta }));
+        localStorage.setItem("user", JSON.stringify({ ...perfil, fotoPerfil: ruta }));
       }
     } catch (error) {
       console.error("❌ Error al subir la foto:", error);
@@ -134,10 +134,9 @@ export default function PerfilPage() {
     );
   }
 
-  const user = perfil?.usuario;
   const avatarURL = formData.fotoPerfil?.startsWith("http")
     ? formData.fotoPerfil
-    : `${API_URL.replace(/\/api$/, "")}${formData.fotoPerfil || ""}`;
+    : `${API_URL.replace(/\/api$/, "")}${formData.fotoPerfil}`;
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#1f1b16", display: "flex", flexDirection: "column" }}>
@@ -159,8 +158,8 @@ export default function PerfilPage() {
           <Stack direction={{ xs: "column", md: "row" }} spacing={5} alignItems="flex-start">
             <Stack alignItems="center" spacing={2} minWidth={200}>
               <Avatar src={avatarURL} sx={{ width: 100, height: 100, border: "3px solid #fbbf24" }} />
-              <Typography color="#fbbf24" fontWeight="bold" textAlign="center">{user?.username}</Typography>
-              <Typography color="#cbd5e1" fontSize="14px" textAlign="center">{user?.email}</Typography>
+              <Typography color="#fbbf24" fontWeight="bold" textAlign="center">{formData.username}</Typography>
+              <Typography color="#cbd5e1" fontSize="14px" textAlign="center">{perfil?.email}</Typography>
               {editMode && (
                 <>
                   <input type="file" ref={fileInputRef} onChange={handleFotoUpload} accept="image/*" hidden />
@@ -187,34 +186,31 @@ export default function PerfilPage() {
                 </Stack>
                 <Divider sx={{ borderColor: "#fbbf24" }} />
 
-                {["username", "ciudad", "pais", "sitioWeb", "bio", "pronombres"].map((name) => {
-                  const labelMap: Record<string, string> = {
-                    username: "Nombre de usuario",
-                    ciudad: "Ciudad",
-                    pais: "País",
-                    sitioWeb: "Sitio Web",
-                    bio: "Biografía",
-                    pronombres: "Pronombres",
-                  };
-                  return (
-                    <Box key={name}>
-                      <Typography variant="subtitle2" color="#fbbf24" mb={0.5}>{labelMap[name]}</Typography>
-                      {editMode ? (
-                        <TextField
-                          name={name}
-                          value={formData[name] || ""}
-                          onChange={handleInputChange}
-                          fullWidth
-                          multiline={name === "bio"}
-                          rows={name === "bio" ? 2 : undefined}
-                          sx={textFieldStyle}
-                        />
-                      ) : (
-                        <Typography sx={readFieldStyle}>{formData[name] || "No especificado"}</Typography>
-                      )}
-                    </Box>
-                  );
-                })}
+                {[
+                  { name: "username", label: "Nombre de usuario" },
+                  { name: "ciudad", label: "Ciudad" },
+                  { name: "pais", label: "País" },
+                  { name: "sitioWeb", label: "Sitio Web" },
+                  { name: "bio", label: "Biografía", multiline: true },
+                  { name: "pronombres", label: "Pronombres" }
+                ].map(({ name, label, multiline }) => (
+                  <Box key={name}>
+                    <Typography variant="subtitle2" color="#fbbf24" mb={0.5}>{label}</Typography>
+                    {editMode ? (
+                      <TextField
+                        name={name}
+                        value={(formData as any)[name] || ""}
+                        onChange={handleInputChange}
+                        fullWidth
+                        multiline={multiline}
+                        rows={multiline ? 2 : undefined}
+                        sx={textFieldStyle}
+                      />
+                    ) : (
+                      <Typography sx={readFieldStyle}>{(formData as any)[name] || "No especificado"}</Typography>
+                    )}
+                  </Box>
+                ))}
 
                 {editMode && (
                   <Stack direction="row" justifyContent="flex-end" spacing={2} mt={2}>
