@@ -54,7 +54,7 @@ export default function LoginPage() {
     <>
       <GoldenBackground />
 
-      <div className="min-h-screen flex flex-col md:flex-row relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center md:justify-between md:flex-row relative overflow-hidden px-4">
         <Box
           sx={{
             position: "absolute",
@@ -69,9 +69,9 @@ export default function LoginPage() {
           initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
-          className="w-full md:w-1/2 flex items-center justify-center text-white p-8 pl-16 relative z-10"
+          className="w-full max-w-md flex items-center justify-center text-white py-12 z-10"
         >
-          <div className="w-full max-w-md space-y-8">
+          <div className="w-full space-y-8">
             <div className="text-center mb-8">
               <Image src="/assets/logo.gif" alt="Lúpulos App" width={100} height={80} className="mx-auto" />
               <h1 className="text-3xl font-bold mt-4">Bienvenido de nuevo 🍻</h1>
@@ -153,24 +153,17 @@ export default function LoginPage() {
           </div>
         </motion.div>
 
-        {/* Imagen animada */}
+        {/* Imagen decorativa para escritorio */}
         <motion.div
           initial={{ x: 100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
-          className="hidden md:flex w-1/2 relative items-center justify-center pr-16"
+          className="hidden md:flex w-1/2 items-center justify-center pr-16"
         >
           <Box
             component={motion.div}
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            sx={{
-              maxHeight: "100%",
-              maxWidth: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
           >
             <Image
               src="/assets/personajes/login-team.png"
