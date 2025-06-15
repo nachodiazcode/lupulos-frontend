@@ -56,7 +56,7 @@ export default function PerfilPage() {
         if (!userStr || !token) return;
 
         const user = JSON.parse(userStr);
-        const { data } = await axios.get(`${API_URL}/api/auth/perfil/${user._id}`, {
+        const { data } = await axios.get(`${API_URL}/auth/perfil/${user._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -82,7 +82,7 @@ export default function PerfilPage() {
   const handleGuardar = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      await axios.put(`${API_URL}/api/auth/perfil/${perfil?.usuario._id}`, formData, {
+      await axios.put(`${API_URL}/auth/perfil/${perfil?.usuario._id}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEditMode(false);
@@ -100,7 +100,7 @@ export default function PerfilPage() {
     try {
       const form = new FormData();
       form.append("fotoPerfil", file);
-      const res = await axios.post(`${API_URL}/api/auth/upload/profile`, form, {
+      const res = await axios.post(`${API_URL}/auth/upload/profile`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -109,7 +109,7 @@ export default function PerfilPage() {
         const token = localStorage.getItem("authToken");
 
         await axios.put(
-          `${API_URL}/api/auth/perfil/${perfil?.usuario._id}`,
+          `${API_URL}/auth/perfil/${perfil?.usuario._id}`,
           { fotoPerfil: ruta },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -128,7 +128,7 @@ export default function PerfilPage() {
 
   if (!isClient || loading) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#0f172a", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Box sx={{ minHeight: "100vh", bgcolor: "#1f1b16", display: "flex", justifyContent: "center", alignItems: "center" }}>
         <Typography color="white">Cargando perfil...</Typography>
       </Box>
     );
@@ -137,10 +137,10 @@ export default function PerfilPage() {
   const user = perfil?.usuario;
   const avatarURL = formData.fotoPerfil?.startsWith("http")
     ? formData.fotoPerfil
-    : `${API_URL}${formData.fotoPerfil || ""}`;
+    : `${API_URL.replace(/\/api$/, "")}${formData.fotoPerfil || ""}`;
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#1f1b16", display: "flex", flexDirection: "column" }}>
       <Navbar />
       <Container maxWidth="lg" sx={{ py: 6, flex: 1 }}>
         <Paper
@@ -149,7 +149,9 @@ export default function PerfilPage() {
             p: { xs: 3, md: 6 },
             borderRadius: 4,
             boxShadow: 4,
-            mx: "auto",
+            mx: { xs: 2, md: "auto" },
+            width: "100%",
+            maxWidth: 900,
             border: "1px solid #fbbf24",
             color: "white",
           }}
