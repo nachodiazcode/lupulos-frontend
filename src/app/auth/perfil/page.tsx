@@ -116,7 +116,7 @@ export default function PerfilPage() {
         });
 
         setFormData((prev) => ({ ...prev, fotoPerfil: ruta }));
-        setPerfil((prev: any) => ({ ...prev, fotoPerfil: ruta }));
+        setPerfil((prev: unknown) => ({ ...prev, fotoPerfil: ruta }));
         localStorage.setItem("user", JSON.stringify({ ...perfil, fotoPerfil: ruta }));
       }
     } catch (error) {
@@ -199,7 +199,7 @@ export default function PerfilPage() {
                     {editMode ? (
                       <TextField
                         name={name}
-                        value={(formData as any)[name] || ""}
+                        value={(formData as unknown)[name] || ""}
                         onChange={handleInputChange}
                         fullWidth
                         multiline={multiline}
@@ -207,7 +207,7 @@ export default function PerfilPage() {
                         sx={textFieldStyle}
                       />
                     ) : (
-                      <Typography sx={readFieldStyle}>{(formData as any)[name] || "No especificado"}</Typography>
+                      <Typography sx={readFieldStyle}>{(formData as unknown)[name] || "No especificado"}</Typography>
                     )}
                   </Box>
                 ))}
