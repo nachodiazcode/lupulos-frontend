@@ -102,7 +102,7 @@ export default function UsuariosPage() {
     if (path.startsWith("http")) return path;
 
     const fixedPath = path.startsWith("./") ? path.replace("./", "/") : path;
-    return `${API_URL}${fixedPath}`;
+    return `${API_URL}/api/${fixedPath}`;
   };
 
   return (
