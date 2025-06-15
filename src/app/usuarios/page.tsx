@@ -62,25 +62,26 @@ export default function UsuariosPage() {
   }, []);
 
   useEffect(() => {
-    const fetchUsuarios = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/api/user`);
-        const data = (Array.isArray(res.data) ? res.data : res.data.usuarios || []).map(
-          (u: Usuario, i: number) => ({
-            ...u,
-            tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
-          })
-        );
-        setUsuarios(data);
-        setUsuariosFiltrados(data);
-      } catch (error) {
-        console.error("❌ Error al obtener usuarios:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsuarios();
-  }, []);
+  const fetchUsuarios = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/user`);
+      const data = (Array.isArray(res.data) ? res.data : res.data.usuarios || [])
+        .map((u: Usuario, i: number) => ({
+          ...u,
+          tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
+        }))
+        .reverse(); // 👈 Esto pone al último como el primero
+
+      setUsuarios(data);
+      setUsuariosFiltrados(data);
+    } catch (error) {
+      console.error("❌ Error al obtener usuarios:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchUsuarios();
+}, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
