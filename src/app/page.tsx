@@ -11,9 +11,11 @@ import Footer from "@/components/Footer";
 export default function HomePage() {
   const router = useRouter();
 
+  /** Carga la fuente Lora solo una vez */
   useEffect(() => {
     const link = document.createElement("link");
-    link.href = "https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap";
     link.rel = "stylesheet";
     document.head.appendChild(link);
   }, []);
@@ -70,7 +72,8 @@ export default function HomePage() {
             position: "relative",
           }}
         >
-          Encuentra cervezas artesanales, bares escondidos, eventos vikingos y comparte tu pasión por el lúpulo. Bienvenido a tu comunidad cervecera.
+          Encuentra cervezas artesanales, bares escondidos, eventos vikingos y
+          comparte tu pasión por el lúpulo. Bienvenido a tu comunidad cervecera.
         </Typography>
 
         <Stack
@@ -114,6 +117,7 @@ export default function HomePage() {
           </Button>
         </Stack>
 
+        {/* Personajes del hero */}
         <Box
           sx={{
             mt: 8,
@@ -128,6 +132,7 @@ export default function HomePage() {
             width={600}
             height={400}
             style={{ width: "100%", height: "auto" }}
+            priority
           />
         </Box>
       </Box>
@@ -176,17 +181,17 @@ export default function HomePage() {
             {
               titulo: "🍻 Explora Cervezas",
               desc: "Descubre cientos de cervezas artesanales chilenas con reseñas, imágenes, puntuaciones y más.",
-              img: "/personajes/explorar-cervezas.png",
+              img: "/assets/personajes-landing/explorar-cervezas.png",
             },
             {
               titulo: "📍 Encuentra Bares",
               desc: "Explora bares ocultos, beer gardens y lugares vikingos para probar nuevas experiencias.",
-              img: "/personajes/encuentra-bares.png",
+              img: "/assets/personajes-landing/encuentra-bares.png",
             },
             {
               titulo: "🗣️ Comparte en Comunidad",
               desc: "Comenta, comparte fotos, videos y saludos vikingos con otros amantes del lúpulo.",
-              img: "/personajes/comparte-comunidades.png",
+              img: "/assets/personajes-landing/comparte-comunidades.png",
             },
           ].map((item, i) => (
             <Box
@@ -214,9 +219,13 @@ export default function HomePage() {
                   height: "auto",
                   borderRadius: "12px",
                   marginBottom: "1rem",
+                  filter: "drop-shadow(2px 2px 2px rgba(0,0,0,0.05))",
                 }}
               />
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: "#3a1f00" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 700, mb: 1, color: "#3a1f00" }}
+              >
                 {item.titulo}
               </Typography>
               <Typography variant="body1" sx={{ color: "#5c3b1a" }}>
@@ -227,18 +236,32 @@ export default function HomePage() {
         </Stack>
       </Box>
 
+      {/* FRASE DESTACADA Y FOOTER */}
       <FraseCervecera />
       <Footer />
 
+      {/* Animaciones globales */}
       <style jsx global>{`
         @keyframes float {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
-          100% { transform: translateY(0px); }
+          0% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-8px);
+          }
+          100% {
+            transform: translateY(0px);
+          }
         }
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
     </>
