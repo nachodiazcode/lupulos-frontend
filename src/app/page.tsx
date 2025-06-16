@@ -11,11 +11,9 @@ import Footer from "@/components/Footer";
 export default function HomePage() {
   const router = useRouter();
 
-  /** Cargar la fuente Lora solo una vez */
   useEffect(() => {
     const link = document.createElement("link");
-    link.href =
-      "https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap";
     link.rel = "stylesheet";
     document.head.appendChild(link);
   }, []);
@@ -132,6 +130,7 @@ export default function HomePage() {
             width={600}
             height={400}
             priority
+            unoptimized
             style={{ width: "100%", height: "auto" }}
           />
         </Box>
@@ -214,10 +213,12 @@ export default function HomePage() {
                 alt={item.titulo}
                 width={400}
                 height={250}
+                unoptimized
                 sizes="(max-width: 600px) 100vw, 400px"
                 style={{
                   width: "100%",
-                  height: "auto",
+                  height: "220px", // altura unificada
+                  objectFit: "contain", // sin recorte visual
                   borderRadius: "12px",
                   marginBottom: "1rem",
                   filter: "drop-shadow(2px 2px 2px rgba(0,0,0,0.05))",
