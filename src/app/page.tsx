@@ -176,17 +176,17 @@ export default function HomePage() {
             {
               titulo: "🍻 Explora Cervezas",
               desc: "Descubre cientos de cervezas artesanales chilenas con reseñas, imágenes, puntuaciones y más.",
-              img: "/personajes/explorar-cervezas.png",
+              img: "/personajes-landing/explorar-cervezas.png",
             },
             {
               titulo: "📍 Encuentra Bares",
               desc: "Explora bares ocultos, beer gardens y lugares vikingos para probar nuevas experiencias.",
-              img: "/personajes/encuentra-bares.png",
+              img: "/personajes-landing/encuentra-bares.png",
             },
             {
               titulo: "🗣️ Comparte en Comunidad",
               desc: "Comenta, comparte fotos, videos y saludos vikingos con otros amantes del lúpulo.",
-              img: "/personajes/comparte-comunidades.png",
+              img: "/personajes-landing/comparte-comunidades.png",
             },
           ].map((item, i) => (
             <Box
