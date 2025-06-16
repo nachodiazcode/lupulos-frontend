@@ -149,6 +149,8 @@ export default function HomePage() {
           justifyContent: "center",
           alignItems: "center",
           px: 4,
+          pt: 12,
+          pb: 12,
           textAlign: "center",
         }}
       >
