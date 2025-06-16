@@ -115,7 +115,6 @@ export default function HomePage() {
           </Button>
         </Stack>
 
-        {/* Personajes del hero */}
         <Box
           sx={{
             mt: 8,
@@ -136,22 +135,22 @@ export default function HomePage() {
         </Box>
       </Box>
 
-      {/* FRANJA OSCURA SUPERIOR */}
-      <Box sx={{ width: "100%", height: "64px", backgroundColor: "#3a1f00" }} />
+      {/* FRANJA SUPERIOR */}
+      <Box sx={{ width: "100%", height: "160px", backgroundColor: "#3a1f00" }} />
 
-      {/* FUNCIONALIDADES DESTACADAS */}
+      {/* FUNCIONALIDADES */}
       <Box
         sx={{
-          px: 4,
-          py: 10,
           width: "100%",
           background: "linear-gradient(145deg, #fff8ec, #ffecc4)",
+          textAlign: "center",
+          px: 4,
+          pt: 16,
+          pb: 16,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          textAlign: "center",
-          position: "relative",
         }}
       >
         <Typography
@@ -162,7 +161,6 @@ export default function HomePage() {
             color: "#3a1f00",
             fontWeight: 800,
             mb: 6,
-            animation: "fadeIn 2s ease-in-out forwards",
           }}
         >
           ¿Qué puedes hacer con Lúpulos App? 🍺✨
@@ -226,10 +224,7 @@ export default function HomePage() {
                   filter: "drop-shadow(2px 2px 2px rgba(0,0,0,0.05))",
                 }}
               />
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, mb: 1, color: "#3a1f00" }}
-              >
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: "#3a1f00" }}>
                 {item.titulo}
               </Typography>
               <Typography variant="body1" sx={{ color: "#5c3b1a" }}>
@@ -240,13 +235,13 @@ export default function HomePage() {
         </Stack>
       </Box>
 
-      {/* FRANJA OSCURA INFERIOR */}
-      <Box sx={{ width: "100%", height: "64px", backgroundColor: "#3a1f00" }} />
+      {/* FRANJA INFERIOR */}
+      <Box sx={{ width: "100%", height: "160px", backgroundColor: "#3a1f00" }} />
 
       <FraseCervecera />
       <Footer />
 
-      {/* Animaciones globales */}
+      {/* ANIMACIONES */}
       <style jsx global>{`
         @keyframes float {
           0% {
