@@ -92,7 +92,7 @@ export default function Navbar() {
 
   return (
     <>
-      <AppBar position="static" sx={{ background: "linear-gradient(to right, #5C3B1E, #8B5E3C)" }}>
+      <AppBar position="sticky" sx={{ background: "linear-gradient(to right, #5C3B1E, #8B5E3C)" }}>
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           <IconButton edge="start" onClick={toggleDrawer(true)} sx={{ color: "white", mr: 2 }}>
             <MenuIcon />
