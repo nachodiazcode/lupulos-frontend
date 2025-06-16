@@ -4,7 +4,9 @@ import { Box, Typography, Button, Stack } from "@mui/material";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useEffect } from "react";
-import Navbar from "@/components/Navbar"; // 👈 IMPORTANTE
+import Navbar from "@/components/Navbar";
+import FraseCervecera from "@/components/FraseCervecera";
+import Footer from "@/components/Footer";
 
 export default function HomePage() {
   const router = useRouter();
@@ -34,9 +36,9 @@ export default function HomePage() {
           textAlign: "center",
           px: 4,
           py: 10,
+          pt: 12,
         }}
       >
-        {/* TITULO */}
         <Typography
           variant="h2"
           sx={{
@@ -54,7 +56,6 @@ export default function HomePage() {
           como nunca antes 🍺
         </Typography>
 
-        {/* DESCRIPCIÓN */}
         <Typography
           variant="body1"
           sx={{
@@ -72,7 +73,6 @@ export default function HomePage() {
           Encuentra cervezas artesanales, bares escondidos, eventos vikingos y comparte tu pasión por el lúpulo. Bienvenido a tu comunidad cervecera.
         </Typography>
 
-        {/* BOTONES */}
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={2}
@@ -114,7 +114,6 @@ export default function HomePage() {
           </Button>
         </Stack>
 
-        {/* PERSONAJES */}
         <Box
           sx={{
             mt: 8,
@@ -133,7 +132,7 @@ export default function HomePage() {
         </Box>
       </Box>
 
-      {/* SECCIÓN DESTACADA CON FUNCIONALIDADES */}
+      {/* FUNCIONALIDADES DESTACADAS */}
       <Box
         sx={{
           mt: { xs: 10, md: 20 },
@@ -177,17 +176,17 @@ export default function HomePage() {
             {
               titulo: "🍻 Explora Cervezas",
               desc: "Descubre cientos de cervezas artesanales chilenas con reseñas, imágenes, puntuaciones y más.",
-              img: "/assets/funciones/cervezas.png",
+              img: "/assets/personajes/explorar-cervezas.png",
             },
             {
               titulo: "📍 Encuentra Bares",
               desc: "Explora bares ocultos, beer gardens y lugares vikingos para probar nuevas experiencias.",
-              img: "/assets/funciones/bares.png",
+              img: "/assets/personajes/encuentra-bares.png",
             },
             {
               titulo: "🗣️ Comparte en Comunidad",
               desc: "Comenta, comparte fotos, videos y saludos vikingos con otros amantes del lúpulo.",
-              img: "/assets/funciones/comunidad.png",
+              img: "/assets/personajes/compartte-comunidades.png",
             },
           ].map((item, i) => (
             <Box
@@ -228,48 +227,18 @@ export default function HomePage() {
         </Stack>
       </Box>
 
-      {/* ANIMACIONES GLOBALES */}
+      <FraseCervecera />
+      <Footer />
+
       <style jsx global>{`
-        @keyframes starsMove {
-          0% {
-            background-position: 0 0;
-          }
-          100% {
-            background-position: 1000px 1000px;
-          }
-        }
-
         @keyframes float {
-          0% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-8px);
-          }
-          100% {
-            transform: translateY(0px);
-          }
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+          100% { transform: translateY(0px); }
         }
-
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes twinkle {
-          0%,
-          100% {
-            opacity: 0.15;
-          }
-          50% {
-            opacity: 0.3;
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </>
