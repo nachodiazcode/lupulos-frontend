@@ -136,10 +136,12 @@ export default function HomePage() {
         </Box>
       </Box>
 
+      {/* BLOQUE OSCURO SUPERIOR */}
+      <Box sx={{ width: "100%", height: "64px", backgroundColor: "#3a1f00" }} />
+
       {/* FUNCIONALIDADES DESTACADAS */}
       <Box
         sx={{
-          mt: { xs: 10, md: 20 },
           px: 4,
           py: 10,
           width: "100%",
@@ -217,8 +219,8 @@ export default function HomePage() {
                 sizes="(max-width: 600px) 100vw, 400px"
                 style={{
                   width: "100%",
-                  height: "220px", // altura unificada
-                  objectFit: "contain", // sin recorte visual
+                  height: "220px",
+                  objectFit: "contain",
                   borderRadius: "12px",
                   marginBottom: "1rem",
                   filter: "drop-shadow(2px 2px 2px rgba(0,0,0,0.05))",
@@ -238,10 +240,12 @@ export default function HomePage() {
         </Stack>
       </Box>
 
+      {/* BLOQUE OSCURO INFERIOR */}
+      <Box sx={{ width: "100%", height: "64px", backgroundColor: "#3a1f00" }} />
+
       <FraseCervecera />
       <Footer />
 
-      {/* Animaciones globales */}
       <style jsx global>{`
         @keyframes float {
           0% {
