@@ -138,19 +138,18 @@ export default function HomePage() {
       {/* FRANJA SUPERIOR */}
       <Box sx={{ width: "100%", height: "160px", backgroundColor: "#3a1f00" }} />
 
-      {/* FUNCIONALIDADES */}
+      {/* FUNCIONALIDADES (centrado perfecto) */}
       <Box
         sx={{
           width: "100%",
+          minHeight: "320px",
           background: "linear-gradient(145deg, #fff8ec, #ffecc4)",
-          textAlign: "center",
-          px: 4,
-          pt: 16,
-          pb: 16,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
           justifyContent: "center",
+          alignItems: "center",
+          px: 4,
+          textAlign: "center",
         }}
       >
         <Typography
