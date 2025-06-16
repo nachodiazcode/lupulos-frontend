@@ -22,7 +22,7 @@ export default function HomePage() {
     <>
       <Navbar />
 
-      {/* HERO INICIAL */}
+      {/* HERO SECTION */}
       <Box
         sx={{
           minHeight: "100vh",
@@ -95,7 +95,7 @@ export default function HomePage() {
             }}
             onClick={() => router.push("/auth/login")}
           >
-            ¡Comenzar a descubrir!
+            Start Exploring
           </Button>
 
           <Button
@@ -111,11 +111,11 @@ export default function HomePage() {
             }}
             onClick={() => router.push("/comunidad")}
           >
-            Conocer Comunidad
+            Visit Community
           </Button>
         </Stack>
 
-        {/* Personajes del hero */}
+        {/* Hero Characters */}
         <Box
           sx={{
             mt: 8,
@@ -126,7 +126,7 @@ export default function HomePage() {
         >
           <Image
             src="/assets/personajes/lupinvikingoylupincervesota.png"
-            alt="personajes cerveza y lúpulo"
+            alt="beer and hops characters"
             width={600}
             height={400}
             priority
@@ -136,10 +136,10 @@ export default function HomePage() {
         </Box>
       </Box>
 
-      {/* BLOQUE OSCURO SUPERIOR */}
+      {/* DARK BAR - TOP */}
       <Box sx={{ width: "100%", height: "64px", backgroundColor: "#3a1f00" }} />
 
-      {/* FUNCIONALIDADES DESTACADAS */}
+      {/* FEATURE SECTION */}
       <Box
         sx={{
           px: 4,
@@ -165,7 +165,7 @@ export default function HomePage() {
             animation: "fadeIn 2s ease-in-out forwards",
           }}
         >
-          ¿Qué puedes hacer con Lúpulos App? 🍺✨
+          What can you do with Lúpulos App? 🍺✨
         </Typography>
 
         <Stack
@@ -180,18 +180,21 @@ export default function HomePage() {
         >
           {[
             {
-              titulo: "🍻 Explora Cervezas",
-              desc: "Descubre cientos de cervezas artesanales chilenas con reseñas, imágenes, puntuaciones y más.",
+              title: "🍻 Explore Beers",
+              description:
+                "Discover hundreds of Chilean craft beers with reviews, images, ratings, and more.",
               img: "/assets/personajes-landing/explorar-cervezas.png",
             },
             {
-              titulo: "📍 Encuentra Bares",
-              desc: "Explora bares ocultos, beer gardens y lugares vikingos para probar nuevas experiencias.",
+              title: "📍 Find Bars",
+              description:
+                "Explore hidden bars, beer gardens, and Viking-themed places for new experiences.",
               img: "/assets/personajes-landing/encuentra-bares.png",
             },
             {
-              titulo: "🗣️ Comparte en Comunidad",
-              desc: "Comenta, comparte fotos, videos y saludos vikingos con otros amantes del lúpulo.",
+              title: "🗣️ Share in Community",
+              description:
+                "Post comments, share photos, videos and Viking cheers with fellow hop lovers.",
               img: "/assets/personajes-landing/comparte-comunidades.png",
             },
           ].map((item, i) => (
@@ -212,7 +215,7 @@ export default function HomePage() {
             >
               <Image
                 src={item.img}
-                alt={item.titulo}
+                alt={item.title}
                 width={400}
                 height={250}
                 unoptimized
@@ -230,22 +233,23 @@ export default function HomePage() {
                 variant="h5"
                 sx={{ fontWeight: 700, mb: 1, color: "#3a1f00" }}
               >
-                {item.titulo}
+                {item.title}
               </Typography>
               <Typography variant="body1" sx={{ color: "#5c3b1a" }}>
-                {item.desc}
+                {item.description}
               </Typography>
             </Box>
           ))}
         </Stack>
       </Box>
 
-      {/* BLOQUE OSCURO INFERIOR */}
+      {/* DARK BAR - BOTTOM */}
       <Box sx={{ width: "100%", height: "64px", backgroundColor: "#3a1f00" }} />
 
       <FraseCervecera />
       <Footer />
 
+      {/* Global Animations */}
       <style jsx global>{`
         @keyframes float {
           0% {
