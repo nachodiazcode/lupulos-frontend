@@ -138,11 +138,10 @@ export default function HomePage() {
       {/* FRANJA SUPERIOR */}
       <Box sx={{ width: "100%", height: "160px", backgroundColor: "#3a1f00" }} />
 
-      {/* FUNCIONALIDADES (centrado perfecto) */}
+      {/* FUNCIONALIDADES DESTACADAS */}
       <Box
         sx={{
           width: "100%",
-          minHeight: "320px",
           background: "linear-gradient(145deg, #fff8ec, #ffecc4)",
           display: "flex",
           flexDirection: "column",
@@ -189,7 +188,7 @@ export default function HomePage() {
               img: "/assets/personajes-landing/encuentra-bares.png",
             },
             {
-              titulo: "🗣️ Comparte en Comunidad",
+              titulo: "🗣️ Comunidad",
               desc: "Comenta, comparte fotos, videos y saludos vikingos con otros amantes del lúpulo.",
               img: "/assets/personajes-landing/comparte-comunidades.png",
             },
@@ -253,16 +252,6 @@ export default function HomePage() {
           }
           100% {
             transform: translateY(0px);
-          }
-        }
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
           }
         }
       `}</style>
