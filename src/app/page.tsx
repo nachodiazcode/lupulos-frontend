@@ -22,34 +22,29 @@ export default function HomePage() {
     <>
       <Navbar />
 
-      {/* HERO INICIAL */}
+      {/* HERO */}
       <Box
         sx={{
           minHeight: "100vh",
-          backgroundColor: "#D7981C",
+          background: "linear-gradient(to bottom, #FFD580, #D7981C)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "column",
-          position: "relative",
-          overflow: "hidden",
           textAlign: "center",
           px: 4,
-          py: 10,
           pt: 12,
+          pb: 8,
         }}
       >
         <Typography
           variant="h2"
           sx={{
             fontFamily: "'Lora', serif",
-            fontSize: { xs: "2.5rem", md: "3.5rem" },
             fontWeight: 900,
+            fontSize: { xs: "2.7rem", md: "3.7rem" },
             color: "#3a1f00",
-            textAlign: "center",
             textShadow: "2px 2px 6px rgba(255, 215, 135, 0.6)",
-            zIndex: 2,
-            position: "relative",
           }}
         >
           Explora el mundo cervecero <br />
@@ -57,20 +52,15 @@ export default function HomePage() {
         </Typography>
 
         <Typography
-          variant="body1"
           sx={{
             mt: 3,
-            maxWidth: 800,
-            fontWeight: 480,
-            fontSize: "1.5rem",
+            fontSize: { xs: "1.2rem", md: "1.5rem" },
             color: "#3a1f00",
-            textAlign: "center",
-            textShadow: "2px 2px 5px rgba(255, 235, 175, 0.6)",
-            zIndex: 2,
-            position: "relative",
+            maxWidth: 800,
+            textShadow: "1px 1px 5px rgba(255, 230, 170, 0.5)",
           }}
         >
-          Encuentra cervezas artesanales, bares escondidos, eventos vikingos y comparte tu pasión por el lúpulo. Bienvenido a tu comunidad cervecera.
+          Encuentra cervezas artesanales, bares ocultos y comparte tu pasión por el lúpulo.
         </Typography>
 
         <Stack
@@ -78,25 +68,22 @@ export default function HomePage() {
           spacing={2}
           mt={4}
           alignItems="center"
-          justifyContent="center"
-          zIndex={2}
         >
           <Button
             variant="contained"
             sx={{
               backgroundColor: "#4A2502",
-              color: "#fff",
               px: 4,
               py: 1.5,
               borderRadius: "999px",
               fontWeight: "bold",
+              color: "#fff",
               "&:hover": { backgroundColor: "#3a1f00" },
             }}
             onClick={() => router.push("/auth/login")}
           >
             ¡Comenzar a descubrir!
           </Button>
-
           <Button
             variant="outlined"
             sx={{
@@ -106,7 +93,7 @@ export default function HomePage() {
               py: 1.5,
               borderRadius: "999px",
               fontWeight: "bold",
-              "&:hover": { backgroundColor: "#4A250220" },
+              "&:hover": { backgroundColor: "#4A250210" },
             }}
             onClick={() => router.push("/comunidad")}
           >
@@ -114,16 +101,9 @@ export default function HomePage() {
           </Button>
         </Stack>
 
-        <Box
-          sx={{
-            mt: 8,
-            width: { xs: 280, md: 420 },
-            animation: "float 5s ease-in-out infinite",
-            zIndex: 2,
-          }}
-        >
+        <Box sx={{ mt: 8, width: { xs: 280, md: 420 }, animation: "float 5s ease-in-out infinite" }}>
           <Image
-            src="/assets/personajes/lupinvikingoylupincervesota.png"
+            src="/personajes/lupinvikingoylupincervesota.png"
             alt="personajes cerveza y lúpulo"
             width={600}
             height={400}
@@ -138,23 +118,17 @@ export default function HomePage() {
           mt: { xs: 10, md: 20 },
           px: 4,
           py: 10,
-          width: "100%",
           background: "linear-gradient(145deg, #fff8ec, #ffecc4)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
           textAlign: "center",
-          position: "relative",
         }}
       >
         <Typography
           variant="h3"
           sx={{
             fontFamily: "'Lora', serif",
+            fontWeight: 800,
             fontSize: { xs: "2rem", md: "3rem" },
             color: "#3a1f00",
-            fontWeight: 800,
             mb: 6,
             animation: "fadeIn 2s ease-in-out forwards",
           }}
@@ -165,41 +139,39 @@ export default function HomePage() {
         <Stack
           direction={{ xs: "column", md: "row" }}
           spacing={4}
-          sx={{
-            maxWidth: 1200,
-            justifyContent: "center",
-            alignItems: "stretch",
-            width: "100%",
-          }}
+          justifyContent="center"
+          alignItems="stretch"
+          maxWidth={1200}
+          mx="auto"
         >
           {[
             {
               titulo: "🍻 Explora Cervezas",
               desc: "Descubre cientos de cervezas artesanales chilenas con reseñas, imágenes, puntuaciones y más.",
-              img: "/assets/personajes/explorar-cervezas.png",
+              img: "/personajes/explorar-cervezas.png",
             },
             {
               titulo: "📍 Encuentra Bares",
               desc: "Explora bares ocultos, beer gardens y lugares vikingos para probar nuevas experiencias.",
-              img: "/assets/personajes/encuentra-bares.png",
+              img: "/personajes/encuentra-bares.png",
             },
             {
               titulo: "🗣️ Comparte en Comunidad",
               desc: "Comenta, comparte fotos, videos y saludos vikingos con otros amantes del lúpulo.",
-              img: "/assets/personajes/compartte-comunidades.png",
+              img: "/personajes/comparte-comunidades.png",
             },
           ].map((item, i) => (
             <Box
               key={i}
               sx={{
-                flex: 1,
                 backgroundColor: "#fffaf3",
                 borderRadius: 4,
                 boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
                 p: 4,
-                transition: "all 0.4s ease",
+                flex: 1,
+                transition: "all 0.3s ease-in-out",
                 "&:hover": {
-                  transform: "translateY(-8px) scale(1.02)",
+                  transform: "translateY(-8px)",
                   boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
                 },
               }}
@@ -216,7 +188,7 @@ export default function HomePage() {
                   marginBottom: "1rem",
                 }}
               />
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: "#3a1f00" }}>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: "#3a1f00", mb: 1 }}>
                 {item.titulo}
               </Typography>
               <Typography variant="body1" sx={{ color: "#5c3b1a" }}>
@@ -233,9 +205,10 @@ export default function HomePage() {
       <style jsx global>{`
         @keyframes float {
           0% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+          50% { transform: translateY(-10px); }
           100% { transform: translateY(0px); }
         }
+
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
