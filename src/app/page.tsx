@@ -69,76 +69,45 @@ export default function HomePage() {
         </Typography>
 
         <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={4}
-          sx={{
-            maxWidth: 1200,
-            justifyContent: "center",
-            alignItems: "stretch", // <-- Asegura altura uniforme
-            width: "100%",
-          }}
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          mt={4}
+          alignItems="center"
+          justifyContent="center"
+          zIndex={2}
         >
-          {[
-            {
-              titulo: "🍻 Explora Cervezas",
-              desc: "Descubre cientos de cervezas artesanales chilenas con reseñas, imágenes, puntuaciones y más.",
-              img: "/assets/personajes-landing/explorar-cervezas.png",
-            },
-            {
-              titulo: "📍 Encuentra Bares",
-              desc: "Explora bares ocultos, beer gardens y lugares vikingos para probar nuevas experiencias.",
-              img: "/assets/personajes-landing/encuentra-bares.png",
-            },
-            {
-              titulo: "🗣️ Comunidad",
-              desc: "Comenta, comparte fotos, videos y saludos vikingos con otros amantes del lúpulo.",
-              img: "/assets/personajes-landing/comparte-comunidades.png",
-            },
-          ].map((item, i) => (
-            <Box
-              key={i}
-              sx={{
-                flex: 1,
-                height: "100%", // <- Altura completa dentro del Stack
-                backgroundColor: "#fffaf3",
-                borderRadius: 4,
-                boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
-                p: 4,
-                display: "flex",              // 👈
-                flexDirection: "column",     // 👈 Para que crezca verticalmente
-                justifyContent: "space-between", // 👈 Distribuye contenido
-                transition: "all 0.4s ease",
-                "&:hover": {
-                  transform: "translateY(-8px) scale(1.02)",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-                },
-              }}
-            >
-              <Image
-                src={item.img}
-                alt={item.titulo}
-                width={400}
-                height={250}
-                unoptimized
-                style={{
-                  width: "100%",
-                  height: "220px",
-                  objectFit: "contain",
-                  borderRadius: "12px",
-                  marginBottom: "1rem",
-                  filter: "drop-shadow(2px 2px 2px rgba(0,0,0,0.05))",
-                }}
-              />
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: "#3a1f00" }}>
-                {item.titulo}
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#5c3b1a" }}>
-                {item.desc}
-              </Typography>
-            </Box>
-          ))}
-        </Stack>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "#4A2502",
+              color: "#fff",
+              px: 4,
+              py: 1.5,
+              borderRadius: "999px",
+              fontWeight: "bold",
+              "&:hover": { backgroundColor: "#3a1f00" },
+            }}
+            onClick={() => router.push("/auth/login")}
+          >
+            ¡Comenzar a descubrir!
+          </Button>
 
+          <Button
+            variant="outlined"
+            sx={{
+              borderColor: "#4A2502",
+              color: "#4A2502",
+              px: 4,
+              py: 1.5,
+              borderRadius: "999px",
+              fontWeight: "bold",
+              "&:hover": { backgroundColor: "#4A250220" },
+            }}
+            onClick={() => router.push("/comunidad")}
+          >
+            Conocer Comunidad
+          </Button>
+        </Stack>
 
         <Box
           sx={{
@@ -174,7 +143,7 @@ export default function HomePage() {
           alignItems: "center",
           textAlign: "center",
           px: 4,
-          py: { xs: 10, md: 14 }, // ESPACIO SIMÉTRICO
+          py: { xs: 10, md: 14 },
         }}
       >
         <Typography
@@ -196,7 +165,7 @@ export default function HomePage() {
           sx={{
             maxWidth: 1200,
             justifyContent: "center",
-            alignItems: "stretch",
+            alignItems: "stretch", // 👈 Esto estira las tarjetas a misma altura
             width: "100%",
           }}
         >
@@ -221,10 +190,14 @@ export default function HomePage() {
               key={i}
               sx={{
                 flex: 1,
+                height: "100%", // <- obligatorio para que se estire
                 backgroundColor: "#fffaf3",
                 borderRadius: 4,
                 boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
                 p: 4,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between", // <-- Distribuye bien los elementos
                 transition: "all 0.4s ease",
                 "&:hover": {
                   transform: "translateY(-8px) scale(1.02)",
