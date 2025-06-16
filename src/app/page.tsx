@@ -31,8 +31,6 @@ export default function HomePage() {
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "column",
-          position: "relative",
-          overflow: "hidden",
           textAlign: "center",
           px: 4,
           py: 10,
@@ -46,10 +44,8 @@ export default function HomePage() {
             fontSize: { xs: "2.5rem", md: "3.5rem" },
             fontWeight: 900,
             color: "#3a1f00",
-            textAlign: "center",
             textShadow: "2px 2px 6px rgba(255, 215, 135, 0.6)",
             zIndex: 2,
-            position: "relative",
           }}
         >
           Explora el mundo cervecero <br />
@@ -64,10 +60,8 @@ export default function HomePage() {
             fontWeight: 480,
             fontSize: "1.5rem",
             color: "#3a1f00",
-            textAlign: "center",
             textShadow: "2px 2px 5px rgba(255, 235, 175, 0.6)",
             zIndex: 2,
-            position: "relative",
           }}
         >
           Encuentra cervezas artesanales, bares escondidos, eventos vikingos y
@@ -147,10 +141,9 @@ export default function HomePage() {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          px: 4,
-          pt: 12,
-          pb: 12,
           textAlign: "center",
+          px: 4,
+          py: { xs: 10, md: 14 }, // ESPACIO SIMÉTRICO
         }}
       >
         <Typography
@@ -214,7 +207,6 @@ export default function HomePage() {
                 width={400}
                 height={250}
                 unoptimized
-                sizes="(max-width: 600px) 100vw, 400px"
                 style={{
                   width: "100%",
                   height: "220px",
