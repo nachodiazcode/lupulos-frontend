@@ -44,7 +44,7 @@ interface NavItem {
 
 interface Usuario {
   _id: string;
-  username: string;
+  username?: string; // <- puede venir undefined, lo marcamos opcional
   fotoPerfil?: string;
 }
 
@@ -67,6 +67,10 @@ export default function Navbar() {
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const pathname = usePathname();
   const router = useRouter();
+
+  // helper seguro para inicial
+  const getInitial = (u: Usuario | null) =>
+    (u?.username?.[0] ?? "U").toUpperCase();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -138,14 +142,14 @@ export default function Navbar() {
 
               {usuario && (
                 <>
-                  <Tooltip title={usuario.username}>
+                  <Tooltip title={usuario.username ?? "Usuario"}>
                     <IconButton onClick={handleAvatarClick}>
                       <Avatar
                         src={getAvatarSrc(usuario.fotoPerfil)}
-                        alt={usuario.username}
+                        alt={usuario.username ?? "usuario"}
                         sx={{ width: 36, height: 36, border: "2px solid #FFD700" }}
                       >
-                        {usuario.username[0]?.toUpperCase()}
+                        {getInitial(usuario)}
                       </Avatar>
                     </IconButton>
                   </Tooltip>
@@ -156,10 +160,12 @@ export default function Navbar() {
                     anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                     transformOrigin={{ vertical: "top", horizontal: "right" }}
                   >
-                    <MenuItem onClick={() => {
-                      handleMenuClose();
-                      router.push(`/auth/perfil`);
-                    }}>
+                    <MenuItem
+                      onClick={() => {
+                        handleMenuClose();
+                        router.push(`/auth/perfil`);
+                      }}
+                    >
                       <ListItemIcon><AccountCircleIcon /></ListItemIcon>
                       Mi cuenta
                     </MenuItem>
@@ -175,13 +181,12 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
 
-      {/* Drawer con fondo café oscuro */}
       <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
         <Box
           sx={{
             width: 250,
             height: "100%",
-            backgroundColor: "#2E1A10", // Café oscuro
+            backgroundColor: "#2E1A10",
             color: "white",
             display: "flex",
             flexDirection: "column",
@@ -208,11 +213,13 @@ export default function Navbar() {
                   <ListItemIcon sx={{ color: "white" }}>
                     <Avatar
                       src={getAvatarSrc(usuario.fotoPerfil)}
-                      alt={usuario.username}
+                      alt={usuario.username ?? "usuario"}
                       sx={{ width: 28, height: 28 }}
-                    />
+                    >
+                      {getInitial(usuario)}
+                    </Avatar>
                   </ListItemIcon>
-                  <ListItemText primary={usuario.username} />
+                  <ListItemText primary={usuario.username ?? "Usuario"} />
                   {footerMenuOpen ? <ExpandLess sx={{ color: "white" }} /> : <ExpandMore sx={{ color: "white" }} />}
                 </ListItemButton>
 
