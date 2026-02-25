@@ -1,0 +1,458 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   🎨 Lúpulos App — Design Tokens (Multi-theme)
+   ═══════════════════════════════════════════════════════════
+   Three beer-inspired themes controlled via data-theme on <html>:
+     • ambar  (dark warm)  — Amber Ale, pub acogedor
+     • lager  (light)      — Pilsner dorada, beer garden
+     • stout  (dark cold)  — Porter, pub industrial
+
+   Usage:
+     CSS / SCSS  → var(--color-amber-primary)
+     Tailwind    → bg-amber-primary, text-surface-card, …
+     MUI theme   → palette map keyed by theme name
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Tailwind v4 Token Registration (Ámbar defaults) ─── */
+@theme {
+  /* Primary accent — Amber / Gold */
+  --color-amber-primary: #fbbf24;
+  --color-amber-hover: #f59e0b;
+  --color-amber-dark: #d97706;
+  --color-amber-light: #facc15;
+  --color-amber-muted: #fde68a;
+
+  /* Surfaces */
+  --color-surface-deepest: #0c0a09;
+  --color-surface-dark: #1a1510;
+  --color-surface-mid: #2a2018;
+  --color-surface-card: #1c1814;
+  --color-surface-card-alt: #141210;
+  --color-surface-elevated: #221c16;
+  --color-surface-overlay: #080604;
+
+  /* Warm accents (navbar, drawer, etc.) */
+  --color-brown-navbar-start: #3d2610;
+  --color-brown-navbar-end: #5c3a1a;
+  --color-brown-drawer: #181210;
+  --color-brown-modal: #2a1e16;
+  --color-brown-barrel-start: #1a1510;
+  --color-brown-barrel-end: #0c0a09;
+
+  /* Accent colors */
+  --color-gold-nav: #fbbf24;
+  --color-emerald: #34d399;
+  --color-emerald-dark: #10b981;
+  --color-emerald-darker: #059669;
+  --color-orange-cta: #f97316;
+  --color-orange-cta-hover: #ea580c;
+  --color-error: #ef4444;
+  --color-error-dark: #dc2626;
+  --color-info: #60a5fa;
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+  --color-text-muted: rgba(255, 255, 255, 0.4);
+  --color-text-subtle: rgba(255, 255, 255, 0.25);
+  --color-text-ghost: rgba(255, 255, 255, 0.15);
+  --color-text-dark: #1c1814;
+
+  /* Borders */
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-border-light: rgba(255, 255, 255, 0.1);
+  --color-border-medium: rgba(255, 255, 255, 0.2);
+  --color-border-amber: rgba(251, 191, 36, 0.3);
+  --color-border-emerald: rgba(52, 211, 153, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🍺 Theme: Ámbar (default) — Amber Ale, pub acogedor
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  /* Gradients */
+  --gradient-navbar: linear-gradient(
+    to right,
+    var(--color-brown-navbar-start),
+    var(--color-brown-navbar-end)
+  );
+  --gradient-hero:
+    radial-gradient(ellipse at 30% 20%, rgba(200, 140, 50, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(180, 100, 30, 0.2) 0%, transparent 50%),
+    linear-gradient(
+      180deg,
+      var(--color-surface-deepest) 0%,
+      var(--color-surface-dark) 30%,
+      var(--color-surface-mid) 60%,
+      var(--color-surface-dark) 85%,
+      var(--color-surface-deepest) 100%
+    );
+  --gradient-body: linear-gradient(
+    180deg,
+    var(--color-brown-barrel-start),
+    var(--color-brown-barrel-end)
+  );
+  --gradient-section-dark: linear-gradient(
+    180deg,
+    var(--color-surface-deepest) 0%,
+    #16100c 50%,
+    var(--color-surface-deepest) 100%
+  );
+  --gradient-section-darker: linear-gradient(
+    180deg,
+    var(--color-surface-deepest),
+    var(--color-surface-overlay)
+  );
+  --gradient-footer: linear-gradient(180deg, var(--color-surface-deepest), #060402);
+  --gradient-button-primary: linear-gradient(
+    135deg,
+    var(--color-amber-primary) 0%,
+    var(--color-amber-hover) 50%,
+    var(--color-amber-dark) 100%
+  );
+  --gradient-card-glass: linear-gradient(
+    135deg,
+    rgba(42, 32, 24, 0.85) 0%,
+    rgba(28, 24, 20, 0.92) 100%
+  );
+  --gradient-card-step: linear-gradient(
+    135deg,
+    rgba(42, 32, 24, 0.4) 0%,
+    rgba(12, 10, 9, 0.6) 100%
+  );
+  --gradient-emerald: linear-gradient(
+    135deg,
+    var(--color-emerald-darker),
+    var(--color-emerald-dark)
+  );
+
+  /* Shadows */
+  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 16px 40px rgba(0, 0, 0, 0.3);
+  --shadow-amber-glow: 0 4px 15px rgba(251, 191, 36, 0.3);
+  --shadow-amber-glow-lg: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(251, 191, 36, 0.06);
+  --shadow-emerald-glow: 0 0 20px rgba(52, 211, 153, 0.15);
+  --shadow-emerald-glow-sm: 0 0 12px rgba(52, 211, 153, 0.1);
+
+  /* Navbar */
+  --navbar-bg: rgba(12, 10, 9, 0.6);
+  --navbar-bg-scrolled: rgba(12, 10, 9, 0.85);
+  --navbar-border: rgba(255, 255, 255, 0.03);
+  --navbar-border-scrolled: rgba(251, 191, 36, 0.08);
+  --navbar-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(251, 191, 36, 0.03);
+
+  /* Typography */
+  --font-sans: "Ubuntu", Arial, Helvetica, sans-serif;
+  --font-mono: monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🍺 Theme: Lager (light) — Pilsner dorada, beer garden
+   ═══════════════════════════════════════════════════════════ */
+[data-theme="lager"] {
+  /* Primary — deeper gold for contrast on light backgrounds */
+  --color-amber-primary: #ca8a04;
+  --color-amber-hover: #a16207;
+  --color-amber-dark: #854d0e;
+  --color-amber-light: #eab308;
+  --color-amber-muted: #fef9c3;
+
+  /* Surfaces — warm whites & creams */
+  --color-surface-deepest: #fef8ed;
+  --color-surface-dark: #f9f1df;
+  --color-surface-mid: #f5e7c4;
+  --color-surface-card: #ffffff;
+  --color-surface-card-alt: #fef8ee;
+  --color-surface-elevated: #ffffff;
+  --color-surface-overlay: #f9f1df;
+
+  /* Warm accents */
+  --color-brown-navbar-start: #fff7e8;
+  --color-brown-navbar-end: #fff0d4;
+  --color-brown-drawer: #fff7e8;
+  --color-brown-modal: #ffffff;
+  --color-brown-barrel-start: #fffbf5;
+  --color-brown-barrel-end: #fff7e8;
+
+  /* Accent */
+  --color-gold-nav: #ca8a04;
+
+  /* Text — dark on light */
+  --color-text-primary: #1c1410;
+  --color-text-secondary: rgba(28, 20, 16, 0.78);
+  --color-text-muted: rgba(28, 20, 16, 0.62);
+  --color-text-subtle: rgba(28, 20, 16, 0.42);
+  --color-text-ghost: rgba(28, 20, 16, 0.2);
+  --color-text-dark: #1c1410;
+
+  /* Borders */
+  --color-border-subtle: rgba(28, 20, 16, 0.08);
+  --color-border-light: rgba(28, 20, 16, 0.14);
+  --color-border-medium: rgba(28, 20, 16, 0.22);
+  --color-border-amber: rgba(202, 138, 4, 0.3);
+  --color-border-emerald: rgba(5, 150, 105, 0.18);
+
+  /* Gradients */
+  --gradient-hero:
+    radial-gradient(ellipse at 30% 20%, rgba(234, 179, 8, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(202, 138, 4, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #fef8ed 0%, #f9f1df 30%, #f5e7c4 60%, #f9f1df 85%, #fef8ed 100%);
+  --gradient-section-dark: linear-gradient(180deg, #f9f1df 0%, #f5e7c4 50%, #f9f1df 100%);
+  --gradient-footer: linear-gradient(180deg, #f5e7c4, #f0dca8);
+  --gradient-card-glass: linear-gradient(
+    135deg,
+    rgba(254, 248, 238, 0.95) 0%,
+    rgba(249, 241, 223, 0.98) 100%
+  );
+  --gradient-card-step: linear-gradient(
+    135deg,
+    rgba(245, 231, 196, 0.65) 0%,
+    rgba(249, 241, 223, 0.82) 100%
+  );
+
+  /* Shadows — stronger for light theme */
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --shadow-elevated: 0 8px 28px rgba(0, 0, 0, 0.1);
+  --shadow-amber-glow: 0 2px 12px rgba(202, 138, 4, 0.24);
+  --shadow-amber-glow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 0 40px rgba(202, 138, 4, 0.08);
+
+  /* Navbar */
+  --navbar-bg: rgba(255, 251, 245, 0.7);
+  --navbar-bg-scrolled: rgba(255, 251, 245, 0.92);
+  --navbar-border: rgba(0, 0, 0, 0.04);
+  --navbar-border-scrolled: rgba(202, 138, 4, 0.15);
+  --navbar-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 0 12px rgba(202, 138, 4, 0.04);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🍺 Theme: Stout (dark cold) — Porter, pub industrial
+   ═══════════════════════════════════════════════════════════ */
+[data-theme="stout"] {
+  /* Primary — bright gold on cool dark */
+  --color-amber-primary: #fbbf24;
+  --color-amber-hover: #f59e0b;
+  --color-amber-dark: #d97706;
+  --color-amber-light: #facc15;
+  --color-amber-muted: #fef08a;
+
+  /* Surfaces — cool zinc/neutral darks */
+  --color-surface-deepest: #09090b;
+  --color-surface-dark: #18181b;
+  --color-surface-mid: #27272a;
+  --color-surface-card: #1c1c20;
+  --color-surface-card-alt: #131316;
+  --color-surface-elevated: #27272a;
+  --color-surface-overlay: #050506;
+
+  /* Cool grays — no warm tones */
+  --color-brown-navbar-start: #18181b;
+  --color-brown-navbar-end: #27272a;
+  --color-brown-drawer: #111113;
+  --color-brown-modal: #27272a;
+  --color-brown-barrel-start: #111113;
+  --color-brown-barrel-end: #09090b;
+
+  /* Accent */
+  --color-gold-nav: #fbbf24;
+
+  /* Text */
+  --color-text-primary: #fafafa;
+  --color-text-secondary: rgba(250, 250, 250, 0.6);
+  --color-text-muted: rgba(250, 250, 250, 0.4);
+  --color-text-subtle: rgba(250, 250, 250, 0.25);
+  --color-text-ghost: rgba(250, 250, 250, 0.15);
+  --color-text-dark: #18181b;
+
+  /* Borders */
+  --color-border-subtle: rgba(250, 250, 250, 0.04);
+  --color-border-light: rgba(250, 250, 250, 0.08);
+  --color-border-medium: rgba(250, 250, 250, 0.15);
+  --color-border-amber: rgba(251, 191, 36, 0.2);
+  --color-border-emerald: rgba(52, 211, 153, 0.08);
+
+  /* Gradients */
+  --gradient-hero:
+    radial-gradient(ellipse at 30% 20%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(217, 119, 6, 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #09090b 0%, #18181b 30%, #27272a 60%, #18181b 85%, #09090b 100%);
+  --gradient-section-dark: linear-gradient(180deg, #09090b 0%, #0f0f12 50%, #09090b 100%);
+  --gradient-footer: linear-gradient(180deg, #09090b, #030304);
+  --gradient-card-glass: linear-gradient(
+    135deg,
+    rgba(28, 28, 32, 0.9) 0%,
+    rgba(19, 19, 22, 0.95) 100%
+  );
+  --gradient-card-step: linear-gradient(135deg, rgba(28, 28, 32, 0.4) 0%, rgba(9, 9, 11, 0.6) 100%);
+
+  /* Shadows — cool & deep */
+  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 16px 40px rgba(0, 0, 0, 0.4);
+  --shadow-amber-glow: 0 4px 15px rgba(251, 191, 36, 0.15);
+  --shadow-amber-glow-lg: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 60px rgba(251, 191, 36, 0.04);
+
+  /* Navbar */
+  --navbar-bg: rgba(9, 9, 11, 0.6);
+  --navbar-bg-scrolled: rgba(9, 9, 11, 0.85);
+  --navbar-border: rgba(255, 255, 255, 0.03);
+  --navbar-border-scrolled: rgba(251, 191, 36, 0.06);
+  --navbar-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(251, 191, 36, 0.02);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Lager contrast bridge
+   ═══════════════════════════════════════════════════════════
+   Many screens still use Tailwind white utilities (text-white/60,
+   border-white/5, bg-white/5). In light mode those become too low
+   contrast. These scoped overrides keep readability high while we
+   migrate components gradually to semantic tokens.
+*/
+[data-theme="lager"] {
+  .text-white {
+    color: var(--color-text-primary) !important;
+  }
+  .text-white\/80 {
+    color: rgba(28, 20, 16, 0.85) !important;
+  }
+  .text-white\/60 {
+    color: rgba(28, 20, 16, 0.74) !important;
+  }
+  .text-white\/50 {
+    color: rgba(28, 20, 16, 0.68) !important;
+  }
+  .text-white\/45 {
+    color: rgba(28, 20, 16, 0.64) !important;
+  }
+  .text-white\/40 {
+    color: rgba(28, 20, 16, 0.58) !important;
+  }
+  .text-white\/35 {
+    color: rgba(28, 20, 16, 0.52) !important;
+  }
+  .text-white\/25 {
+    color: rgba(28, 20, 16, 0.4) !important;
+  }
+  .text-white\/15 {
+    color: rgba(28, 20, 16, 0.28) !important;
+  }
+
+  .border-white\/40 {
+    border-color: rgba(28, 20, 16, 0.24) !important;
+  }
+  .border-white\/20 {
+    border-color: rgba(28, 20, 16, 0.18) !important;
+  }
+  .border-white\/10 {
+    border-color: rgba(28, 20, 16, 0.14) !important;
+  }
+  .border-white\/5 {
+    border-color: rgba(28, 20, 16, 0.12) !important;
+  }
+
+  .bg-white\/10 {
+    background-color: rgba(28, 20, 16, 0.09) !important;
+  }
+  .bg-white\/5 {
+    background-color: rgba(28, 20, 16, 0.07) !important;
+  }
+  .bg-white\/\[0\.03\] {
+    background-color: rgba(28, 20, 16, 0.05) !important;
+  }
+  .hover\:bg-white\/10:hover {
+    background-color: rgba(28, 20, 16, 0.12) !important;
+  }
+  .hover\:bg-white\/5:hover {
+    background-color: rgba(28, 20, 16, 0.1) !important;
+  }
+
+  /* group-hover card border */
+  .group:hover .group-hover\:border-white\/10 {
+    border-color: rgba(28, 20, 16, 0.14) !important;
+  }
+
+  /* Amber utilities — deepen faint gold on cream backgrounds */
+  /* amber-200/60 is #fde68a@60% → near-invisible on cream; swap to rich gold-brown */
+  .text-amber-200\/60 {
+    color: rgba(161, 98, 7, 0.78) !important;
+  }
+
+  /* amber-400/80 badge text → full deep gold */
+  .text-amber-400\/80 {
+    color: rgba(133, 77, 14, 0.92) !important;
+  }
+
+  /* large decorative step numbers */
+  .text-amber-400\/10 {
+    color: rgba(133, 77, 14, 0.28) !important;
+  }
+
+  /* step-separator arrows */
+  .text-amber-400\/15 {
+    color: rgba(133, 77, 14, 0.42) !important;
+  }
+
+  /* badge borders */
+  .border-amber-400\/20 {
+    border-color: rgba(133, 77, 14, 0.35) !important;
+  }
+  .hover\:border-amber-400\/15:hover {
+    border-color: rgba(133, 77, 14, 0.35) !important;
+  }
+
+  /* badge & tag backgrounds */
+  .bg-amber-400\/5 {
+    background-color: rgba(133, 77, 14, 0.09) !important;
+  }
+  .bg-amber-400\/20 {
+    background-color: rgba(133, 77, 14, 0.14) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Base Resets
+   ═══════════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--gradient-body);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-deepest);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-brown-navbar-end);
+  border-radius: 3px;
+
+  &:hover {
+    background: var(--color-amber-hover);
+  }
+}
+
+/* ─── Hidden scrollbar for horizontal carousels ─── */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

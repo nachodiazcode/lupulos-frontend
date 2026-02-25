@@ -2,33 +2,25 @@
 
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Container,
-  Alert
-} from "@mui/material";
+import { api, API_BASE_URL } from "@/lib/api";
+import { Box, TextField, Button, Typography, Container, Alert } from "@mui/material";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-const amarillo = "#fbbf24";
+const amarillo = "var(--color-amber-primary)";
 
 interface Cerveza {
-  nombre: string;
-  cerveceria: string;
-  tipo: string;
+  name: string;
+  brewery: string;
+  style: string;
   abv: string;
-  descripcion: string;
-  imagen: string;
+  description: string;
+  image?: string;
 }
 
 const getImagenUrl = (imagen: string): string => {
   if (!imagen) return "/no-image.png";
   if (imagen.startsWith("http")) return imagen;
 
-  const base = API_URL.replace(/\/+$/, "");
+  const base = API_BASE_URL.replace(/\/+$/, "");
   const path = imagen.replace(/^\/+/, "");
 
   return `${base}/${path}`;
@@ -42,16 +34,14 @@ export default function EditarCervezaPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [nuevaImagen, setNuevaImagen] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
 
   const [cerveza, setCerveza] = useState<Cerveza>({
-    nombre: "",
-    cerveceria: "",
-    tipo: "",
+    name: "",
+    brewery: "",
+    style: "",
     abv: "",
-    descripcion: "",
-    imagen: "",
+    description: "",
+    image: "",
   });
 
   useEffect(() => setMounted(true), []);
@@ -59,16 +49,16 @@ export default function EditarCervezaPage() {
   useEffect(() => {
     const fetchCerveza = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/beer/${id}`);
-        const data = res.data?.datos;
+        const res = await api.get(`/beer/${id}`);
+        const data = res.data?.data;
         if (data) {
           setCerveza({
-            nombre: data.nombre || "",
-            cerveceria: data.cerveceria || "",
-            tipo: data.tipo || "",
+            name: data.name || "",
+            brewery: data.brewery || "",
+            style: data.style || "",
             abv: data.abv?.toString() || "",
-            descripcion: data.descripcion || "",
-            imagen: data.imagen || "",
+            description: data.description || "",
+            image: data.image || "",
           });
         } else {
           setError("No se encontró la cerveza.");
@@ -87,14 +77,6 @@ export default function EditarCervezaPage() {
     setCerveza((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setNuevaImagen(file);
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -110,31 +92,18 @@ export default function EditarCervezaPage() {
     }
 
     try {
-      if (nuevaImagen) {
-        const formData = new FormData();
-        formData.append("imagen", nuevaImagen);
+      await api.put(`/beer/${id}`, {
+        name: cerveza.name,
+        brewery: cerveza.brewery,
+        style: cerveza.style,
+        abv: parseFloat(cerveza.abv),
+        description: cerveza.description,
+      });
 
-        const resUpload = await axios.post(
-          `${API_URL}/api/beer/${id}/upload-image`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        cerveza.imagen = resUpload.data.datos.imagen;
-      }
-
-      await axios.put(
-        `${API_URL}/api/beer/${id}`,
-        { ...cerveza, abv: parseFloat(cerveza.abv) },
-        { headers: { Authorization: `Bearer ${token}` } }
+      sessionStorage.setItem(
+        "cervezaEditada",
+        `¡Editaste la cerveza con éxito ${user?.username || "usuario"}! Salud 🍻`,
       );
-
-      sessionStorage.setItem("cervezaEditada", `¡Editaste la cerveza con éxito ${user?.username || "usuario"}! Salud 🍻`);
       setSuccess(true);
       setTimeout(() => router.push("/cervezas"), 1200);
     } catch (err) {
@@ -143,7 +112,12 @@ export default function EditarCervezaPage() {
     }
   };
 
-  const campos: (keyof Cerveza)[] = ["nombre", "cerveceria", "tipo", "abv"];
+  const campos: { name: keyof Cerveza; label: string; type?: string }[] = [
+    { name: "name", label: "Nombre" },
+    { name: "brewery", label: "Cervecería" },
+    { name: "style", label: "Estilo" },
+    { name: "abv", label: "ABV", type: "number" },
+  ];
 
   if (!mounted) return null;
 
@@ -152,7 +126,7 @@ export default function EditarCervezaPage() {
       sx={{
         minHeight: "100vh",
         bgcolor: "#0e0e0e",
-        background: "linear-gradient(to bottom, #111827, #0f0f0f)",
+        background: "linear-gradient(to bottom, var(--color-surface-card-alt), #0f0f0f)",
         color: "white",
         display: "flex",
         flexDirection: "column",
@@ -177,7 +151,7 @@ export default function EditarCervezaPage() {
             onSubmit={handleSubmit}
             sx={{
               flex: 1,
-              backgroundColor: "#1f2937",
+              backgroundColor: "var(--color-surface-card)",
               p: 4,
               borderRadius: 3,
               border: "1px solid #374151",
@@ -186,14 +160,14 @@ export default function EditarCervezaPage() {
           >
             {campos.map((campo) => (
               <TextField
-                key={campo}
+                key={campo.name}
                 fullWidth
-                label={campo.charAt(0).toUpperCase() + campo.slice(1)}
-                name={campo}
-                value={cerveza[campo]}
+                label={campo.label}
+                name={campo.name}
+                value={cerveza[campo.name]}
                 onChange={handleChange}
                 margin="normal"
-                type={campo === "abv" ? "number" : "text"}
+                type={campo.type || "text"}
                 InputProps={{ style: { backgroundColor: "#374151", color: "white" } }}
                 InputLabelProps={{ style: { color: "#ccc" } }}
               />
@@ -202,8 +176,8 @@ export default function EditarCervezaPage() {
             <TextField
               fullWidth
               label="Descripción"
-              name="descripcion"
-              value={cerveza.descripcion}
+              name="description"
+              value={cerveza.description}
               onChange={handleChange}
               margin="normal"
               multiline
@@ -212,13 +186,16 @@ export default function EditarCervezaPage() {
               InputLabelProps={{ style: { color: "#ccc" } }}
             />
 
-            <Button variant="outlined" component="label" color="secondary" sx={{ mt: 2 }}>
-              Cambiar imagen
-              <input hidden accept="image/*" type="file" onChange={handleImageChange} />
-            </Button>
-
-            {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-            {success && <Alert severity="success" sx={{ mt: 2 }}>¡Cerveza actualizada con éxito!</Alert>}
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {success && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                ¡Cerveza actualizada con éxito!
+              </Alert>
+            )}
 
             <Button
               type="submit"
@@ -229,14 +206,14 @@ export default function EditarCervezaPage() {
                 bgcolor: amarillo,
                 color: "#000",
                 fontWeight: "bold",
-                "&:hover": { bgcolor: "#facc15" },
+                "&:hover": { bgcolor: "var(--color-amber-light)" },
               }}
             >
               Guardar Cambios
             </Button>
           </Box>
 
-          {(preview || cerveza.imagen) && (
+          {cerveza.image && (
             <Box
               sx={{
                 flex: 1,
@@ -246,12 +223,13 @@ export default function EditarCervezaPage() {
                 alignItems: "center",
                 p: 2,
                 borderRadius: 3,
-                backgroundColor: "#1f2937",
+                backgroundColor: "var(--color-surface-card)",
                 border: "1px solid #374151",
               }}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={preview || getImagenUrl(cerveza.imagen)}
+                src={getImagenUrl(cerveza.image)}
                 alt="Vista previa de la cerveza"
                 width={400}
                 height={400}
@@ -276,7 +254,7 @@ export default function EditarCervezaPage() {
           py: 4,
           fontSize: 14,
           color: "#aaa",
-          borderTop: "1px solid #1f2937",
+          borderTop: "1px solid var(--color-surface-card)",
         }}
       >
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍻 por Nacho Díaz

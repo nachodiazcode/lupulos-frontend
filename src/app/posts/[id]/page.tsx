@@ -3,10 +3,19 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import { api } from "@/lib/api";
+import { getImageUrl } from "@/lib/constants";
 import {
-  Box, Container, Typography, CircularProgress, TextField, Stack,
-  Button, IconButton, Tooltip, Zoom
+  Box,
+  Container,
+  Typography,
+  CircularProgress,
+  TextField,
+  Stack,
+  Button,
+  IconButton,
+  Tooltip,
+  Zoom,
 } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -15,30 +24,41 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-const amarillo = "#fbbf24";
+const amarillo = "var(--color-amber-primary)";
 
 interface Usuario {
-  _id: string;
-  username: string;
+  _id?: string;
+  id?: string;
+  username?: string;
   fotoPerfil?: string;
+  photo?: string;
+  profilePicture?: string;
 }
 
 interface Comentario {
-  _id: string;
-  comentario: string;
+  _id?: string;
+  comentario?: string;
+  content?: string;
   usuario?: Usuario;
+  author?: Usuario;
 }
 
 interface Post {
-  _id: string;
-  titulo: string;
-  contenido: string;
+  _id?: string;
+  id?: string;
+  titulo?: string;
+  title?: string;
+  contenido?: string;
+  content?: string;
   imagenes?: string[];
+  images?: string[];
   usuario?: Usuario;
+  author?: Usuario;
   reacciones?: {
-    meGusta: { count: number; usuarios: string[] };
+    meGusta?: { count: number; usuarios: string[] };
+  };
+  reactions?: {
+    like?: { count: number; users: string[] };
   };
 }
 
@@ -55,8 +75,6 @@ export default function PostDetailPage() {
   const [editMode, setEditMode] = useState(false);
   const [tituloEditado, setTituloEditado] = useState("");
   const [contenidoEditado, setContenidoEditado] = useState("");
-  const [comentarioEditado, setComentarioEditado] = useState("");
-  const [comentarioEnEdicion, setComentarioEnEdicion] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -66,10 +84,11 @@ export default function PostDetailPage() {
 
   const fetchPost = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/post/${id}`);
-      setPost(res.data.post);
-      setTituloEditado(res.data.post.titulo);
-      setContenidoEditado(res.data.post.contenido);
+      const res = await api.get(`/post/${id}`);
+      const data = res.data?.data || res.data?.post;
+      setPost(data);
+      setTituloEditado(getPostTitle(data));
+      setContenidoEditado(getPostContent(data));
     } catch (err) {
       console.error("❌ Error al cargar post:", err);
     } finally {
@@ -79,8 +98,9 @@ export default function PostDetailPage() {
 
   const fetchComentarios = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/post/${id}/comentarios`);
-      setComentarios(res.data.comentarios);
+      const res = await api.get(`/post/${id}/comentarios`);
+      const data = Array.isArray(res.data?.data) ? res.data.data : res.data?.comentarios || [];
+      setComentarios(data);
     } catch (err) {
       console.error("❌ Error al cargar comentarios:", err);
     }
@@ -95,7 +115,13 @@ export default function PostDetailPage() {
 
   if (!isClient || loading) {
     return (
-      <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" sx={{ background: "#111827" }}>
+      <Box
+        minHeight="100vh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        sx={{ background: "var(--color-surface-card-alt)" }}
+      >
         <CircularProgress sx={{ color: amarillo }} />
       </Box>
     );
@@ -103,7 +129,13 @@ export default function PostDetailPage() {
 
   if (!post) {
     return (
-      <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" bgcolor="#111827">
+      <Box
+        minHeight="100vh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        bgcolor="var(--color-surface-card-alt)"
+      >
         <Typography color="error" fontSize="1.2rem">
           😵‍💫 No encontramos este post. Puede que haya sido eliminado.
         </Typography>
@@ -111,19 +143,14 @@ export default function PostDetailPage() {
     );
   }
 
-  const yaDioLike = post.reacciones?.meGusta?.usuarios.includes(user?._id || "");
-  const esAutor = post.usuario?._id === user?._id;
+  const yaDioLike = getLikeUsers(post).includes(getUserId(user));
+  const esAutor = getUserId(getPostUser(post)) === getUserId(user);
 
   const toggleLike = async () => {
-    if (!user?._id || !post) return;
-    const endpoint = yaDioLike ? "unlike" : "like";
+    if (!getUserId(user) || !post) return;
 
     try {
-      await axios.post(
-        `${API_URL}/api/post/${id}/${endpoint}`,
-        { tipo: "meGusta", userId: user._id },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
-      );
+      await api.post(`/post/${id}/react`, { type: "meGusta" });
       fetchPost();
     } catch (err) {
       console.error("❌ Error al alternar like:", err);
@@ -131,13 +158,9 @@ export default function PostDetailPage() {
   };
 
   const enviarComentario = async () => {
-    if (!comentario.trim() || !user?._id) return;
+    if (!comentario.trim() || !getUserId(user)) return;
     try {
-      await axios.post(
-        `${API_URL}/api/post/${id}/comentario`,
-        { contenido: comentario, usuarioId: user._id },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
-      );
+      await api.post(`/post/${id}/comentario`, { content: comentario });
       setComentario("");
       fetchComentarios();
     } catch (error) {
@@ -145,40 +168,10 @@ export default function PostDetailPage() {
     }
   };
 
-  const guardarComentarioEditado = async () => {
-    if (!comentarioEnEdicion || !comentarioEditado.trim()) return;
-    try {
-      await axios.put(
-        `${API_URL}/api/post/comentario/${comentarioEnEdicion}`,
-        { comentario: comentarioEditado },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
-      );
-      setComentarioEnEdicion(null);
-      setComentarioEditado("");
-      fetchComentarios();
-    } catch (error) {
-      console.error("❌ Error al editar comentario:", error);
-    }
-  };
-
-  const eliminarComentario = async (comentarioId: string) => {
-    if (!window.confirm("¿Eliminar este comentario?")) return;
-    try {
-      await axios.delete(`${API_URL}/api/post/comentario/${comentarioId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-      });
-      fetchComentarios();
-    } catch (error) {
-      console.error("❌ Error al eliminar comentario:", error);
-    }
-  };
-
   const eliminarPost = async () => {
     if (!window.confirm("¿Estás seguro que quieres eliminar este post?")) return;
     try {
-      await axios.delete(`${API_URL}/api/post/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-      });
+      await api.delete(`/post/${id}`);
       router.push("/posts");
     } catch (error) {
       console.error("❌ Error al eliminar post:", error);
@@ -187,11 +180,7 @@ export default function PostDetailPage() {
 
   const guardarCambios = async () => {
     try {
-      await axios.put(
-        `${API_URL}/api/post/${id}`,
-        { titulo: tituloEditado, contenido: contenidoEditado },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` } }
-      );
+      await api.put(`/post/${id}`, { titulo: tituloEditado, contenido: contenidoEditado });
       setEditMode(false);
       fetchPost();
     } catch (error) {
@@ -208,96 +197,132 @@ export default function PostDetailPage() {
           <Box flex={3}>
             {editMode ? (
               <>
-                <TextField fullWidth label="Título" value={tituloEditado} onChange={(e) => setTituloEditado(e.target.value)} sx={{ mb: 2, input: { color: "white" }, label: { color: "#bbb" } }} />
-                <TextField fullWidth multiline rows={4} label="Contenido" value={contenidoEditado} onChange={(e) => setContenidoEditado(e.target.value)} sx={{ mb: 2, textarea: { color: "white" }, label: { color: "#bbb" } }} />
-                <Button variant="contained" onClick={guardarCambios} sx={{ bgcolor: amarillo, color: "black", mr: 2 }}>Guardar cambios</Button>
-                <Button variant="outlined" onClick={() => setEditMode(false)} sx={{ color: "white", borderColor: "gray" }}>Cancelar</Button>
+                <TextField
+                  fullWidth
+                  label="Título"
+                  value={tituloEditado}
+                  onChange={(e) => setTituloEditado(e.target.value)}
+                  sx={{ mb: 2, input: { color: "white" }, label: { color: "#bbb" } }}
+                />
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Contenido"
+                  value={contenidoEditado}
+                  onChange={(e) => setContenidoEditado(e.target.value)}
+                  sx={{ mb: 2, textarea: { color: "white" }, label: { color: "#bbb" } }}
+                />
+                <Button
+                  variant="contained"
+                  onClick={guardarCambios}
+                  sx={{ bgcolor: amarillo, color: "black", mr: 2 }}
+                >
+                  Guardar cambios
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setEditMode(false)}
+                  sx={{ color: "white", borderColor: "gray" }}
+                >
+                  Cancelar
+                </Button>
               </>
             ) : (
               <>
-                <Typography variant="h4" fontWeight="bold" mb={2}>{post.titulo}</Typography>
-                {post.imagenes?.[0] && (
+                <Typography variant="h4" fontWeight="bold" mb={2}>
+                  {getPostTitle(post)}
+                </Typography>
+                {getPostImages(post)[0] && (
                   <Image
-                    src={`${API_URL}${post.imagenes[0]}`}
-                    alt={post.titulo}
+                    src={getImageUrl(getPostImages(post)[0])}
+                    alt={getPostTitle(post)}
                     width={900}
                     height={500}
                     unoptimized
                     style={{
                       width: "100%",
-                      maxHeight: "460px",         // 🔼 un poco más grande que antes
+                      maxHeight: "460px", // 🔼 un poco más grande que antes
                       objectFit: "contain",
-                      borderRadius: "1.5rem",     // 🔄 curva más elegante (24px)
+                      borderRadius: "1.5rem", // 🔄 curva más elegante (24px)
                       marginBottom: 24,
                       boxShadow: "0 4px 20px rgba(0,0,0,0.3)", // 🖼️ un leve sombreado moderno
                     }}
                   />
-
                 )}
-                <Typography variant="body1" mb={3}>{post.contenido}</Typography>
+                <Typography variant="body1" mb={3}>
+                  {getPostContent(post)}
+                </Typography>
               </>
             )}
           </Box>
 
           {/* 💬 COLUMNA DERECHA */}
-          <Box flex={2} sx={{ borderLeft: { md: "1px solid #333" }, pl: { md: 3 }, mt: { xs: 4, md: 0 } }}>
-            <Typography variant="subtitle2" color="gray" mb={2}>Publicado por: @{post.usuario?.username}</Typography>
+          <Box
+            flex={2}
+            sx={{ borderLeft: { md: "1px solid #333" }, pl: { md: 3 }, mt: { xs: 4, md: 0 } }}
+          >
+            <Typography variant="subtitle2" color="gray" mb={2}>
+              Publicado por: @{getPostUser(post)?.username}
+            </Typography>
 
             <Stack direction="row" spacing={2} alignItems="center" mb={3}>
-              <Tooltip title={yaDioLike ? "Quitar saludo vikingo" : "Enviar saludo vikingo"} arrow TransitionComponent={Zoom}>
+              <Tooltip
+                title={yaDioLike ? "Quitar saludo vikingo" : "Enviar saludo vikingo"}
+                arrow
+                TransitionComponent={Zoom}
+              >
                 <IconButton onClick={toggleLike} sx={{ color: yaDioLike ? amarillo : "white" }}>
                   {yaDioLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                 </IconButton>
               </Tooltip>
-              <Typography>💛 {post.reacciones?.meGusta?.count ?? 0} saludos vikingos</Typography>
+              <Typography>💛 {getLikeCount(post)} saludos vikingos</Typography>
 
               {esAutor && !editMode && (
                 <>
                   <Tooltip title="Editar" arrow>
-                    <IconButton sx={{ color: "white" }} onClick={() => setEditMode(true)}><EditIcon /></IconButton>
+                    <IconButton sx={{ color: "white" }} onClick={() => setEditMode(true)}>
+                      <EditIcon />
+                    </IconButton>
                   </Tooltip>
                   <Tooltip title="Eliminar" arrow>
-                    <IconButton sx={{ color: "white" }} onClick={eliminarPost}><DeleteIcon /></IconButton>
+                    <IconButton sx={{ color: "white" }} onClick={eliminarPost}>
+                      <DeleteIcon />
+                    </IconButton>
                   </Tooltip>
                 </>
               )}
             </Stack>
 
-            <Typography variant="h6" mb={2}>💬 Comentarios</Typography>
-            {comentarios.map((c) => {
-              const esAutorComentario = c.usuario?._id === user?._id;
-              const enEdicion = comentarioEnEdicion === c._id;
-              return (
-                <Box key={c._id} mb={2} p={2} bgcolor="#111827" borderRadius={2}>
-                  <Typography fontWeight="bold">@{c.usuario?.username}</Typography>
-                  {enEdicion ? (
-                    <>
-                      <TextField fullWidth multiline value={comentarioEditado} onChange={(e) => setComentarioEditado(e.target.value)} sx={{ mt: 1, bgcolor: "#1f2937", input: { color: "white" }, textarea: { color: "white" } }} />
-                      <Stack direction="row" spacing={1} mt={1}>
-                        <Button size="small" onClick={guardarComentarioEditado} sx={{ bgcolor: amarillo, color: "black" }}>Guardar</Button>
-                        <Button size="small" onClick={() => setComentarioEnEdicion(null)} sx={{ color: "white", borderColor: "gray" }}>Cancelar</Button>
-                      </Stack>
-                    </>
-                  ) : (
-                    <Typography variant="body2" color="gray">{c.comentario}</Typography>
-                  )}
-
-                  {esAutorComentario && !enEdicion && (
-                    <Stack direction="row" spacing={1} mt={1}>
-                      <Button size="small" onClick={() => { setComentarioEditado(c.comentario); setComentarioEnEdicion(c._id); }} sx={{ color: amarillo }}>Editar</Button>
-                      <Button size="small" onClick={() => eliminarComentario(c._id)} sx={{ color: "red" }}>Eliminar</Button>
-                    </Stack>
-                  )}
-                </Box>
-              );
-            })}
+            <Typography variant="h6" mb={2}>
+              💬 Comentarios
+            </Typography>
+            {comentarios.map((c) => (
+              <Box
+                key={c._id || getCommentText(c)}
+                mb={2}
+                p={2}
+                bgcolor="var(--color-surface-card-alt)"
+                borderRadius={2}
+              >
+                <Typography fontWeight="bold">@{getCommentAuthor(c)?.username}</Typography>
+                <Typography variant="body2" color="gray">
+                  {getCommentText(c)}
+                </Typography>
+              </Box>
+            ))}
 
             <TextField
               fullWidth
               placeholder="Escribe tu comentario..."
               value={comentario}
               onChange={(e) => setComentario(e.target.value)}
-              sx={{ mt: 2, bgcolor: "#111827", input: { color: "white" }, borderRadius: 1 }}
+              sx={{
+                mt: 2,
+                bgcolor: "var(--color-surface-card-alt)",
+                input: { color: "white" },
+                borderRadius: 1,
+              }}
             />
             <Button
               variant="contained"
@@ -312,4 +337,37 @@ export default function PostDetailPage() {
       <Footer />
     </Box>
   );
+}
+
+function getPostTitle(post?: Post | null): string {
+  return post?.titulo || post?.title || "";
+}
+function getPostContent(post?: Post | null): string {
+  return post?.contenido || post?.content || "";
+}
+function getPostImages(post?: Post | null): string[] {
+  return post?.imagenes || post?.images || [];
+}
+function getPostUser(post?: Post | null): Usuario | undefined {
+  return post?.usuario || post?.author;
+}
+function getLikeUsers(post?: Post | null): string[] {
+  return post?.reacciones?.meGusta?.usuarios || post?.reactions?.like?.users || [];
+}
+function getLikeCount(post?: Post | null): number {
+  return (
+    post?.reacciones?.meGusta?.count ??
+    post?.reactions?.like?.count ??
+    getLikeUsers(post).length ??
+    0
+  );
+}
+function getUserId(u?: Usuario | null): string {
+  return u?._id || u?.id || "";
+}
+function getCommentAuthor(c: Comentario): Usuario | undefined {
+  return c.usuario || c.author;
+}
+function getCommentText(c: Comentario): string {
+  return c.comentario || c.content || "";
 }

@@ -3,20 +3,19 @@
 import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
-const frases = [
+const quotes = [
   "🍺 «El arte de la cerveza es unir lo amargo con lo inolvidable.»",
   "👑 «Donde hay cerveza, hay historias que valen oro.»",
   "🔥 «El lúpulo no se explica, se siente.»",
   "🛡️ «Una buena cerveza no se bebe… se honra.»",
   "🍻 «Brindemos por las cervezas que nos unen y los bares que nos salvan.»",
 ];
-
-export default function FraseCervecera() {
-  const [frase, setFrase] = useState(frases[0]);
+export default function BeerQuote() {
+  const [quote, setQuote] = useState(quotes[0]);
 
   useEffect(() => {
-    const nueva = frases[Math.floor(Math.random() * frases.length)];
-    setFrase(nueva);
+    const nextQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    setQuote(nextQuote);
   }, []);
 
   return (
@@ -24,7 +23,7 @@ export default function FraseCervecera() {
       sx={{
         py: 8,
         px: 4,
-        background: "linear-gradient(90deg, #fef9c3, #fcd34d)",
+        background: "linear-gradient(90deg, var(--color-amber-muted), #fcd34d)",
         textAlign: "center",
         mt: 8,
         animation: "fadeIn 2s ease-in-out",
@@ -40,7 +39,7 @@ export default function FraseCervecera() {
           textShadow: "1px 1px 2px #fff",
         }}
       >
-        {frase}
+        {quote}
       </Typography>
     </Box>
   );

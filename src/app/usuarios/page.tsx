@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "@/lib/api";
+import { getImageUrl } from "@/lib/constants";
 import {
   Box,
   Typography,
@@ -22,23 +23,21 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-
-const tipoColor: Record<
-  string,
-  { bg: string; icon: React.ElementType; label: string }
-> = {
-  legendario: { bg: "#fbbf24", icon: EmojiEventsIcon, label: "LEGENDARIO" },
-  activo: { bg: "#34d399", icon: FlashOnIcon, label: "ACTIVO" },
-  nuevo: { bg: "#60a5fa", icon: SpaIcon, label: "NUEVO" },
-  default: { bg: "#9ca3af", icon: SpaIcon, label: "DESCONOCIDO" },
+const tipoColor: Record<string, { bg: string; icon: React.ElementType; label: string }> = {
+  legendario: { bg: "var(--color-amber-primary)", icon: EmojiEventsIcon, label: "LEGENDARIO" },
+  activo: { bg: "var(--color-emerald)", icon: FlashOnIcon, label: "ACTIVO" },
+  nuevo: { bg: "var(--color-info)", icon: SpaIcon, label: "NUEVO" },
+  default: { bg: "var(--color-text-muted)", icon: SpaIcon, label: "DESCONOCIDO" },
 };
 
 interface Usuario {
-  _id: string;
+  _id?: string;
+  id?: string;
   username: string;
-  email: string;
+  email?: string;
   fotoPerfil?: string;
+  photo?: string;
+  profilePicture?: string;
   tipo?: string;
 }
 
@@ -62,47 +61,52 @@ export default function UsuariosPage() {
   }, []);
 
   useEffect(() => {
-  const fetchUsuarios = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/api/user`);
-      const data = (Array.isArray(res.data) ? res.data : res.data.usuarios || [])
-        .map((u: Usuario, i: number) => ({
-          ...u,
-          tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
-        }))
-        .reverse(); // 👈 Esto pone al último como el primero
+    const fetchUsuarios = async () => {
+      try {
+        const res = await api.get(`/user`);
+        const base = Array.isArray(res.data?.data)
+          ? res.data.data
+          : Array.isArray(res.data)
+            ? res.data
+            : res.data.usuarios || [];
+        const data = base
+          .map((u: Usuario, i: number) => ({
+            ...u,
+            tipo: i % 3 === 0 ? "legendario" : i % 3 === 1 ? "activo" : "nuevo",
+          }))
+          .reverse(); // 👈 Esto pone al último como el primero
 
-      setUsuarios(data);
-      setUsuariosFiltrados(data);
-    } catch (error) {
-      console.error("❌ Error al obtener usuarios:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchUsuarios();
-}, []);
+        setUsuarios(data);
+        setUsuariosFiltrados(data);
+      } catch (error) {
+        console.error("❌ Error al obtener usuarios:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsuarios();
+  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearch(value);
     const filtrados = usuarios.filter(
-      (u) => u.username.toLowerCase().includes(value) || u.email.toLowerCase().includes(value)
+      (u) =>
+        u.username.toLowerCase().includes(value) ||
+        (u.email ? u.email.toLowerCase().includes(value) : false),
     );
     setUsuariosFiltrados(filtrados);
   };
 
   const getFotoPerfil = (user: Usuario): string | undefined => {
+    const currentId = usuarioActual?._id || usuarioActual?.id;
+    const effectiveUser = user._id === currentId || user.id === currentId ? usuarioActual : user;
     const path =
-      user._id === usuarioActual?._id
-        ? usuarioActual?.fotoPerfil
-        : user.fotoPerfil;
+      effectiveUser?.profilePicture || effectiveUser?.fotoPerfil || effectiveUser?.photo || "";
 
     if (!path) return undefined;
-    if (path.startsWith("http")) return path;
-
     const fixedPath = path.startsWith("./") ? path.replace("./", "/") : path;
-    return `${API_URL}/api/${fixedPath}`;
+    return getImageUrl(fixedPath);
   };
 
   return (
@@ -111,7 +115,15 @@ export default function UsuariosPage() {
       <Navbar />
 
       <Container maxWidth="lg" sx={{ flex: 1, py: 6, zIndex: 2 }}>
-        <Typography variant="h4" sx={{ color: "#fbbf24", mb: 4, textAlign: "center", fontWeight: "bold" }}>
+        <Typography
+          variant="h4"
+          sx={{
+            color: "var(--color-amber-primary)",
+            mb: 4,
+            textAlign: "center",
+            fontWeight: "bold",
+          }}
+        >
           👥 Usuarios registrados
         </Typography>
 
@@ -123,7 +135,7 @@ export default function UsuariosPage() {
             onChange={handleSearch}
             fullWidth
             sx={{
-              bgcolor: "#1f2937",
+              bgcolor: "var(--color-surface-card)",
               borderRadius: 2,
               input: { color: "white" },
               "& fieldset": { border: "none" },
@@ -131,7 +143,7 @@ export default function UsuariosPage() {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#9ca3af" }} />
+                  <SearchIcon sx={{ color: "var(--color-text-muted)" }} />
                 </InputAdornment>
               ),
             }}
@@ -145,7 +157,12 @@ export default function UsuariosPage() {
         ) : (
           <Box
             display="grid"
-            gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr", lg: "1fr 1fr 1fr 1fr" }}
+            gridTemplateColumns={{
+              xs: "1fr",
+              sm: "1fr 1fr",
+              md: "1fr 1fr 1fr",
+              lg: "1fr 1fr 1fr 1fr",
+            }}
             gap={3}
           >
             {usuariosFiltrados.map((user) => {
@@ -157,7 +174,7 @@ export default function UsuariosPage() {
                 <Box
                   key={user._id}
                   sx={{
-                    backgroundColor: "#111827",
+                    backgroundColor: "var(--color-surface-card-alt)",
                     borderRadius: 4,
                     p: 3,
                     boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
@@ -191,7 +208,7 @@ export default function UsuariosPage() {
                   <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                     {user.username}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "#9ca3af" }}>
+                  <Typography variant="body2" sx={{ color: "var(--color-text-muted)" }}>
                     {user.email}
                   </Typography>
 
@@ -202,7 +219,7 @@ export default function UsuariosPage() {
                       mt: 2,
                       fontWeight: "bold",
                       bgcolor: estilo.bg,
-                      color: estilo.bg === "#fbbf24" ? "#000" : "#fff",
+                      color: estilo.bg === "var(--color-amber-primary)" ? "#000" : "#fff",
                     }}
                   />
 
@@ -211,12 +228,12 @@ export default function UsuariosPage() {
                     sx={{
                       mt: 2,
                       bgcolor: estilo.bg,
-                      color: estilo.bg === "#fbbf24" ? "#000" : "#fff",
+                      color: estilo.bg === "var(--color-amber-primary)" ? "#000" : "#fff",
                       fontWeight: "bold",
                       borderRadius: 2,
                       px: 3,
                       "&:hover": {
-                        bgcolor: "#facc15",
+                        bgcolor: "var(--color-amber-light)",
                         color: "black",
                       },
                     }}

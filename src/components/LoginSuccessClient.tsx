@@ -2,6 +2,27 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import api from "@/lib/api";
+
+const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+
+    // base64url -> base64
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const json = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
+        .join(""),
+    );
+
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+};
 
 export default function LoginSuccessClient() {
   const router = useRouter();
@@ -9,31 +30,47 @@ export default function LoginSuccessClient() {
 
   useEffect(() => {
     const token = searchParams.get("token");
-    const email = searchParams.get("email");
-    const userId = searchParams.get("userId");
-    const username = searchParams.get("username");
 
-    if (token && userId && email && username) {
-      const usuario = {
-        _id: userId,
-        email,
-        username,
-        fotoPerfil: "https://www.example.com/default-avatar.jpg",
-      };
-
-      localStorage.setItem("authToken", token);
-      localStorage.setItem("userId", userId);
-      localStorage.setItem("user", JSON.stringify(usuario));
-      localStorage.setItem("justLoggedIn", "true");
-
-      router.push("/cervezas");
-    } else {
+    if (!token) {
       router.push("/auth/login");
+      return;
     }
+
+    const payload = decodeJwtPayload(token);
+    const userId = (payload?.userId || payload?.id || payload?._id) as string | undefined;
+
+    if (!userId) {
+      router.push("/auth/login");
+      return;
+    }
+
+    const run = async () => {
+      try {
+        localStorage.setItem("authToken", token);
+
+        const { data } = await api.get(`/auth/perfil/${userId}`);
+
+        const usuario = {
+          _id: data.user?.id ?? data.user?._id ?? userId,
+          username: data.user?.username,
+          email: data.user?.email,
+          fotoPerfil: data.user?.photo,
+        };
+
+        localStorage.setItem("user", JSON.stringify(usuario));
+        localStorage.setItem("justLoggedIn", "true");
+
+        router.push("/cervezas");
+      } catch {
+        router.push("/auth/login");
+      }
+    };
+
+    run();
   }, [router, searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center text-white bg-[#111827]">
+    <div className="bg-surface-card-alt flex min-h-screen items-center justify-center text-white">
       <h1 className="text-2xl">Iniciando sesión con Google... 🍻</h1>
     </div>
   );

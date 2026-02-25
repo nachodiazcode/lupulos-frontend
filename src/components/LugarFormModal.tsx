@@ -1,58 +1,82 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Modal, Box, Typography, TextField, Button
-} from "@mui/material";
+import { Modal, Box, Typography, TextField, Button } from "@mui/material";
 
 import Image from "next/image";
+import api from "@/lib/api";
 
+type MinimalUser = { _id: string; username: string };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-
-interface Props {
+interface PlaceFormModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  usuario: { _id: string; username: string } | null; // 👈 AGREGA ESTO
+  user: MinimalUser | null;
 }
 
-export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
-  const [form, setForm] = useState({
-    nombre: "",
-    descripcion: "",
-    ciudad: "",
-    pais: "",
-    calle: "",
+export default function PlaceFormModal({ open, onClose, onSuccess, user }: PlaceFormModalProps) {
+  const [placeForm, setPlaceForm] = useState({
+    name: "",
+    description: "",
+    street: "",
+    city: "",
+    state: "",
+    country: "",
+    postalCode: "",
   });
-  const [imagen, setImagen] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImagen(file);
-      setPreview(URL.createObjectURL(file));
+      setImageFile(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setPlaceForm({ ...placeForm, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async () => {
-    const token = localStorage.getItem("authToken"); // 🔐 Agrega el token
-
+    setError("");
+    if (
+      !placeForm.name ||
+      !placeForm.description ||
+      !placeForm.street ||
+      !placeForm.city ||
+      !placeForm.state ||
+      !placeForm.country ||
+      !imageFile
+    ) {
+      setError("Completa los campos obligatorios y selecciona una imagen.");
+      return;
+    }
     const formData = new FormData();
-    Object.entries(form).forEach(([key, value]) => formData.append(key, value));
-    if (imagen) formData.append("imagen", imagen);
+    const address = {
+      street: placeForm.street,
+      city: placeForm.city,
+      state: placeForm.state,
+      country: placeForm.country,
+      postalCode: placeForm.postalCode,
+    };
+
+    formData.append("name", placeForm.name);
+    formData.append("description", placeForm.description);
+    formData.append("address", JSON.stringify(address));
+    const ownerId = user?._id || (user as { id?: string } | null)?.id;
+    if (ownerId) {
+      formData.append("owner", ownerId);
+    }
+    formData.append("image", imageFile);
 
     try {
-      await fetch(`${API_URL}/api/location`, {
-        method: "POST",
-        body: formData,
+      await api.post("/location", formData, {
         headers: {
-          Authorization: `Bearer ${token}`, // 👈 Aquí va el token
+          "Content-Type": "multipart/form-data",
         },
       });
       onSuccess();
@@ -68,7 +92,7 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          bgcolor: "#3e2723",
+          bgcolor: "var(--color-brown-modal)",
           borderRadius: 5,
           boxShadow: 10,
           p: 4,
@@ -83,19 +107,15 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
           },
         }}
       >
-        <Typography
-          variant="h5"
-          gutterBottom
-          sx={{ color: "#fbbf24", fontWeight: 600 }}
-        >
+        <Typography variant="h5" gutterBottom sx={{ color: "primary.main", fontWeight: 600 }}>
           🏙️ Nuevo Lugar
         </Typography>
 
         <TextField
           fullWidth
           label="Nombre"
-          name="nombre"
-          value={form.nombre}
+          name="name"
+          value={placeForm.name}
           onChange={handleInputChange}
           sx={{ mb: 2 }}
           InputLabelProps={{ sx: { color: "#ccc" } }}
@@ -107,30 +127,8 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
           multiline
           minRows={3}
           label="Descripción"
-          name="descripcion"
-          value={form.descripcion}
-          onChange={handleInputChange}
-          sx={{ mb: 2 }}
-          InputLabelProps={{ sx: { color: "#ccc" } }}
-          InputProps={{ sx: { color: "#fff" } }}
-        />
-
-        <TextField
-          fullWidth
-          label="Ciudad"
-          name="ciudad"
-          value={form.ciudad}
-          onChange={handleInputChange}
-          sx={{ mb: 2 }}
-          InputLabelProps={{ sx: { color: "#ccc" } }}
-          InputProps={{ sx: { color: "#fff" } }}
-        />
-
-        <TextField
-          fullWidth
-          label="País"
-          name="pais"
-          value={form.pais}
+          name="description"
+          value={placeForm.description}
           onChange={handleInputChange}
           sx={{ mb: 2 }}
           InputLabelProps={{ sx: { color: "#ccc" } }}
@@ -140,8 +138,50 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
         <TextField
           fullWidth
           label="Calle"
-          name="calle"
-          value={form.calle}
+          name="street"
+          value={placeForm.street}
+          onChange={handleInputChange}
+          sx={{ mb: 2 }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
+        />
+        <TextField
+          fullWidth
+          label="Ciudad"
+          name="city"
+          value={placeForm.city}
+          onChange={handleInputChange}
+          sx={{ mb: 2 }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
+        />
+
+        <TextField
+          fullWidth
+          label="Estado"
+          name="state"
+          value={placeForm.state}
+          onChange={handleInputChange}
+          sx={{ mb: 2 }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
+        />
+        <TextField
+          fullWidth
+          label="País"
+          name="country"
+          value={placeForm.country}
+          onChange={handleInputChange}
+          sx={{ mb: 2 }}
+          InputLabelProps={{ sx: { color: "#ccc" } }}
+          InputProps={{ sx: { color: "#fff" } }}
+        />
+
+        <TextField
+          fullWidth
+          label="Código postal"
+          name="postalCode"
+          value={placeForm.postalCode}
           onChange={handleInputChange}
           sx={{ mb: 2 }}
           InputLabelProps={{ sx: { color: "#ccc" } }}
@@ -151,26 +191,28 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
         <Button
           variant="outlined"
           component="label"
+          color="primary"
           sx={{
             mb: 2,
-            borderColor: "#fbbf24",
-            color: "#fbbf24",
             transition: "all 0.3s",
             "&:hover": {
-              bgcolor: "#fbbf24",
-              color: "#3e2723",
+              bgcolor: "primary.main",
+              color: "var(--color-brown-modal)",
               boxShadow: 2,
             },
           }}
         >
           Subir Imagen
-          <input type="file" hidden accept="image/*" onChange={handleImageChange} />
+          <input type="file" hidden accept="image/*" onChange={handleFileChange} />
         </Button>
+        {error && (
+          <Typography sx={{ color: "var(--color-error)", mb: 2, fontSize: 14 }}>{error}</Typography>
+        )}
 
-        {preview && (
+        {imagePreviewUrl && (
           <Box mb={2}>
             <Image
-              src={preview}
+              src={imagePreviewUrl}
               alt="Vista previa"
               width={400}
               height={300}
@@ -186,25 +228,14 @@ export default function LugarFormModal({ open, onClose, onSuccess }: Props) {
 
         <Button
           variant="contained"
+          color="primary"
           fullWidth
           onClick={handleSubmit}
-          sx={{
-            bgcolor: "#fbbf24",
-            color: "#3e2723",
-            fontWeight: "bold",
-            mt: 1,
-            transition: "all 0.3s",
-            "&:hover": {
-              bgcolor: "#f59e0b",
-              boxShadow: 3,
-            },
-          }}
+          sx={{ mt: 1, transition: "all 0.3s" }}
         >
           Publicar Lugar 🚀
         </Button>
       </Box>
     </Modal>
-
-
   );
 }

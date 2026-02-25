@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import { api } from "@/lib/api";
+import { getImageUrl } from "@/lib/constants";
 import { useParams } from "next/navigation";
 import {
   Avatar,
@@ -16,39 +17,53 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-
 interface Usuario {
-  _id: string;
-  username: string;
-  email: string;
+  _id?: string;
+  id?: string;
+  username?: string;
+  email?: string;
   fotoPerfil?: string;
-  followers?: string[];
-  following?: string[];
+  photo?: string;
+  profilePicture?: string;
+  bio?: string;
+  ciudad?: string;
+  pais?: string;
 }
 
 const useAuth = () => {
-  if (typeof window === "undefined") return { user: null, token: null };
+  if (typeof window === "undefined") return { user: null };
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  const token = localStorage.getItem("authToken");
-  return { user, token };
+  return { user };
 };
 
 export default function UsuarioPage() {
   const { id } = useParams();
-  const { user, token } = useAuth();
+  const { user } = useAuth();
 
   const [perfil, setPerfil] = useState<Usuario | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loadingFollow, setLoadingFollow] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const getUserId = (u?: Usuario | null) => u?._id || u?.id || "";
 
   const fetchPerfil = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/user/${id}`);
-      setPerfil(res.data.usuario);
-      if (user && res.data.usuario.followers?.includes(user._id)) {
-        setIsFollowing(true);
+      const res = await api.get(`/user/${id}`);
+      const data = res.data?.data || res.data?.usuario || res.data?.user;
+      setPerfil(data);
+
+      const [followersRes, followingRes] = await Promise.all([
+        api.get(`/follow/${id}/followers`),
+        api.get(`/follow/${id}/following`),
+      ]);
+      const followers = Array.isArray(followersRes.data?.data) ? followersRes.data.data : [];
+      const following = Array.isArray(followingRes.data?.data) ? followingRes.data.data : [];
+      setFollowersCount(followers.length);
+      setFollowingCount(following.length);
+      if (user) {
+        setIsFollowing(followers.some((f: Usuario) => getUserId(f) === getUserId(user)));
       }
     } catch (err) {
       console.error("❌ Error al cargar perfil:", err);
@@ -63,17 +78,16 @@ export default function UsuarioPage() {
 
   const getFotoPerfilUrl = (fotoPerfil?: string): string | undefined => {
     if (!fotoPerfil) return undefined;
-    if (fotoPerfil.startsWith("http")) return fotoPerfil;
-    const path = fotoPerfil.startsWith("./") ? fotoPerfil.replace("./", "/") : fotoPerfil;
-    return `${API_URL}${path}`;
+    const fixedPath = fotoPerfil.startsWith("./") ? fotoPerfil.replace("./", "/") : fotoPerfil;
+    return getImageUrl(fixedPath);
   };
+  const getUserAvatar = (u?: Usuario | null) =>
+    u?.profilePicture || u?.fotoPerfil || u?.photo || "";
 
   const handleFollow = async () => {
     setLoadingFollow(true);
     try {
-      await axios.post(`${API_URL}/api/follow/${id}/follow`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/follow/${id}/follow`, {});
       setIsFollowing(true);
       fetchPerfil();
     } catch (err) {
@@ -86,9 +100,7 @@ export default function UsuarioPage() {
   const handleUnfollow = async () => {
     setLoadingFollow(true);
     try {
-      await axios.post(`${API_URL}/api/follow/${id}/unfollow`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post(`/follow/${id}/unfollow`, {});
       setIsFollowing(false);
       fetchPerfil();
     } catch (err) {
@@ -100,9 +112,7 @@ export default function UsuarioPage() {
 
   if (loading) {
     return (
-      <Typography sx={{ color: "#fff", textAlign: "center", mt: 5 }}>
-        Cargando perfil...
-      </Typography>
+      <Typography sx={{ color: "#fff", textAlign: "center", mt: 5 }}>Cargando perfil...</Typography>
     );
   }
 
@@ -129,7 +139,7 @@ export default function UsuarioPage() {
             >
               <Stack spacing={2} alignItems="center" flex={1}>
                 <Avatar
-                  src={getFotoPerfilUrl(perfil?.fotoPerfil) || "/default-avatar.jpg"}
+                  src={getFotoPerfilUrl(getUserAvatar(perfil)) || "/default-avatar.jpg"}
                   sx={{
                     width: 130,
                     height: 130,
@@ -141,29 +151,29 @@ export default function UsuarioPage() {
                   {perfil?.username}
                 </Typography>
                 <Typography sx={{ color: "#d1d5db", fontSize: "0.9rem" }}>
-                  {perfil?.email}
+                  {perfil?.email || "—"}
                 </Typography>
 
                 <Stack direction="row" spacing={4} mt={2}>
                   <Stack alignItems="center">
-                    <Typography variant="h6" sx={{ color: "#facc15" }}>
-                      {perfil?.followers?.length || 0}
+                    <Typography variant="h6" sx={{ color: "var(--color-amber-light)" }}>
+                      {followersCount}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                    <Typography variant="caption" sx={{ color: "var(--color-text-muted)" }}>
                       Seguidores
                     </Typography>
                   </Stack>
                   <Stack alignItems="center">
-                    <Typography variant="h6" sx={{ color: "#facc15" }}>
-                      {perfil?.following?.length || 0}
+                    <Typography variant="h6" sx={{ color: "var(--color-amber-light)" }}>
+                      {followingCount}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                    <Typography variant="caption" sx={{ color: "var(--color-text-muted)" }}>
                       Siguiendo
                     </Typography>
                   </Stack>
                 </Stack>
 
-                {user?._id !== id && (
+                {getUserId(user) !== id && (
                   <Button
                     variant="contained"
                     sx={{
@@ -195,7 +205,8 @@ export default function UsuarioPage() {
                   Sobre el usuario
                 </Typography>
                 <Typography sx={{ color: "#d1d5db", lineHeight: 1.8 }}>
-                  Este usuario aún no ha publicado una biografía… pero puedes seguirlo para ver sus futuras cervezas, lugares y opiniones. 🍻
+                  Este usuario aún no ha publicado una biografía… pero puedes seguirlo para ver sus
+                  futuras cervezas, lugares y opiniones. 🍻
                 </Typography>
               </Box>
             </Stack>

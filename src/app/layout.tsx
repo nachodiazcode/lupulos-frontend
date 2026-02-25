@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import ThemeRegistry from "@/theme/ThemeRegistry";
+import "./globals.scss";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,27 +24,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
-          rel="stylesheet"
-        />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{
-          margin: 0,
-          padding: 0,
-          boxSizing: "border-box",
-          width: "100%",
-          maxWidth: "100%",
-          overflowX: "hidden",
-        }}
-      >
-        {children}
-
-        {/* 🟡 Chat flotante siempre disponible como Facebook */}
+    <html lang="es" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeRegistry>{children}</ThemeRegistry>
       </body>
     </html>
   );

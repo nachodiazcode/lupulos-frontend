@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
+import { api } from "@/lib/api";
+import { getImageUrl } from "@/lib/constants";
 import {
   Snackbar,
   Alert,
@@ -20,39 +21,42 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-
 interface Usuario {
-  _id: string;
-  nombre: string;
+  _id?: string;
+  id?: string;
+  username?: string;
   fotoPerfil?: string;
+  photo?: string;
+  profilePicture?: string;
 }
 
-interface Comentario {
+interface Review {
   _id: string;
-  usuario: Usuario;
-  comentario: string;
-  puntuacion: number;
-  fecha: string;
+  user?: Usuario;
+  comment: string;
+  rating: number;
+  createdAt?: string;
 }
 
-interface Lugar {
+interface Place {
   _id: string;
-  nombre: string;
-  descripcion: string;
-  imagen: string;
-  direccion: {
-    calle: string;
-    ciudad: string;
-    pais: string;
+  name: string;
+  description: string;
+  coverImage?: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    postalCode?: string;
   };
-  comentarios: Comentario[];
+  reviews: Review[];
 }
 
 export default function LugarDetallePage() {
   const { id } = useParams();
   const router = useRouter();
-  const [lugar, setLugar] = useState<Lugar | null>(null);
+  const [lugar, setLugar] = useState<Place | null>(null);
   const [loading, setLoading] = useState(true);
   const [comentario, setComentario] = useState("");
   const [rating, setRating] = useState<number | null>(0);
@@ -63,7 +67,7 @@ export default function LugarDetallePage() {
 
   const fetchLugar = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/location/${id}`);
+      const res = await api.get(`/location/${id}`);
       setLugar(res.data.data);
     } catch (error) {
       console.error("❌ Error al obtener lugar:", error);
@@ -84,17 +88,10 @@ export default function LugarDetallePage() {
   const handleCommentSubmit = async () => {
     if (!comentario.trim()) return;
     try {
-      const token = localStorage.getItem("authToken");
-      await axios.post(
-        `${API_URL}/api/location/${id}/review`,
-        {
-          comentario,
-          puntuacion: rating || 5,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await api.post(`/location/${id}/reviews`, {
+        comment: comentario,
+        rating: rating || 5,
+      });
       setComentario("");
       setRating(0);
       setSnackbarMessage("Comentario publicado 🍻");
@@ -109,10 +106,7 @@ export default function LugarDetallePage() {
   const handleDeleteLugar = async () => {
     if (!window.confirm("¿Eliminar este lugar?")) return;
     try {
-      const token = localStorage.getItem("authToken");
-      await axios.delete(`${API_URL}/api/location/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/location/${id}`);
       setSnackbarMessage("Lugar eliminado ❌");
       setSnackbarColor("#f87171");
       setSnackbarOpen(true);
@@ -125,6 +119,11 @@ export default function LugarDetallePage() {
   if (loading || !lugar) {
     return <div className="p-10 text-white">Cargando lugar...</div>;
   }
+  const getUserId = (u?: Usuario | null) => u?._id ?? u?.id ?? "";
+  const getUserAvatar = (u?: Usuario | null) => {
+    const path = u?.fotoPerfil || u?.photo || u?.profilePicture || "";
+    return path.startsWith("./") ? path.replace("./", "/") : path;
+  };
 
   return (
     <div className="min-h-screen text-white" style={{ backgroundColor: "#0f172a" }}>
@@ -133,26 +132,28 @@ export default function LugarDetallePage() {
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={6} alignItems="flex-start">
           <Box flexShrink={0}>
-            <Image
-              src={`${API_URL}${lugar.imagen}`}
-              alt={lugar.nombre}
-              width={400}
-              height={400}
-              unoptimized
-              className="rounded-lg object-cover shadow-xl"
-              priority
-            />
+            {lugar.coverImage && (
+              <Image
+                src={getImageUrl(lugar.coverImage)}
+                alt={lugar.name}
+                width={400}
+                height={400}
+                unoptimized
+                className="rounded-lg object-cover shadow-xl"
+                priority
+              />
+            )}
           </Box>
 
           <Box flex={1}>
             <Typography variant="h3" fontWeight="bold" textTransform="capitalize">
-              {lugar.nombre}
+              {lugar.name}
             </Typography>
             <Typography variant="subtitle1" sx={{ mt: 1, color: "#94a3b8" }}>
-              {lugar.direccion.calle}, {lugar.direccion.ciudad}, {lugar.direccion.pais}
+              {lugar.address.street}, {lugar.address.city}, {lugar.address.country}
             </Typography>
             <Typography variant="body1" sx={{ mt: 3, color: "#e2e8f0" }}>
-              {lugar.descripcion}
+              {lugar.description}
             </Typography>
 
             {user && (
@@ -171,14 +172,13 @@ export default function LugarDetallePage() {
             )}
 
             {user && (
-              <Paper sx={{ mt: 6, p: 4, bgcolor: "#1e293b", borderRadius: 3 }}>
+              <Paper
+                sx={{ mt: 6, p: 4, bgcolor: "var(--color-surface-elevated)", borderRadius: 3 }}
+              >
                 <Typography variant="h6" fontWeight="bold" mb={2}>
                   Tu opinión 🍻
                 </Typography>
-                <Rating
-                  value={rating}
-                  onChange={(_, newValue) => setRating(newValue)}
-                />
+                <Rating value={rating} onChange={(_, newValue) => setRating(newValue)} />
                 <TextField
                   fullWidth
                   multiline
@@ -188,7 +188,7 @@ export default function LugarDetallePage() {
                   placeholder="Escribe tu comentario..."
                   sx={{
                     mt: 2,
-                    bgcolor: "#111827",
+                    bgcolor: "var(--color-surface-card-alt)",
                     borderRadius: 2,
                     textarea: { color: "white" },
                   }}
@@ -199,9 +199,9 @@ export default function LugarDetallePage() {
                   fullWidth
                   sx={{
                     mt: 2,
-                    bgcolor: "#f59e0b",
+                    bgcolor: "var(--color-amber-hover)",
                     fontWeight: "bold",
-                    "&:hover": { bgcolor: "#fbbf24" },
+                    "&:hover": { bgcolor: "var(--color-amber-primary)" },
                   }}
                 >
                   Comentar 💬
@@ -215,20 +215,23 @@ export default function LugarDetallePage() {
           <Typography variant="h5" fontWeight="bold" mb={3}>
             Comentarios
           </Typography>
-          {lugar.comentarios.length > 0 ? (
-            lugar.comentarios.map((c) => (
-              <Paper key={c._id} sx={{ p: 3, mb: 2, bgcolor: "#1f2937", borderRadius: 3 }}>
+          {lugar.reviews?.length ? (
+            lugar.reviews.map((c) => (
+              <Paper
+                key={c._id}
+                sx={{ p: 3, mb: 2, bgcolor: "var(--color-surface-card)", borderRadius: 3 }}
+              >
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Avatar src={c.usuario.fotoPerfil || ""} />
+                  <Avatar src={getImageUrl(getUserAvatar(c.user))} />
                   <Box>
                     <Typography fontWeight="bold">
-                      {c.usuario._id === user?._id ? "Tú" : c.usuario.nombre}
+                      {getUserId(c.user) === getUserId(user) ? "Tú" : c.user?.username || "Anónimo"}
                     </Typography>
                     <Typography fontSize={12} color="gray">
-                      {new Date(c.fecha).toLocaleDateString()}
+                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ""}
                     </Typography>
-                    <Typography sx={{ mt: 1 }}>{c.comentario}</Typography>
-                    <Rating value={c.puntuacion} readOnly size="small" />
+                    <Typography sx={{ mt: 1 }}>{c.comment}</Typography>
+                    <Rating value={c.rating} readOnly size="small" />
                   </Box>
                 </Stack>
               </Paper>

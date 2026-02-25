@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, forwardRef, ReactElement, Ref } from "react";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -12,30 +12,28 @@ import {
   Typography,
   Snackbar,
   Alert,
-  Slide
+  Slide,
 } from "@mui/material";
 import type { TransitionProps } from "@mui/material/transitions";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-const amarillo = "#fbbf24";
+const amarillo = "var(--color-amber-primary)";
 
 // ✅ Transición corregida con forwardRef
 const SlideTransition = forwardRef(function SlideTransition(
   props: TransitionProps & { children: ReactElement },
-  ref: Ref<unknown>
+  ref: Ref<unknown>,
 ) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
 export default function NuevaLugarPage() {
   const router = useRouter();
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [direccion, setDireccion] = useState({
-    calle: "",
-    ciudad: "",
-    estado: "",
-    pais: "",
-    codigoPostal: "",
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [address, setAddress] = useState({
+    street: "",
+    city: "",
+    state: "",
+    country: "",
+    postalCode: "",
   });
   const [imagen, setImagen] = useState<File | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -48,37 +46,35 @@ export default function NuevaLugarPage() {
       const token = localStorage.getItem("authToken");
       if (!token) throw new Error("No autenticado");
 
-      // 1. Crear lugar
-      const { data } = await axios.post(
-        `${API_URL}/api/location`,
-        {
-          nombre,
-          descripcion,
-          direccion,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const nuevoLugarId = data.data._id;
-
-      // 2. Subir imagen si existe
-      if (imagen) {
-        const formData = new FormData();
-        formData.append("image", imagen);
-
-        await axios.post(
-          `${API_URL}/api/location/${nuevoLugarId}/upload-image`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+      if (
+        !name ||
+        !description ||
+        !address.street ||
+        !address.city ||
+        !address.state ||
+        !address.country ||
+        !imagen
+      ) {
+        setSnackbarMessage("Completa los campos obligatorios y selecciona una imagen.");
+        setSnackbarOpen(true);
+        return;
       }
+
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("address", JSON.stringify(address));
+      formData.append("image", imagen);
+      const userStr = localStorage.getItem("user");
+      const parsedUser = userStr ? JSON.parse(userStr) : null;
+      const userId = parsedUser?._id || parsedUser?.id;
+      if (userId) formData.append("owner", userId);
+
+      await api.post(`/location`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       setSnackbarMessage("✅ Lugar creado exitosamente");
       setSnackbarOpen(true);
@@ -117,48 +113,56 @@ export default function NuevaLugarPage() {
             label="Nombre"
             variant="outlined"
             fullWidth
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             sx={{ input: { color: "white" }, "& fieldset": { borderColor: "#374151" } }}
           />
           <TextField
             label="Descripción"
             variant="outlined"
             fullWidth
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             sx={{ input: { color: "white" }, "& fieldset": { borderColor: "#374151" } }}
           />
           <TextField
             label="Calle"
             variant="outlined"
             fullWidth
-            value={direccion.calle}
-            onChange={(e) => setDireccion({ ...direccion, calle: e.target.value })}
+            value={address.street}
+            onChange={(e) => setAddress({ ...address, street: e.target.value })}
             sx={{ input: { color: "white" }, "& fieldset": { borderColor: "#374151" } }}
           />
           <TextField
             label="Ciudad"
             variant="outlined"
             fullWidth
-            value={direccion.ciudad}
-            onChange={(e) => setDireccion({ ...direccion, ciudad: e.target.value })}
+            value={address.city}
+            onChange={(e) => setAddress({ ...address, city: e.target.value })}
             sx={{ input: { color: "white" }, "& fieldset": { borderColor: "#374151" } }}
           />
           <TextField
             label="Estado"
             variant="outlined"
             fullWidth
-            value={direccion.estado}
-            onChange={(e) => setDireccion({ ...direccion, estado: e.target.value })}
+            value={address.state}
+            onChange={(e) => setAddress({ ...address, state: e.target.value })}
             sx={{ input: { color: "white" }, "& fieldset": { borderColor: "#374151" } }}
           />
           <TextField
             label="País"
             variant="outlined"
             fullWidth
-            value={direccion.pais}
-            onChange={(e) => setDireccion({ ...direccion, pais: e.target.value })}
+            value={address.country}
+            onChange={(e) => setAddress({ ...address, country: e.target.value })}
+            sx={{ input: { color: "white" }, "& fieldset": { borderColor: "#374151" } }}
+          />
+          <TextField
+            label="Código postal"
+            variant="outlined"
+            fullWidth
+            value={address.postalCode}
+            onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
             sx={{ input: { color: "white" }, "& fieldset": { borderColor: "#374151" } }}
           />
           <TextField
@@ -174,11 +178,10 @@ export default function NuevaLugarPage() {
             sx={{ input: { color: "white" } }}
           />
 
-
           <Button
             variant="contained"
             fullWidth
-            sx={{ bgcolor: "#fbbf24", fontWeight: "bold" }}
+            sx={{ bgcolor: "var(--color-amber-primary)", fontWeight: "bold" }}
             onClick={handleGuardarLugar}
           >
             Guardar Lugar 🍻

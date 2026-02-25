@@ -1,61 +1,68 @@
-# 🍺 Lúpulos App - Frontend
+# Lúpulos Frontend
 
-**Lúpulos App** es una plataforma web moderna desarrollada con **Next.js 14**, **TypeScript**, **Tailwind CSS** y **Material UI**, pensada para amantes de la cerveza artesanal. Permite descubrir cervezas, comentar, puntuar, subir contenido visual y explorar lugares cerveceros en un entorno intuitivo y responsive.
+Frontend web de **Lúpulos**, construido con **Next.js (App Router)**, **React** y **TypeScript**.
 
-> 🔗 [API oficial](https://github.com/ignaciosergiodiaz/lupulos-api)  
-> 🌐 [Sitio en producción](https://lupulos.app)
-
----
+- Producción: https://lupulos.app
+- Backend/API: https://github.com/ignaciosergiodiaz/lupulos-api
 
 ## Características
 
 - Autenticación con JWT y login social
-- CRUD completo de cervezas y lugares
-- Comentarios con puntuación, multimedia y respuestas
-- Reacciones tipo “saludo vikingo”
-- Filtros avanzados (tipo, nombre, cervecería)
-- Subida y vista previa de imágenes
-- Navegación SPA con diseño oscuro y responsivo
-- Panel de usuario y perfil público
+- CRUD de cervezas y lugares
+- Posts, comentarios, puntuación y multimedia
+- UI responsive (Tailwind + MUI)
 
----
+## Stack
 
-## Tecnologías
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS 4 + Material UI
+- Axios (con interceptores JWT)
+- React Hook Form + Zod
 
-- **Next.js 14** (App Router, SSR, Static Routes)
-- **TypeScript**
-- **Tailwind CSS** + **Material UI**
-- **Axios** con interceptores JWT
-- **MongoDB Atlas** con **Mongoose**
-- **Multer** para subida de imágenes
-- **Framer Motion** (opcional)
-- **Zod** (planificado para validaciones)
+## Requisitos
 
----
+- Node.js: ver `package.json#engines` (y `.nvmrc` para desarrollo)
+- npm: ver `package.json#packageManager`
 
-## Comunicación con la API
+## Setup local
 
-```ts
-// src/lib/axios.ts
-import axios from "axios";
+1. Instalar dependencias
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+```bash
+npm install
+```
 
-// Interceptor JWT para adjuntar token automáticamente
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+2. Variables de entorno
 
-export default api;
+```bash
+cp .env.example .env.local
+```
+
+Editá `.env.local` y configurá:
+
+- `NEXT_PUBLIC_API_URL` (URL base del backend **sin** `/api`)
+
+3. Levantar el entorno
+
+```bash
+npm run dev
+```
+
+## Scripts útiles
+
+- `npm run dev`: levantar Next en desarrollo
+- `npm run check`: formato + lint + typecheck
+- `npm run ci`: check + build (ideal para CI)
+- `npm run format`: aplicar Prettier
+- `npm run format:check`: validar formato
+
+## Deploy en Vercel
+
+1. Importá este repo en Vercel (Framework Preset: **Next.js**)
+2. Configurá variables de entorno (Preview/Production según corresponda)
+   - `NEXT_PUBLIC_API_URL` (sin `/api`)
+3. Deploy: Vercel detecta `npm run build` automáticamente para Next.js
+
+Tip: si no seteás `NEXT_PUBLIC_API_URL`, el frontend usa `https://lupulos.app` por defecto.

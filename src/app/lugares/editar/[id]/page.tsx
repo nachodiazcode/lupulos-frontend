@@ -2,30 +2,22 @@
 
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import {
-  Box,
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Alert,
-} from "@mui/material";
+import { api, API_BASE_URL } from "@/lib/api";
+import { Box, Container, Typography, TextField, Button, Alert } from "@mui/material";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-const amarillo = "#fbbf24";
+const amarillo = "var(--color-amber-primary)";
 
 interface Lugar {
-  nombre: string;
-  descripcion: string;
-  imagen: string;
+  name: string;
+  description: string;
+  coverImage: string;
 }
 
 const getImagenUrl = (imagen: string): string => {
   if (!imagen) return "/no-image.png";
   if (imagen.startsWith("http")) return imagen;
 
-  const base = API_URL.replace(/\/+$/, "");
+  const base = API_BASE_URL.replace(/\/+$/, "");
   const path = imagen.replace(/^\/+/, "");
 
   return `${base}/${path}`;
@@ -36,9 +28,9 @@ export default function EditarLugarPage() {
   const router = useRouter();
 
   const [lugar, setLugar] = useState<Lugar>({
-    nombre: "",
-    descripcion: "",
-    imagen: "",
+    name: "",
+    description: "",
+    coverImage: "",
   });
 
   const [preview, setPreview] = useState<string | null>(null);
@@ -50,15 +42,15 @@ export default function EditarLugarPage() {
   useEffect(() => {
     const fetchLugar = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/location/${id}`);
-        const data = res.data?.datos || res.data?.data;
+        const res = await api.get(`/location/${id}`);
+        const data = res.data?.data;
 
         if (!data) throw new Error("Lugar no encontrado");
 
         setLugar({
-          nombre: data.nombre || "",
-          descripcion: data.descripcion || "",
-          imagen: data.imagen || "",
+          name: data.name || "",
+          description: data.description || "",
+          coverImage: data.coverImage || "",
         });
       } catch (err) {
         console.error("❌ Error al cargar lugar:", err);
@@ -98,30 +90,19 @@ export default function EditarLugarPage() {
     try {
       if (nuevaImagen) {
         const formData = new FormData();
-        formData.append("imagen", nuevaImagen);
+        formData.append("image", nuevaImagen);
 
-        const resUpload = await axios.post(
-          `${API_URL}/api/location/${id}/upload-image`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        lugar.imagen = resUpload.data.datos.imagen;
+        const resUpload = await api.post(`/location/${id}/image`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        lugar.coverImage = resUpload.data.data?.coverImage || lugar.coverImage;
       }
-
-      await axios.patch(
-        `${API_URL}/api/location/${id}`,
-        {
-          nombre: lugar.nombre,
-          descripcion: lugar.descripcion,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.patch(`/location/${id}`, {
+        name: lugar.name,
+        description: lugar.description,
+      });
 
       setSuccess(true);
       setTimeout(() => router.push("/lugares"), 1200);
@@ -133,26 +114,52 @@ export default function EditarLugarPage() {
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", color: amarillo, display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "#0e0e0e",
+          color: amarillo,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Typography variant="h6">Cargando lugar... 🍻</Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#0e0e0e", background: "linear-gradient(to bottom, #111827, #0f0f0f)", color: "white", display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#0e0e0e",
+        background: "linear-gradient(to bottom, var(--color-surface-card-alt), #0f0f0f)",
+        color: "white",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Container maxWidth="md" sx={{ py: 8, flexGrow: 1 }}>
         <Typography variant="h4" align="center" sx={{ fontWeight: "bold", color: amarillo, mb: 4 }}>
           🏙️ Editar Lugar
         </Typography>
 
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, alignItems: "flex-start", justifyContent: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 4,
+            alignItems: "flex-start",
+            justifyContent: "center",
+          }}
+        >
           <Box
             component="form"
             onSubmit={handleSubmit}
             sx={{
               flex: 1,
-              backgroundColor: "#1f2937",
+              backgroundColor: "var(--color-surface-card)",
               p: 4,
               borderRadius: 3,
               border: "1px solid #374151",
@@ -162,8 +169,8 @@ export default function EditarLugarPage() {
             <TextField
               fullWidth
               label="Nombre"
-              name="nombre"
-              value={lugar.nombre}
+              name="name"
+              value={lugar.name}
               onChange={handleChange}
               margin="normal"
               required
@@ -174,8 +181,8 @@ export default function EditarLugarPage() {
             <TextField
               fullWidth
               label="Descripción"
-              name="descripcion"
-              value={lugar.descripcion}
+              name="description"
+              value={lugar.description}
               onChange={handleChange}
               margin="normal"
               multiline
@@ -190,20 +197,34 @@ export default function EditarLugarPage() {
               <input hidden accept="image/*" type="file" onChange={handleImageChange} />
             </Button>
 
-            {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-            {success && <Alert severity="success" sx={{ mt: 2 }}>¡Lugar actualizado con éxito!</Alert>}
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+            {success && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                ¡Lugar actualizado con éxito!
+              </Alert>
+            )}
 
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 4, bgcolor: amarillo, color: "#000", fontWeight: "bold", "&:hover": { bgcolor: "#facc15" } }}
+              sx={{
+                mt: 4,
+                bgcolor: amarillo,
+                color: "#000",
+                fontWeight: "bold",
+                "&:hover": { bgcolor: "var(--color-amber-light)" },
+              }}
             >
               Guardar Cambios
             </Button>
           </Box>
 
-          {(preview || lugar.imagen) && (
+          {(preview || lugar.coverImage) && (
             <Box
               sx={{
                 flex: 1,
@@ -213,12 +234,13 @@ export default function EditarLugarPage() {
                 alignItems: "center",
                 p: 2,
                 borderRadius: 3,
-                backgroundColor: "#1f2937",
+                backgroundColor: "var(--color-surface-card)",
                 border: "1px solid #374151",
               }}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={preview || getImagenUrl(lugar.imagen)}
+                src={preview || getImagenUrl(lugar.coverImage)}
                 alt="Vista previa del lugar"
                 width={400}
                 height={400}
@@ -237,7 +259,15 @@ export default function EditarLugarPage() {
         </Box>
       </Container>
 
-      <Box sx={{ textAlign: "center", py: 4, fontSize: 14, color: "#aaa", borderTop: "1px solid #1f2937" }}>
+      <Box
+        sx={{
+          textAlign: "center",
+          py: 4,
+          fontSize: 14,
+          color: "#aaa",
+          borderTop: "1px solid var(--color-surface-card)",
+        }}
+      >
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍺 por Nacho Díaz
       </Box>
     </Box>

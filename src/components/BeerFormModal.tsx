@@ -8,14 +8,11 @@ import {
   Button,
   Box,
   Typography,
-  Stack
+  Stack,
 } from "@mui/material";
 import { useState } from "react";
 import axios from "axios";
-
-import Image from "next/image";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
+import api from "@/lib/api";
 
 interface Props {
   open: boolean;
@@ -34,87 +31,84 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
   const [preview, setPreview] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-  if (!usuario) {
-    alert("Usuario no autenticado.");
-    return;
-  }
-
-  if (
-    !nombre.trim() ||
-    !tipo.trim() ||
-    !cerveceria.trim() ||
-    !descripcion.trim() ||
-    !abv.trim() ||
-    !imagen
-  ) {
-    alert("Todos los campos son obligatorios, incluyendo la imagen.");
-    return;
-  }
-
-  const abvValue = parseFloat(abv);
-  if (isNaN(abvValue)) {
-    alert("El ABV debe ser un número válido.");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("nombre", nombre.trim());
-  formData.append("tipo", tipo.trim());
-  formData.append("cerveceria", cerveceria.trim());
-  formData.append("abv", String(abvValue));
-  formData.append("descripcion", descripcion.trim());
-  formData.append("usuario", usuario._id);
-  formData.append("imagen", imagen);
-
-  try {
-    const token = localStorage.getItem("authToken");
-    
-    console.info("📦 Enviando nueva cerveza:", {
-      nombre,
-      tipo,
-      cerveceria,
-      abv: abvValue,
-      descripcion,
-      usuario: usuario.username,
-      imagen,
-    });
-
-    for (const pair of formData.entries()) {
-      console.log(`${pair[0]}:`, pair[1]);
+    if (!usuario) {
+      alert("Usuario no autenticado.");
+      return;
     }
 
-    await axios.post(`${API_URL}/api/beer`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    if (
+      !nombre.trim() ||
+      !tipo.trim() ||
+      !cerveceria.trim() ||
+      !descripcion.trim() ||
+      !abv.trim() ||
+      !imagen
+    ) {
+      alert("Todos los campos son obligatorios, incluyendo la imagen.");
+      return;
+    }
 
-    onSuccess();
+    const abvValue = parseFloat(abv);
+    if (isNaN(abvValue)) {
+      alert("El ABV debe ser un número válido.");
+      return;
+    }
 
-    // 🧹 Limpiar campos
-    setNombre("");
-    setTipo("");
-    setCerveceria("");
-    setAbv("");
-    setDescripcion("");
-    setImagen(null);
-    setPreview(null);
+    const formData = new FormData();
+    // Backend expects English field names
+    formData.append("name", nombre.trim());
+    formData.append("style", tipo.trim());
+    formData.append("brewery", cerveceria.trim());
+    formData.append("abv", String(abvValue));
+    formData.append("description", descripcion.trim());
 
-  } catch (error: unknown) {
-  if (axios.isAxiosError(error)) {
-    console.error("❌ Error al subir cerveza:", error.response?.data || error.message);
-    alert(error.response?.data?.mensaje || "Ocurrió un error al subir la cerveza.");
-  } else if (error instanceof Error) {
-    console.error("❌ Error inesperado:", error.message);
-    alert("Error inesperado al subir la cerveza.");
-  } else {
-    console.error("❌ Error desconocido:", error);
-    alert("Error desconocido al subir la cerveza.");
-  }
-}
-};
+    // Multer expects file field: image
+    formData.append("image", imagen);
 
+    try {
+      console.info("📦 Enviando nueva cerveza:", {
+        nombre,
+        tipo,
+        cerveceria,
+        abv: abvValue,
+        descripcion,
+        usuario: usuario.username,
+        imagen,
+      });
+
+      for (const pair of formData.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
+      }
+
+      await api.post("/beer", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      onSuccess();
+
+      // 🧹 Limpiar campos
+      setNombre("");
+      setTipo("");
+      setCerveceria("");
+      setAbv("");
+      setDescripcion("");
+      setImagen(null);
+      setPreview(null);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error("❌ Error al subir cerveza:", error.response?.data || error.message);
+        alert(error.response?.data?.mensaje || "Ocurrió un error al subir la cerveza.");
+      } else if (error instanceof Error) {
+        console.error("❌ Error inesperado:", error.message);
+        alert("Error inesperado al subir la cerveza.");
+      } else {
+        console.error("❌ Error desconocido:", error);
+        alert("Error desconocido al subir la cerveza.");
+      }
+    }
+  };
 
   return (
     <Dialog
@@ -124,16 +118,14 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
       fullWidth
       PaperProps={{
         sx: {
-          bgcolor: "#1e293b",
-          color: "white",
+          bgcolor: "background.paper",
+          color: "text.primary",
           borderRadius: 3,
           p: 2,
         },
       }}
     >
-      <DialogTitle sx={{ fontWeight: "bold", fontSize: 20 }}>
-        🍺 Nueva Cerveza
-      </DialogTitle>
+      <DialogTitle sx={{ fontWeight: "bold", fontSize: 20 }}>🍺 Nueva Cerveza</DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
           <TextField
@@ -141,50 +133,28 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             fullWidth
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
           />
-          <TextField
-            label="Tipo"
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-            fullWidth
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
-          />
+          <TextField label="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} />
           <TextField
             label="Cervecería"
             value={cerveceria}
             onChange={(e) => setCerveceria(e.target.value)}
-            fullWidth
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
           />
           <TextField
             label="ABV (%)"
             value={abv}
             onChange={(e) => setAbv(e.target.value)}
-            fullWidth
             type="number"
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
           />
           <TextField
             label="Descripción"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
-            fullWidth
             multiline
             rows={3}
-            InputLabelProps={{ style: { color: "#fbbf24" } }}
-            InputProps={{ style: { color: "white" } }}
           />
 
-          <Button
-            component="label"
-            variant="outlined"
-            sx={{ borderColor: "#fbbf24", color: "#fbbf24" }}
-          >
+          <Button component="label" variant="outlined" color="primary">
             Subir Imagen
             <input
               type="file"
@@ -202,10 +172,11 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
 
           {preview && (
             <Box>
-              <Typography variant="body2" color="#fbbf24">
+              <Typography variant="body2" color="primary">
                 Previsualización:
               </Typography>
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={preview}
                 alt="preview"
                 style={{ maxWidth: "100%", borderRadius: 8, marginTop: 8 }}
@@ -217,10 +188,10 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
             variant="contained"
             onClick={handleSubmit}
             sx={{
-              bgcolor: "#f97316",
+              bgcolor: "var(--color-orange-cta)",
               color: "black",
               fontWeight: "bold",
-              "&:hover": { bgcolor: "#ea580c" },
+              "&:hover": { bgcolor: "var(--color-orange-cta-hover)" },
             }}
           >
             Publicar Cerveza 🚀

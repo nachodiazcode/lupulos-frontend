@@ -25,7 +25,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 
-const amarillo = "#fbbf24";
+const amarillo = "var(--color-amber-primary)";
 
 export default function PlanesPage() {
   const [anual, setAnual] = useState(false);
@@ -33,27 +33,34 @@ export default function PlanesPage() {
 
   const planes = [
     {
+      slug: "free",
       nombre: "Gratis",
       descripcion: "Explora cervezas, lugares y comenta libremente.",
       beneficios: [
         "✔️ Acceso a catálogo de cervezas",
         "✔️ Ver lugares cerveceros",
         "✔️ Comentar y reaccionar",
+        "✔️ Hasta 5 cervezas/mes",
+        "✔️ Hasta 10 posts/mes",
       ],
       icono: <LocalBarIcon sx={{ fontSize: 48 }} />,
-      color: "#1e293b",
+      color: "var(--color-surface-elevated)",
       boton: "Comenzar",
       ruta: "/cervezas",
       precioMensual: "$0 CLP",
       precioAnual: "$0 CLP",
     },
     {
+      slug: "lupuloso",
       nombre: "Lupuloso",
       descripcion: "Para los fanáticos que quieren ir más allá.",
       beneficios: [
+        "✨ Todo lo del plan Gratis",
         "✨ Destaca tus comentarios",
         "✨ Agrega lugares a la app",
         "✨ Perfil personalizado",
+        "✨ Hasta 20 cervezas/mes",
+        "✨ Hasta 50 posts/mes",
       ],
       icono: <StarBorderIcon sx={{ fontSize: 48 }} />,
       color: "#334155",
@@ -64,12 +71,17 @@ export default function PlanesPage() {
       precioAnual: "$20.000 CLP",
     },
     {
+      slug: "pro",
       nombre: "Cervecero Pro",
       descripcion: "Ideal para expertos y cervecerías.",
       beneficios: [
-        "🏆 Acceso anticipado a novedades",
+        "🏆 Todo lo del plan Lupuloso",
+        "🏆 Cervezas y posts ilimitados",
+        "🏆 Subir videos de cervezas",
+        "🏆 Fijar posts destacados",
         "🏆 Analítica de publicaciones",
         "🏆 Badge de Experto Cervecero",
+        "🏆 Contenido premium exclusivo",
       ],
       icono: <EmojiEventsIcon sx={{ fontSize: 48 }} />,
       color: "#475569",
@@ -79,11 +91,13 @@ export default function PlanesPage() {
       precioAnual: "$60.000 CLP",
     },
     {
+      slug: "explorer",
       nombre: "Explorador",
       descripcion: "Para los que quieren probar funciones antes que nadie.",
       beneficios: [
+        "🧪 Todo lo del plan Pro",
         "🧪 Acceso beta a funciones nuevas",
-        "🧪 Feedback con el equipo",
+        "🧪 Feedback directo con el equipo",
         "🧪 Eventos exclusivos",
       ],
       icono: <AutoAwesomeIcon sx={{ fontSize: 48 }} />,
@@ -212,9 +226,7 @@ export default function PlanesPage() {
 
                 <CardContent>
                   <Box display="flex" justifyContent="center" mb={2}>
-                    <motion.div whileHover={{ scale: 1.15, rotate: 4 }}>
-                      {plan.icono}
-                    </motion.div>
+                    <motion.div whileHover={{ scale: 1.15, rotate: 4 }}>{plan.icono}</motion.div>
                   </Box>
                   <Typography variant="h5" align="center" fontWeight="bold">
                     {plan.nombre}

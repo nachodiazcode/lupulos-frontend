@@ -19,7 +19,12 @@ export default function GoldenBackground() {
       opacity: 0.15 + Math.random() * 0.4,
       delay: Math.random() * 3,
       duration: 5 + Math.random() * 5,
-      color: ["#fef08a", "#fde047", "#facc15", "#eab308"][Math.floor(Math.random() * 4)],
+      color: [
+        "var(--color-amber-muted)",
+        "var(--color-amber-light)",
+        "var(--color-amber-primary)",
+        "var(--color-amber-dark)",
+      ][Math.floor(Math.random() * 4)],
     }));
   }, []);
 

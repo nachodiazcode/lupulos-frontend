@@ -2,11 +2,44 @@
   "name": "lupulos-frontend",
   "version": "0.1.0",
   "private": true,
+  "description": "Frontend web de Lúpulos (Next.js): comunidad cervecera para descubrir, crear y compartir cervezas, lugares y posts.",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/nachodiazcode/lupulos-frontend#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nachodiazcode/lupulos-frontend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nachodiazcode/lupulos-frontend/issues"
+  },
+  "keywords": [
+    "lupulos",
+    "nextjs",
+    "react",
+    "typescript",
+    "frontend",
+    "community",
+    "beer",
+    "craft-beer",
+    "mui",
+    "tailwindcss"
+  ],
+  "engines": {
+    "node": "^18.18.0 || ^19.8.0 || >= 20.0.0"
+  },
+  "packageManager": "npm@10.9.3",
   "scripts": {
     "dev": "next dev",
+    "dev:turbo": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint --max-warnings=0",
+    "lint:fix": "next lint --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run format:check && npm run lint && npm run typecheck",
+    "ci": "npm run check && npm run build",
     "export": "next export"
   },
   "dependencies": {
@@ -18,12 +51,9 @@
     "@mui/lab": "^7.0.0-beta.10",
     "@mui/material": "^7.1.0",
     "axios": "^1.8.3",
-    "bootstrap": "^5.3.3",
     "framer-motion": "^12.15.0",
     "lucide-react": "^0.484.0",
     "next": "^15.2.3",
-    "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.1",
@@ -38,8 +68,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "sass": "^1.97.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
 }
-

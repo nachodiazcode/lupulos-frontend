@@ -2,7 +2,7 @@
 
 import { createContext, useEffect, useState, ReactNode } from "react";
 
-interface Usuario {
+interface User {
   _id: string;
   username: string;
   email: string;
@@ -15,15 +15,15 @@ interface Usuario {
   [key: string]: unknown; // permite extensibilidad sin romper TS
 }
 
-interface AuthContextType {
-  user: Usuario | null;
+interface AuthContextValue {
+  user: User | null;
   token: string | null;
-  setUser: (user: Usuario | null) => void;
+  setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextValue>({
   user: null,
   token: null,
   setUser: () => {},
@@ -32,7 +32,7 @@ export const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<Usuario | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {

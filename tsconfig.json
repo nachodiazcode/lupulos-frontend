@@ -13,9 +13,9 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "baseUrl": ".",                 // 👈 necesario para los paths
+    "baseUrl": ".", // 👈 necesario para los paths
     "paths": {
-      "@/*": ["src/*"]              // 👈 apunta correctamente a la carpeta src
+      "@/*": ["src/*"] // 👈 apunta correctamente a la carpeta src
     },
     "plugins": [
       {

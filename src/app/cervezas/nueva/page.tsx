@@ -18,23 +18,23 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { api } from "@/lib/api";
 
 interface CervezaFormData {
-  nombre: string;
-  cerveceria: string;
-  tipo: string;
+  name: string;
+  brewery: string;
+  style: string;
   abv: string;
-  descripcion: string;
+  description: string;
 }
 
 export default function NuevaCervezaForm() {
   const [formData, setFormData] = useState<CervezaFormData>({
-    nombre: "",
-    cerveceria: "",
-    tipo: "",
+    name: "",
+    brewery: "",
+    style: "",
     abv: "",
-    descripcion: "",
+    description: "",
   });
   const [imagen, setImagen] = useState<File | null>(null);
   const [error, setError] = useState("");
@@ -63,49 +63,42 @@ export default function NuevaCervezaForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { nombre, cerveceria, tipo, abv } = formData;
+    const { name, brewery, style, abv, description } = formData;
 
-    if (!nombre || !cerveceria || !tipo || !abv) {
+    if (!name || !brewery || !style || !abv || !description) {
       setError("Todos los campos marcados con * son obligatorios.");
       return;
     }
-
-    if (Number(abv) < 0 || Number(abv) > 100) {
+    if (Number(abv) < 0 || Number(abv) > 20) {
+      setError("El ABV debe estar entre 0 y 20.");
       setError("El ABV debe estar entre 0 y 100.");
       return;
     }
 
     try {
-      const token = localStorage.getItem("authToken");
-
-      const resCrear = await axios.post(
-        "https://lupulos.app/api/beer",
-        { ...formData, abv: Number(abv) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const cervezaId = resCrear.data.datos._id;
-
-      if (imagen && cervezaId) {
-        const formImg = new FormData();
-        formImg.append("imagen", imagen);
-
-        await axios.post(
-          `https://lupulos.app/api/${cervezaId}/upload`,
-          formImg,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+      const form = new FormData();
+      form.append("name", name);
+      form.append("brewery", brewery);
+      form.append("style", style);
+      form.append("abv", String(Number(abv)));
+      form.append("description", description);
+      if (imagen) {
+        form.append("image", imagen);
       }
+
+      await api.post("/beer", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       setSuccess(true);
       setSnackbarOpen(true);
       setError("");
       setFormData({
-        nombre: "",
-        cerveceria: "",
-        tipo: "",
+        name: "",
+        brewery: "",
+        style: "",
         abv: "",
-        descripcion: "",
+        description: "",
       });
       setImagen(null);
 
@@ -127,14 +120,19 @@ export default function NuevaCervezaForm() {
   return (
     <Box sx={{ bgcolor: "#0e0e0e", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* Menú superior */}
-      <AppBar position="static" sx={{ bgcolor: "#0e0e0e", borderBottom: "1px solid #1f2937" }}>
+      <AppBar
+        position="static"
+        sx={{ bgcolor: "#0e0e0e", borderBottom: "1px solid var(--color-surface-card)" }}
+      >
         <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Typography variant="h6" fontWeight="bold" color="#fbbf24">
+          <Typography variant="h6" fontWeight="bold" color="var(--color-amber-primary)">
             Lúpulos
           </Typography>
           <Stack direction="row" spacing={3} sx={{ display: { xs: "none", md: "flex" } }}>
             <Link href="/">Inicio</Link>
-            <Link href="/cervezas" style={{ color: "#fbbf24" }}>Cervezas</Link>
+            <Link href="/cervezas" style={{ color: "var(--color-amber-primary)" }}>
+              Cervezas
+            </Link>
             <Link href="/lugares">Lugares</Link>
             <Link href="/posts">Comunidad</Link>
             <Link href="/planes">Planes</Link>
@@ -157,38 +155,54 @@ export default function NuevaCervezaForm() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          background: "linear-gradient(to bottom right, #0f172a, #1e293b)",
+          background: "linear-gradient(to bottom right, #0f172a, var(--color-surface-elevated))",
           borderRadius: 4,
           boxShadow: "0 0 20px rgba(0,0,0,0.5)",
         }}
       >
-        <Paper elevation={4} sx={{ borderRadius: 3, p: 4, bgcolor: "#1f2937", width: "100%" }}>
-          <Typography variant="h5" align="center" mb={3} fontWeight="bold" color="#fbbf24">
+        <Paper
+          elevation={4}
+          sx={{ borderRadius: 3, p: 4, bgcolor: "var(--color-surface-card)", width: "100%" }}
+        >
+          <Typography
+            variant="h5"
+            align="center"
+            mb={3}
+            fontWeight="bold"
+            color="var(--color-amber-primary)"
+          >
             🍺 Nueva Cerveza
           </Typography>
           <Box component="form" onSubmit={handleSubmit}>
             <Stack spacing={2}>
-              {(["nombre", "cerveceria", "tipo", "abv"] as (keyof CervezaFormData)[]).map((field) => (
+              {(
+                [
+                  { name: "name", label: "Nombre", type: "text" },
+                  { name: "brewery", label: "Cervecería", type: "text" },
+                  { name: "style", label: "Estilo", type: "text" },
+                  { name: "abv", label: "ABV", type: "number" },
+                ] as const
+              ).map((field) => (
                 <TextField
-                  key={field}
-                  label={`${field.charAt(0).toUpperCase() + field.slice(1)} *`}
-                  name={field}
-                  type={field === "abv" ? "number" : "text"}
-                  value={formData[field]}
+                  key={field.name}
+                  label={`${field.label} *`}
+                  name={field.name}
+                  type={field.type || "text"}
+                  value={formData[field.name]}
                   onChange={handleChange}
                   fullWidth
                   required
-                  inputProps={field === "abv" ? { min: "0", max: "100", step: "0.1" } : {}}
+                  inputProps={field.name === "abv" ? { min: "0", max: "20", step: "0.1" } : {}}
                   InputProps={{ sx: { color: "white" } }}
                   InputLabelProps={{ sx: { color: "white" } }}
                 />
               ))}
               <TextField
                 label="Descripción"
-                name="descripcion"
+                name="description"
                 multiline
                 rows={3}
-                value={formData.descripcion}
+                value={formData.description}
                 onChange={handleChange}
                 fullWidth
                 InputProps={{ sx: { color: "white" } }}
@@ -200,10 +214,10 @@ export default function NuevaCervezaForm() {
                 variant="outlined"
                 sx={{
                   mt: 1,
-                  borderColor: "#fbbf24",
-                  color: "#fbbf24",
+                  borderColor: "var(--color-amber-primary)",
+                  color: "var(--color-amber-primary)",
                   "&:hover": {
-                    backgroundColor: "#fbbf24",
+                    backgroundColor: "var(--color-amber-primary)",
                     color: "#000",
                   },
                 }}
@@ -225,10 +239,10 @@ export default function NuevaCervezaForm() {
                 variant="contained"
                 fullWidth
                 sx={{
-                  bgcolor: "#f97316",
+                  bgcolor: "var(--color-orange-cta)",
                   fontWeight: "bold",
                   color: "white",
-                  "&:hover": { bgcolor: "#ea580c" },
+                  "&:hover": { bgcolor: "var(--color-orange-cta-hover)" },
                 }}
               >
                 Publicar Cerveza 🍻
@@ -257,9 +271,9 @@ export default function NuevaCervezaForm() {
         sx={{
           textAlign: "center",
           py: 4,
-          borderTop: "1px solid #1f2937",
+          borderTop: "1px solid var(--color-surface-card)",
           fontSize: "0.85rem",
-          color: "#9ca3af",
+          color: "var(--color-text-muted)",
         }}
       >
         © {new Date().getFullYear()} Lúpulos · Hecho con 🍻 por Nacho Díaz

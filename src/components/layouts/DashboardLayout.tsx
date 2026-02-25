@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           "& .MuiDrawer-paper": {
             width: drawerWidth,
             boxSizing: "border-box",
-            backgroundColor: "#111827",
+            backgroundColor: "var(--color-surface-card-alt)",
             color: "#fff",
             display: "flex",
             flexDirection: "column",
