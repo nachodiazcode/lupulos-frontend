@@ -2,10 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import {
-  Box, Button, Typography, Stack, TextField, Snackbar,
-  Alert, Container, IconButton, Rating
+  Box,
+  Button,
+  Typography,
+  Stack,
+  TextField,
+  Snackbar,
+  Alert,
+  Container,
+  IconButton,
+  Rating,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -19,32 +26,12 @@ import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 import BeerFormModal from "@/components/BeerFormModal";
 import Image from "next/image";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://lupulos.app/api";
-
-interface Review {
-  comentario: string;
-  calificacion: number;
-  usuario?: { username: string; fotoPerfil?: string };
-}
-
-interface Cerveza {
-  _id: string;
-  nombre: string;
-  descripcion: string;
-  imagen: string;
-  cerveceria: string;
-  tipo: string;
-  abv: number;
-  likes: string[];
-  reviews: Review[];
-  calificacionPromedio?: number;
-  usuario: { _id: string; username: string };
-}
+import { getImageUrl } from "@/lib/constants";
+import { useBeers } from "@/features/beers/hooks/useBeers";
+import type { Beer } from "@/features/beers/model/types";
 
 export default function CervezasPage() {
   const router = useRouter();
-  const [cervezas, setCervezas] = useState<Cerveza[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState<{ _id: string; username: string } | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -53,50 +40,32 @@ export default function CervezasPage() {
   const [snackbarColor, setSnackbarColor] = useState("#6EE7B7");
   const [newComments, setNewComments] = useState<Record<string, string>>({});
   const [modalOpen, setModalOpen] = useState(false);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const { beers: cervezas, refreshBeers, onToggleLike, onCreateReview } = useBeers();
 
   useEffect(() => {
     setMounted(true);
     const userData = localStorage.getItem("user");
     if (userData) setUser(JSON.parse(userData));
-    fetchCervezas();
-  }, []);
-
-  const fetchCervezas = async (query = "") => {
-  try {
-    const url = query
-      ? `${API_URL}/api/beer/search?nombre=${query}`
-      : `${API_URL}/api/beer`;
-    const res = await axios.get(url);
-    if (res.data.exito) {
-      const ordenadas = [...res.data.datos].reverse(); // 🟡 Más reciente primero
-      setCervezas(ordenadas);
-    }
-  } catch (error) {
-    console.error("❌ Error al obtener cervezas:", error);
-  }
-};
-
+    refreshBeers();
+  }, [refreshBeers]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchCervezas(searchQuery);
+    refreshBeers(searchQuery);
   };
 
   const toggleLike = async (beerId: string) => {
     if (!user) return;
-    const cerveza = cervezas.find(c => c._id === beerId);
+    const cerveza = cervezas.find((c) => c._id === beerId);
     const userHasLiked = cerveza?.likes.includes(user._id);
-    const token = localStorage.getItem("authToken");
-    if (!token) return;
 
     try {
-      await axios.post(`${API_URL}/api/beer/${beerId}/${userHasLiked ? "unlike" : "like"}`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await onToggleLike(beerId);
       setSnackbarMessage(userHasLiked ? "Like eliminado ❌" : "¡Saludo vikingo enviado! 🍻");
-      setSnackbarColor(userHasLiked ? "#f87171" : "#fbbf24");
+      setSnackbarColor(userHasLiked ? "var(--color-error)" : "var(--color-amber-primary)");
       setSnackbarOpen(true);
-      fetchCervezas();
+      refreshBeers(searchQuery);
     } catch (error) {
       console.error("❌ Error al dar/retirar like:", error);
     }
@@ -105,19 +74,13 @@ export default function CervezasPage() {
   const handleCommentSubmit = async (beerId: string) => {
     if (!user || !newComments[beerId]?.trim()) return;
     try {
-      const token = localStorage.getItem("authToken");
-      await axios.post(`${API_URL}/api/beer/${beerId}/review`, {
-        comentario: newComments[beerId],
-        calificacion: 5,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await onCreateReview(beerId, newComments[beerId]);
 
       setSnackbarMessage("Comentario publicado 💬");
       setSnackbarColor("#6EE7B7");
       setSnackbarOpen(true);
-      setNewComments(prev => ({ ...prev, [beerId]: "" }));
-      fetchCervezas();
+      setNewComments((prev) => ({ ...prev, [beerId]: "" }));
+      refreshBeers(searchQuery);
     } catch (error) {
       console.error("❌ Error al comentar:", error);
     }
@@ -128,19 +91,39 @@ export default function CervezasPage() {
   if (!mounted) return null;
 
   return (
-    <Box sx={{ minHeight: "100vh", position: "relative", color: "white", display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        position: "relative",
+        color: "white",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <GoldenBackground />
       <Navbar />
 
-      <Container maxWidth="lg" sx={{ px: 2, mt: 4, mb: 6, flex: 1, position: "relative", zIndex: 2 }}>
+      <Container
+        maxWidth="lg"
+        sx={{ px: 2, mt: 4, mb: 6, flex: 1, position: "relative", zIndex: 2 }}
+      >
         <Box component="form" onSubmit={handleSearchSubmit} sx={{ mb: 4 }}>
-          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" spacing={3}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            justifyContent="space-between"
+            alignItems="center"
+            spacing={3}
+          >
             <Typography variant="h5">🔍 Buscar cervezas</Typography>
             {user && (
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
-                sx={{ bgcolor: "#fbbf24", color: "black", "&:hover": { bgcolor: "#f59e0b" } }}
+                sx={{
+                  bgcolor: "var(--color-amber-primary)",
+                  color: "black",
+                  "&:hover": { bgcolor: "var(--color-amber-hover)" },
+                }}
                 onClick={() => setModalOpen(true)}
               >
                 Subir Cerveza
@@ -155,58 +138,96 @@ export default function CervezasPage() {
               placeholder="Ej: IPA, Stout, Kross..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ bgcolor: "#1f2937", borderRadius: 2, input: { color: "white" } }}
-              InputProps={{ startAdornment: <SearchIcon sx={{ color: "gray", mr: 1, ml: 1 }} /> }}
+              sx={{ borderRadius: 2 }}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ color: "text.secondary", mr: 1, ml: 1 }} />,
+              }}
             />
           </Box>
         </Box>
 
         {/* Lista de cervezas */}
-        <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr" }} gap={3}>
-          {cervezas.map((beer) => {
+        <Box
+          display="grid"
+          gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr" }}
+          gap={3}
+        >
+          {cervezas.map((beer: Beer) => {
             const userHasLiked = user && beer.likes.includes(user._id);
             return (
               <Box
                 key={beer._id}
                 onClick={() => router.push(`/cervezas/${beer._id}`)}
-                sx={{ backgroundColor: "#1f2937", color: "white", borderRadius: 4, p: 3, boxShadow: 2, cursor: "pointer", display: "flex", flexDirection: "column", gap: 1.5 }}
+                sx={{
+                  backgroundColor: "var(--color-surface-card)",
+                  color: "white",
+                  borderRadius: 4,
+                  p: 3,
+                  boxShadow: 2,
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1.5,
+                }}
               >
-                {beer.imagen && (
-                  <Image
-                    src={`${API_URL}${beer.imagen}`}
-                    alt={beer.nombre}
-                    width={500}
-                    height={300}
-                    unoptimized
-                    style={{ width: "100%", height: "auto", borderRadius: "12px", objectFit: "cover" }}
-                  />
-                )}
+                <Box
+                  sx={{
+                    position: "relative",
+                    width: "100%",
+                    aspectRatio: "5 / 3",
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    bgcolor: "var(--color-surface-card-alt)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {beer.image && !failedImages.has(beer._id) ? (
+                    <Image
+                      src={getImageUrl(beer.image)}
+                      alt={beer.name}
+                      fill
+                      unoptimized
+                      style={{ objectFit: "cover" }}
+                      onError={() =>
+                        setFailedImages((prev) => new Set(prev).add(beer._id))
+                      }
+                    />
+                  ) : (
+                    <Typography
+                      sx={{ fontSize: 48, lineHeight: 1, userSelect: "none" }}
+                    >
+                      🍺
+                    </Typography>
+                  )}
+                </Box>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Typography variant="h6">{beer.nombre}</Typography>
+                  <Typography variant="h6">{beer.name}</Typography>
                   <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleLike(beer._id);
                     }}
-                    sx={{ color: userHasLiked ? "#fbbf24" : "white" }}
+                    sx={{ color: userHasLiked ? "var(--color-amber-primary)" : "white" }}
                   >
                     {userHasLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                   </IconButton>
                 </Box>
                 <Typography variant="body2" color="gray">
-                  {beer.tipo} · {beer.abv}% ABV
+                  {beer.style} · {beer.abv}% ABV
                 </Typography>
-                <Rating value={beer.calificacionPromedio || 0} precision={0.5} readOnly size="small" />
+                <Rating value={beer.averageRating || 0} precision={0.5} readOnly size="small" />
                 <Typography variant="body2" color="#facc15">
-                  {beer.calificacionPromedio?.toFixed(1) || "0.0"} / 5
+                  {beer.averageRating?.toFixed(1) || "0.0"} / 5
                 </Typography>
                 <Typography variant="body2" color="gray">
-                  Cervecería: {beer.cerveceria}
+                  Cervecería: {beer.brewery}
                 </Typography>
                 <Typography variant="body2" color="gray">
-                  Subido por: <strong>{beer.usuario.username}</strong>
+                  Subido por: <strong>{beer.createdBy?.username ?? "—"}</strong>
                 </Typography>
-                <Typography variant="body2" color="#fbbf24">
+                <Typography variant="body2" color="var(--color-amber-primary)">
                   💛 {beer.likes.length} saludos vikingos
                 </Typography>
 
@@ -216,8 +237,14 @@ export default function CervezasPage() {
                       variant="outlined"
                       placeholder="Escribe un comentario..."
                       value={newComments[beer._id] || ""}
-                      onChange={(e) => setNewComments((prev) => ({ ...prev, [beer._id]: e.target.value }))}
-                      sx={{ bgcolor: "#111827", borderRadius: 2, input: { color: "white" } }}
+                      onChange={(e) =>
+                        setNewComments((prev) => ({ ...prev, [beer._id]: e.target.value }))
+                      }
+                      sx={{
+                        bgcolor: "var(--color-surface-card-alt)",
+                        borderRadius: 2,
+                        input: { color: "white" },
+                      }}
                       fullWidth
                     />
                     <Button
@@ -227,7 +254,12 @@ export default function CervezasPage() {
                         e.stopPropagation();
                         handleCommentSubmit(beer._id);
                       }}
-                      sx={{ mt: 2, bgcolor: "#fbbf24", "&:hover": { bgcolor: "#f59e0b" }, fontWeight: "bold" }}
+                      sx={{
+                        mt: 2,
+                        bgcolor: "var(--color-amber-primary)",
+                        "&:hover": { bgcolor: "var(--color-amber-hover)" },
+                        fontWeight: "bold",
+                      }}
                     >
                       Comentar 💬
                     </Button>
@@ -243,7 +275,7 @@ export default function CervezasPage() {
           onClose={() => setModalOpen(false)}
           onSuccess={() => {
             setModalOpen(false);
-            fetchCervezas();
+            refreshBeers(searchQuery);
           }}
           usuario={user}
         />
