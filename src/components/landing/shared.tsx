@@ -25,7 +25,7 @@ export const scaleIn: Variants = {
 
 export function SectionBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block rounded-full border border-amber-400/20 bg-amber-400/5 px-4 py-1.5 text-xs font-medium tracking-widest text-amber-400/80 uppercase">
+    <span className="inline-block rounded-full border border-amber-400/20 bg-amber-400/5 px-4 py-1.5 text-[11px] font-semibold tracking-[0.2em] text-amber-400/80 uppercase backdrop-blur-sm">
       {children}
     </span>
   );
@@ -33,7 +33,10 @@ export function SectionBadge({ children }: { children: React.ReactNode }) {
 
 export function GradientText({ children }: { children: React.ReactNode }) {
   return (
-    <span className="from-amber-primary to-orange-cta bg-gradient-to-r bg-clip-text text-transparent">
+    <span
+      className="from-amber-primary via-amber-light to-orange-cta bg-gradient-to-r bg-clip-text text-transparent"
+      style={{ fontFamily: "var(--font-outfit), var(--font-sans)" }}
+    >
       {children}
     </span>
   );

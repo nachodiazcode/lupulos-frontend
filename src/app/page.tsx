@@ -6,10 +6,12 @@ import StorySection from "@/components/landing/StorySection";
 import StepsSection from "@/components/landing/StepsSection";
 import CommunitySection from "@/components/landing/CommunitySection";
 import CtaSection from "@/components/landing/CtaSection";
+import GoldenParticles from "@/components/landing/GoldenParticles";
 
 export default function HomePage() {
   return (
     <>
+      <GoldenParticles count={25} />
       <Navbar />
       <HeroSlideshow />
       <StatsSection />

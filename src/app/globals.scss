@@ -144,6 +144,7 @@
 
   /* Typography */
   --font-sans: "Ubuntu", Arial, Helvetica, sans-serif;
+  --font-heading: var(--font-outfit), "Ubuntu", Arial, Helvetica, sans-serif;
   --font-mono: monospace;
 }
 
@@ -417,6 +418,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--gradient-body);
   color: var(--color-text-primary);
@@ -427,6 +432,15 @@ body {
   transition:
     background 0.3s ease,
     color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading typography — uses Outfit for premium feel */
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
 }
 
 /* ─── Scrollbar ─── */

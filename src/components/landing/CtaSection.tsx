@@ -15,13 +15,21 @@ export default function CtaSection() {
 
   return (
     <section
-      className="relative overflow-hidden py-24 sm:py-32"
+      className="relative overflow-hidden py-28 sm:py-36"
       style={{ background: "var(--gradient-section-darker)" }}
       aria-label="Llamada a acción"
     >
+      {/* Multiple ambient glows */}
       <div
-        className="pointer-events-none absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-10 blur-3xl"
-        style={{ background: "var(--color-amber-primary)" }}
+        className="pointer-events-none absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px]"
+        style={{ background: "var(--color-amber-primary)", opacity: 0.08 }}
+        aria-hidden="true"
+      />
+      <motion.div
+        className="pointer-events-none absolute top-1/3 left-1/3 h-64 w-64 rounded-full blur-[80px]"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.04, 0.08, 0.04] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{ background: "var(--color-orange-cta)" }}
         aria-hidden="true"
       />
 
@@ -44,9 +52,15 @@ export default function CtaSection() {
               &ldquo;
             </div>
 
-            <p className="text-text-secondary text-lg leading-relaxed font-light tracking-wide italic sm:text-xl">
+            <motion.p
+              className="text-text-secondary text-lg leading-relaxed font-light tracking-wide italic sm:text-xl"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2 }}
+            >
               {quote}
-            </p>
+            </motion.p>
 
             <div
               className="mx-auto mt-6 h-px w-10"
@@ -57,30 +71,47 @@ export default function CtaSection() {
               aria-hidden="true"
             />
 
-            <h2 className="text-text-primary mt-10 text-2xl font-extrabold tracking-tight sm:text-3xl">
+            <h2 className="text-text-primary mt-10 text-3xl font-extrabold tracking-tight sm:text-4xl">
               ¿Listo para tu próxima <GradientText>cerveza favorita?</GradientText>
             </h2>
-            <p className="text-text-muted mt-3 text-sm">
+            <p className="text-text-muted mt-3 text-base">
               Únete gratis a la comunidad cervecera más grande de Chile.
             </p>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href="/auth/register"
-                prefetch
-                className="hover:shadow-amber-primary/25 rounded-full px-8 py-3.5 text-sm font-bold shadow-xl transition-all duration-300 hover:brightness-110"
-                style={{
-                  background: "var(--gradient-button-primary)",
-                  color: "var(--color-text-dark)",
-                }}
-              >
-                Crear mi cuenta gratis
-              </Link>
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              {/* Primary CTA with pulsating glow */}
+              <motion.div className="relative">
+                {/* Pulsing ring */}
+                <motion.div
+                  className="absolute -inset-1 rounded-full"
+                  animate={{
+                    boxShadow: [
+                      "0 0 20px 2px rgba(251,191,36,0.0)",
+                      "0 0 30px 8px rgba(251,191,36,0.25)",
+                      "0 0 20px 2px rgba(251,191,36,0.0)",
+                    ],
+                  }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  aria-hidden="true"
+                />
+                <Link
+                  href="/auth/register"
+                  prefetch
+                  className="relative inline-block rounded-full px-10 py-4 text-sm font-bold shadow-xl transition-all duration-300 hover:scale-105 hover:brightness-110"
+                  style={{
+                    background: "var(--gradient-button-primary)",
+                    color: "var(--color-text-dark)",
+                    boxShadow: "0 8px 30px rgba(251,191,36,0.3)",
+                  }}
+                >
+                  Crear mi cuenta gratis
+                </Link>
+              </motion.div>
 
               <Link
                 href="/auth/login"
                 prefetch
-                className="border-border-medium text-text-muted hover:border-amber-primary/40 hover:text-amber-primary rounded-full border px-8 py-3.5 text-sm font-medium backdrop-blur-sm transition-all duration-200"
+                className="border-border-medium text-text-muted hover:border-amber-primary/40 hover:text-amber-primary rounded-full border px-10 py-4 text-sm font-medium backdrop-blur-sm transition-all duration-300 hover:scale-105"
               >
                 Ya tengo cuenta →
               </Link>

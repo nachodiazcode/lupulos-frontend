@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import ScrollIndicator from "./landing/ScrollIndicator";
 
 /* ═══════════════════════════════════
    Slide Data
@@ -108,30 +109,30 @@ function generateBubbles(count: number): Bubble[] {
    ═══════════════════════════════════ */
 
 const textVariants: Variants = {
-  enter: { opacity: 0, y: 30 },
+  enter: { opacity: 0, y: 40 },
   center: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: "easeOut", staggerChildren: 0.1 },
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1], staggerChildren: 0.12 },
   },
-  exit: { opacity: 0, y: -20, transition: { duration: 0.3 } },
+  exit: { opacity: 0, y: -25, transition: { duration: 0.35 } },
 };
 
 const childVariants: Variants = {
-  enter: { opacity: 0, y: 20 },
-  center: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  enter: { opacity: 0, y: 24 },
+  center: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
   exit: { opacity: 0, transition: { duration: 0.2 } },
 };
 
 const imageVariants: Variants = {
-  enter: { opacity: 0, scale: 0.9, x: 60 },
+  enter: { opacity: 0, scale: 0.85, x: 80 },
   center: {
     opacity: 1,
     scale: 1,
     x: 0,
-    transition: { duration: 0.7, ease: "easeOut" },
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
   },
-  exit: { opacity: 0, scale: 0.95, x: -40, transition: { duration: 0.3 } },
+  exit: { opacity: 0, scale: 0.92, x: -50, transition: { duration: 0.35 } },
 };
 
 /* ═══════════════════════════════════
@@ -187,15 +188,28 @@ export default function HeroSlideshow() {
       {/* ─── Background ─── */}
       <div className="absolute inset-0" style={{ background: "var(--gradient-hero)" }} />
 
-      {/* Accent glow (changes per slide) */}
+      {/* Shimmer sweep */}
+      <motion.div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(105deg, transparent 40%, rgba(251,191,36,0.04) 50%, transparent 60%)",
+          backgroundSize: "200% 100%",
+        }}
+        animate={{ backgroundPosition: ["200% 0%", "-200% 0%"] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+        aria-hidden="true"
+      />
+
+      {/* Accent glow (changes per slide) — bigger + more vibrant */}
       <AnimatePresence mode="wait">
         <motion.div
           key={`glow-${current}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
-          className="absolute h-[500px] w-[500px] rounded-full blur-[120px]"
+          transition={{ duration: 1.2 }}
+          className="absolute h-[600px] w-[600px] rounded-full blur-[140px]"
           style={{
             background: `radial-gradient(circle, ${slide.accent}, transparent 70%)`,
             top: slide.glowPosition.split(" ")[1],
@@ -255,7 +269,7 @@ export default function HeroSlideshow() {
 
             <motion.h1
               variants={childVariants}
-              className="text-text-primary mt-3 text-3xl leading-[1.15] font-extrabold tracking-tight sm:text-4xl md:text-5xl lg:text-[3.25rem]"
+              className="text-text-primary mt-3 text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-[3.75rem]"
             >
               {slide.title}{" "}
               <span className="from-amber-primary via-amber-light to-orange-cta bg-gradient-to-r bg-clip-text text-transparent">
@@ -277,10 +291,11 @@ export default function HeroSlideshow() {
               <Link
                 href={slide.cta.href}
                 prefetch
-                className="group hover:shadow-amber-primary/25 relative overflow-hidden rounded-full px-8 py-4 text-center text-sm font-bold shadow-xl transition-all duration-300"
+                className="group hover:shadow-amber-primary/25 relative overflow-hidden rounded-full px-9 py-4 text-center text-sm font-bold shadow-xl transition-all duration-300 hover:scale-105"
                 style={{
                   background: "var(--gradient-button-primary)",
                   color: "var(--color-text-dark)",
+                  boxShadow: "0 8px 30px rgba(251,191,36,0.3)",
                 }}
               >
                 <span className="relative z-10">{slide.cta.label}</span>
@@ -289,7 +304,7 @@ export default function HeroSlideshow() {
               <Link
                 href="/cervezas"
                 prefetch
-                className="border-border-medium bg-border-subtle text-text-primary hover:border-border-amber hover:bg-border-light rounded-full border px-8 py-4 text-center text-sm font-medium backdrop-blur-sm transition-all duration-300"
+                className="border-border-medium bg-border-subtle text-text-primary hover:border-border-amber hover:bg-border-light rounded-full border px-9 py-4 text-center text-sm font-medium backdrop-blur-sm transition-all duration-300 hover:scale-105"
               >
                 Explorar cervezas
               </Link>
@@ -358,6 +373,9 @@ export default function HeroSlideshow() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* ─── Scroll Indicator ─── */}
+      <ScrollIndicator />
 
       {/* ─── Navigation: Dots + Progress ─── */}
       <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-3">

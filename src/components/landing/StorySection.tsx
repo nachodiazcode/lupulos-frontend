@@ -90,6 +90,8 @@ function StoryCard({ item, index }: { item: StoryItem; index: number }) {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-20px" }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className="group relative w-[min(80vw,300px)] shrink-0 md:w-auto"
       style={{ scrollSnapAlign: "start" }}
     >
