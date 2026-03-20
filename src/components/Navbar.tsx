@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Drawer,
@@ -139,18 +140,24 @@ export default function Navbar() {
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
+              className="flex items-center gap-2.5"
             >
-              <Image
-                src="/assets/logo.gif"
-                alt="Lúpulos"
-                width={32}
-                height={32}
-                className="rounded-lg"
-                style={{
-                  filter: "drop-shadow(0 0 6px var(--color-border-amber))",
-                }}
-              />
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: -8 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              >
+                <Image
+                  src="/assets/logo.gif"
+                  alt="Lúpulos"
+                  width={32}
+                  height={32}
+                  className="rounded-lg"
+                  style={{
+                    filter: "drop-shadow(0 0 6px var(--color-border-amber))",
+                  }}
+                />
+              </motion.div>
               <span className="text-text-primary text-sm font-bold tracking-tight">
                 Lúpulos
                 <span className="text-amber-primary/80 ml-1">App</span>
@@ -167,37 +174,55 @@ export default function Navbar() {
                   key={item.text}
                   href={item.href}
                   prefetch
-                  className={`relative flex items-center gap-2 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all duration-200 ${
+                  className={`group relative flex items-center gap-2 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all duration-200 ${
                     isActive
                       ? "text-amber-primary"
-                      : "text-text-muted hover:bg-text-ghost hover:text-text-secondary"
+                      : "text-text-muted hover:text-text-secondary"
                   }`}
                 >
-                  <span className={isActive ? "text-amber-primary" : "text-text-subtle"}>
+                  <motion.span
+                    className={isActive ? "text-amber-primary" : "text-text-subtle group-hover:text-text-secondary transition-colors"}
+                    whileHover={{ scale: 1.2, rotate: 10 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 12 }}
+                  >
                     {item.icon}
-                  </span>
+                  </motion.span>
                   {item.text}
 
                   {/* Active indicator — pill glow */}
                   {isActive && (
-                    <span
+                    <motion.span
+                      layoutId="navbar-active-pill"
                       className="absolute inset-0 rounded-lg"
                       style={{
                         background: "var(--color-border-subtle)",
                         boxShadow:
                           "inset 0 0 0 1px var(--color-border-amber), 0 0 12px var(--color-border-subtle)",
                       }}
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
 
                   {/* Active dot */}
                   {isActive && (
-                    <span
+                    <motion.span
+                      layoutId="navbar-active-dot"
                       className="absolute -bottom-0.5 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full"
                       style={{
                         background:
                           "linear-gradient(90deg, transparent, var(--color-amber-primary), transparent)",
                         boxShadow: "var(--shadow-amber-glow)",
+                      }}
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    />
+                  )}
+
+                  {/* Hover underline (non-active only) */}
+                  {!isActive && (
+                    <span
+                      className="absolute -bottom-0.5 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full transition-all duration-300 group-hover:w-4"
+                      style={{
+                        background: "var(--color-text-ghost)",
                       }}
                     />
                   )}
@@ -295,14 +320,18 @@ export default function Navbar() {
               <Link
                 href="/auth/login"
                 prefetch
-                className="hidden rounded-lg px-4 py-2 text-xs font-semibold transition-all hover:brightness-110 sm:inline-block"
+                className="group relative hidden overflow-hidden rounded-lg px-4 py-2 text-xs font-semibold transition-all hover:brightness-110 sm:inline-block"
                 style={{
                   background: "var(--gradient-button-primary)",
                   color: "var(--color-text-dark)",
                   boxShadow: "var(--shadow-amber-glow)",
                 }}
               >
-                Iniciar sesión
+                <span className="relative z-10">Iniciar sesión</span>
+                <span
+                  className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-500 group-hover:translate-x-full"
+                  style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)" }}
+                />
               </Link>
             )}
           </div>

@@ -23,22 +23,22 @@
   --color-amber-light: #facc15;
   --color-amber-muted: #fde68a;
 
-  /* Surfaces */
-  --color-surface-deepest: #0c0a09;
-  --color-surface-dark: #1a1510;
-  --color-surface-mid: #2a2018;
-  --color-surface-card: #1c1814;
-  --color-surface-card-alt: #141210;
-  --color-surface-elevated: #221c16;
-  --color-surface-overlay: #080604;
+  /* Surfaces — amber oscuro cálido (no negro neutro) */
+  --color-surface-deepest: #160800;
+  --color-surface-dark: #221100;
+  --color-surface-mid: #321a00;
+  --color-surface-card: #1e0e00;
+  --color-surface-card-alt: #160800;
+  --color-surface-elevated: #2a1500;
+  --color-surface-overlay: #0c0400;
 
   /* Warm accents (navbar, drawer, etc.) */
-  --color-brown-navbar-start: #3d2610;
-  --color-brown-navbar-end: #5c3a1a;
-  --color-brown-drawer: #181210;
-  --color-brown-modal: #2a1e16;
-  --color-brown-barrel-start: #1a1510;
-  --color-brown-barrel-end: #0c0a09;
+  --color-brown-navbar-start: #3a1e00;
+  --color-brown-navbar-end: #5a3200;
+  --color-brown-drawer: #1a0d00;
+  --color-brown-modal: #281400;
+  --color-brown-barrel-start: #221100;
+  --color-brown-barrel-end: #160800;
 
   /* Accent colors */
   --color-gold-nav: #fbbf24;
@@ -60,11 +60,102 @@
   --color-text-dark: #1c1814;
 
   /* Borders */
-  --color-border-subtle: rgba(255, 255, 255, 0.05);
-  --color-border-light: rgba(255, 255, 255, 0.1);
-  --color-border-medium: rgba(255, 255, 255, 0.2);
-  --color-border-amber: rgba(251, 191, 36, 0.3);
-  --color-border-emerald: rgba(52, 211, 153, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-light: rgba(255, 255, 255, 0.12);
+  --color-border-medium: rgba(255, 255, 255, 0.22);
+  --color-border-amber: rgba(251, 191, 36, 0.4);
+  --color-border-emerald: rgba(52, 211, 153, 0.1);
+}
+
+@keyframes glass-liquid-sweep {
+  0%   { background-position: 240% center; }
+  100% { background-position: -120% center; }
+}
+
+@keyframes magic-gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🪟 Glass — macOS Tahoe liquid glass
+   Funciona en todos los temas. Variante lager con tint cálido.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Cards (secciones, bento, steps) */
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.14),
+    0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+/* Pills / chips flotantes */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.20),
+    0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Overrides light (lager) — liquid glass mágico */
+[data-theme="lager"] .glass-card {
+  background: rgba(254, 237, 212, 0.56);
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.04);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.04);
+  border-color: rgba(255, 255, 255, 0.90);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.98),
+    inset 1.5px 0 0 rgba(255, 255, 255, 0.72),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.45),
+    0 8px 32px rgba(212, 98, 12, 0.09),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  isolation: isolate;
+}
+
+[data-theme="lager"] .glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    108deg,
+    transparent 18%,
+    rgba(255, 255, 255, 0.62) 36%,
+    rgba(255, 224, 150, 0.28) 50%,
+    rgba(255, 255, 255, 0.52) 64%,
+    transparent 82%
+  );
+  background-size: 280% 100%;
+  animation: glass-liquid-sweep 5s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* Ámbar theme glass-card — tint dorado cálido */
+html:not([data-theme]) .glass-card {
+  background: rgba(251, 160, 20, 0.07);
+  border-color: rgba(251, 191, 36, 0.20);
+  box-shadow:
+    inset 0 1.5px 0 rgba(251, 191, 36, 0.14),
+    0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="lager"] .glass-pill {
+  background: rgba(255, 238, 210, 0.72);
+  border-color: rgba(255, 255, 255, 0.88);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.97),
+    0 4px 16px rgba(212, 98, 12, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -78,14 +169,15 @@
     var(--color-brown-navbar-end)
   );
   --gradient-hero:
-    radial-gradient(ellipse at 30% 20%, rgba(200, 140, 50, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(180, 100, 30, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 20%, rgba(220, 140, 40, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(200, 100, 20, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(180, 80, 10, 0.12) 0%, transparent 60%),
     linear-gradient(
       180deg,
       var(--color-surface-deepest) 0%,
-      var(--color-surface-dark) 30%,
-      var(--color-surface-mid) 60%,
-      var(--color-surface-dark) 85%,
+      #1e1608 25%,
+      var(--color-surface-mid) 55%,
+      #1a1208 80%,
       var(--color-surface-deepest) 100%
     );
   --gradient-body: linear-gradient(
@@ -127,20 +219,20 @@
     var(--color-emerald-dark)
   );
 
-  /* Shadows */
-  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.3);
-  --shadow-elevated: 0 16px 40px rgba(0, 0, 0, 0.3);
-  --shadow-amber-glow: 0 4px 15px rgba(251, 191, 36, 0.3);
-  --shadow-amber-glow-lg: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(251, 191, 36, 0.06);
+  /* Shadows — stronger amber glow */
+  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.35);
+  --shadow-elevated: 0 16px 40px rgba(0, 0, 0, 0.35);
+  --shadow-amber-glow: 0 4px 18px rgba(251, 191, 36, 0.35);
+  --shadow-amber-glow-lg: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(251, 191, 36, 0.08);
   --shadow-emerald-glow: 0 0 20px rgba(52, 211, 153, 0.15);
   --shadow-emerald-glow-sm: 0 0 12px rgba(52, 211, 153, 0.1);
 
   /* Navbar */
-  --navbar-bg: rgba(12, 10, 9, 0.6);
-  --navbar-bg-scrolled: rgba(12, 10, 9, 0.85);
-  --navbar-border: rgba(255, 255, 255, 0.03);
-  --navbar-border-scrolled: rgba(251, 191, 36, 0.08);
-  --navbar-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(251, 191, 36, 0.03);
+  --navbar-bg: rgba(22, 8, 0, 0.65);
+  --navbar-bg-scrolled: rgba(22, 8, 0, 0.92);
+  --navbar-border: rgba(251, 191, 36, 0.04);
+  --navbar-border-scrolled: rgba(251, 191, 36, 0.12);
+  --navbar-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(251, 191, 36, 0.06);
 
   /* Typography */
   --font-sans: "Ubuntu", Arial, Helvetica, sans-serif;
@@ -149,155 +241,196 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   🍺 Theme: Lager (light) — Pilsner dorada, beer garden
+   🍺 Theme: Lager (light) — Gruvbox light-dark crossover, refined
    ═══════════════════════════════════════════════════════════ */
 [data-theme="lager"] {
-  /* Primary — deeper gold for contrast on light backgrounds */
-  --color-amber-primary: #ca8a04;
-  --color-amber-hover: #a16207;
-  --color-amber-dark: #854d0e;
-  --color-amber-light: #eab308;
-  --color-amber-muted: #fef9c3;
+  /* Primary — warm orange */
+  --color-amber-primary: #d4620c;
+  --color-amber-hover:   #b44d08;
+  --color-amber-dark:    #943d06;
+  --color-amber-light:   #f07920;
+  --color-amber-muted:   #fecba0;
 
-  /* Surfaces — warm whites & creams */
-  --color-surface-deepest: #fef8ed;
-  --color-surface-dark: #f9f1df;
-  --color-surface-mid: #f5e7c4;
-  --color-surface-card: #ffffff;
-  --color-surface-card-alt: #fef8ee;
-  --color-surface-elevated: #ffffff;
-  --color-surface-overlay: #f9f1df;
+  /* Surfaces — naranja pastel vibrante */
+  --color-surface-deepest: #fef0da;
+  --color-surface-dark:    #fee3bc;
+  --color-surface-mid:     #fdd4a0;
+  --color-surface-card:    #fff6ec;
+  --color-surface-card-alt:#fef0da;
+  --color-surface-elevated:#fff9f3;
+  --color-surface-overlay: #fee3bc;
 
-  /* Warm accents */
-  --color-brown-navbar-start: #fff7e8;
-  --color-brown-navbar-end: #fff0d4;
-  --color-brown-drawer: #fff7e8;
-  --color-brown-modal: #ffffff;
-  --color-brown-barrel-start: #fffbf5;
-  --color-brown-barrel-end: #fff7e8;
+  /* Warm orange accents */
+  --color-brown-navbar-start: #fef0da;
+  --color-brown-navbar-end:   #fee3bc;
+  --color-brown-drawer:  #fff6ec;
+  --color-brown-modal:   #fff6ec;
+  --color-brown-barrel-start: #fef0da;
+  --color-brown-barrel-end:   #fee3bc;
 
-  /* Accent */
-  --color-gold-nav: #ca8a04;
+  /* Accent colors */
+  --color-gold-nav: #d4620c;
+  --color-emerald: #8ec07c;
+  --color-emerald-dark: #689d6a;
+  --color-emerald-darker: #427b58;
+  --color-orange-cta: #f97316;
+  --color-orange-cta-hover: #ea580c;
+  --color-error: #dc2626;
+  --color-error-dark: #b91c1c;
+  --color-info: #6366f1;
 
-  /* Text — dark on light */
-  --color-text-primary: #1c1410;
-  --color-text-secondary: rgba(28, 20, 16, 0.78);
-  --color-text-muted: rgba(28, 20, 16, 0.62);
-  --color-text-subtle: rgba(28, 20, 16, 0.42);
-  --color-text-ghost: rgba(28, 20, 16, 0.2);
-  --color-text-dark: #1c1410;
+  /* Text — warm plum/ciruela (~10:1 contrast on cream) */
+  --color-text-primary:   #3d1652;
+  --color-text-secondary: rgba(61, 22, 82, 0.72);
+  --color-text-muted:     rgba(61, 22, 82, 0.50);
+  --color-text-subtle:    rgba(61, 22, 82, 0.32);
+  --color-text-ghost:     rgba(61, 22, 82, 0.15);
+  --color-text-dark:      #ffffff;
 
-  /* Borders */
-  --color-border-subtle: rgba(28, 20, 16, 0.08);
-  --color-border-light: rgba(28, 20, 16, 0.14);
-  --color-border-medium: rgba(28, 20, 16, 0.22);
-  --color-border-amber: rgba(202, 138, 4, 0.3);
-  --color-border-emerald: rgba(5, 150, 105, 0.18);
+  /* Borders — orange-tinted */
+  --color-border-subtle:  rgba(212, 98, 12, 0.08);
+  --color-border-light:   rgba(212, 98, 12, 0.16);
+  --color-border-medium:  rgba(61, 22, 82, 0.20);
+  --color-border-amber:   rgba(212, 98, 12, 0.32);
+  --color-border-emerald: rgba(104, 157, 106, 0.20);
 
-  /* Gradients */
+  /* Gradients — naranja pastel vibrante */
   --gradient-hero:
-    radial-gradient(ellipse at 30% 20%, rgba(234, 179, 8, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(202, 138, 4, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, #fef8ed 0%, #f9f1df 30%, #f5e7c4 60%, #f9f1df 85%, #fef8ed 100%);
-  --gradient-section-dark: linear-gradient(180deg, #f9f1df 0%, #f5e7c4 50%, #f9f1df 100%);
-  --gradient-footer: linear-gradient(180deg, #f5e7c4, #f0dca8);
+    radial-gradient(ellipse at 25% 20%, rgba(249, 115, 22, 0.24) 0%, transparent 52%),
+    radial-gradient(ellipse at 78% 70%, rgba(251, 191, 36, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 55% 45%, rgba(234, 88, 12, 0.12) 0%, transparent 50%),
+    linear-gradient(160deg, #fff3e0 0%, #ffe6c8 35%, #ffd8a8 65%, #ffe2bc 88%, #ffeedd 100%);
+  --gradient-section-dark: linear-gradient(
+    180deg,
+    #fee3bc 0%,
+    #fef0da 50%,
+    #fee3bc 100%
+  );
+  --gradient-section-darker: linear-gradient(180deg, #fef0da 0%, #fee3bc 100%);
+  --gradient-footer: linear-gradient(
+    180deg,
+    #fee3bc 0%,
+    #fdd4a0 100%
+  );
   --gradient-card-glass: linear-gradient(
     135deg,
-    rgba(254, 248, 238, 0.95) 0%,
-    rgba(249, 241, 223, 0.98) 100%
+    rgba(255, 233, 204, 0.95) 0%,
+    rgba(255, 244, 232, 0.99) 100%
   );
   --gradient-card-step: linear-gradient(
     135deg,
-    rgba(245, 231, 196, 0.65) 0%,
-    rgba(249, 241, 223, 0.82) 100%
+    rgba(253, 219, 172, 0.50) 0%,
+    rgba(255, 249, 242, 0.72) 100%
   );
 
-  /* Shadows — stronger for light theme */
-  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.08);
-  --shadow-elevated: 0 8px 28px rgba(0, 0, 0, 0.1);
-  --shadow-amber-glow: 0 2px 12px rgba(202, 138, 4, 0.24);
-  --shadow-amber-glow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 0 40px rgba(202, 138, 4, 0.08);
+  /* Heading gradient — dorado → naranja pulento */
+  --gradient-heading: linear-gradient(135deg, #d97706 0%, #f97316 50%, #ea580c 100%);
 
-  /* Navbar */
-  --navbar-bg: rgba(255, 251, 245, 0.7);
-  --navbar-bg-scrolled: rgba(255, 251, 245, 0.92);
-  --navbar-border: rgba(0, 0, 0, 0.04);
-  --navbar-border-scrolled: rgba(202, 138, 4, 0.15);
-  --navbar-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), 0 0 12px rgba(202, 138, 4, 0.04);
+  /* Button — warm orange */
+  --gradient-button-primary: linear-gradient(
+    135deg,
+    #f97316 0%,
+    #ea580c 50%,
+    #fb923c 100%
+  );
+
+  /* Shadows — orange glow */
+  --shadow-card: 0 2px 12px rgba(212, 98, 12, 0.10);
+  --shadow-elevated: 0 8px 28px rgba(212, 98, 12, 0.14);
+  --shadow-amber-glow: 0 4px 18px rgba(249, 115, 22, 0.35), 0 2px 8px rgba(234, 88, 12, 0.18);
+  --shadow-amber-glow-lg: 0 12px 40px rgba(0, 0, 0, 0.10), 0 0 32px rgba(249, 115, 22, 0.14);
+  --shadow-emerald-glow: 0 0 20px rgba(104, 157, 106, 0.12);
+  --shadow-emerald-glow-sm: 0 0 12px rgba(104, 157, 106, 0.08);
+
+  /* Navbar — frosted naranja */
+  --navbar-bg: rgba(254, 240, 218, 0.86);
+  --navbar-bg-scrolled: rgba(254, 240, 218, 0.97);
+  --navbar-border: rgba(212, 98, 12, 0.07);
+  --navbar-border-scrolled: rgba(249, 115, 22, 0.28);
+  --navbar-shadow: 0 2px 16px rgba(0, 0, 0, 0.05), 0 0 14px rgba(249, 115, 22, 0.10);
 }
 
 /* ═══════════════════════════════════════════════════════════
    🍺 Theme: Stout (dark cold) — Porter, pub industrial
    ═══════════════════════════════════════════════════════════ */
 [data-theme="stout"] {
-  /* Primary — bright gold on cool dark */
-  --color-amber-primary: #fbbf24;
-  --color-amber-hover: #f59e0b;
-  --color-amber-dark: #d97706;
-  --color-amber-light: #facc15;
-  --color-amber-muted: #fef08a;
+  /* Primary — cool gold on steel dark */
+  --color-amber-primary: #e2b83a;
+  --color-amber-hover: #d4a82e;
+  --color-amber-dark: #b8922a;
+  --color-amber-light: #f0cc4e;
+  --color-amber-muted: #fef3c7;
 
-  /* Surfaces — cool zinc/neutral darks */
-  --color-surface-deepest: #09090b;
-  --color-surface-dark: #18181b;
-  --color-surface-mid: #27272a;
-  --color-surface-card: #1c1c20;
-  --color-surface-card-alt: #131316;
-  --color-surface-elevated: #27272a;
-  --color-surface-overlay: #050506;
+  /* Surfaces — steel blue-gray darks */
+  --color-surface-deepest: #08090e;
+  --color-surface-dark: #12141c;
+  --color-surface-mid: #1e2130;
+  --color-surface-card: #161922;
+  --color-surface-card-alt: #0f1118;
+  --color-surface-elevated: #1e2130;
+  --color-surface-overlay: #050609;
 
-  /* Cool grays — no warm tones */
-  --color-brown-navbar-start: #18181b;
-  --color-brown-navbar-end: #27272a;
-  --color-brown-drawer: #111113;
-  --color-brown-modal: #27272a;
-  --color-brown-barrel-start: #111113;
-  --color-brown-barrel-end: #09090b;
+  /* Steel blue-gray — industrial */
+  --color-brown-navbar-start: #12141c;
+  --color-brown-navbar-end: #1e2130;
+  --color-brown-drawer: #0d0e14;
+  --color-brown-modal: #1e2130;
+  --color-brown-barrel-start: #0d0e14;
+  --color-brown-barrel-end: #08090e;
 
   /* Accent */
-  --color-gold-nav: #fbbf24;
+  --color-gold-nav: #e2b83a;
 
-  /* Text */
-  --color-text-primary: #fafafa;
-  --color-text-secondary: rgba(250, 250, 250, 0.6);
-  --color-text-muted: rgba(250, 250, 250, 0.4);
-  --color-text-subtle: rgba(250, 250, 250, 0.25);
-  --color-text-ghost: rgba(250, 250, 250, 0.15);
-  --color-text-dark: #18181b;
+  /* Text — cool white */
+  --color-text-primary: #eef0f6;
+  --color-text-secondary: rgba(220, 225, 240, 0.62);
+  --color-text-muted: rgba(200, 210, 230, 0.42);
+  --color-text-subtle: rgba(180, 190, 220, 0.25);
+  --color-text-ghost: rgba(160, 170, 200, 0.15);
+  --color-text-dark: #12141c;
 
-  /* Borders */
-  --color-border-subtle: rgba(250, 250, 250, 0.04);
-  --color-border-light: rgba(250, 250, 250, 0.08);
-  --color-border-medium: rgba(250, 250, 250, 0.15);
-  --color-border-amber: rgba(251, 191, 36, 0.2);
+  /* Borders — cool steel */
+  --color-border-subtle: rgba(140, 160, 220, 0.06);
+  --color-border-light: rgba(140, 160, 220, 0.10);
+  --color-border-medium: rgba(180, 195, 240, 0.16);
+  --color-border-amber: rgba(226, 184, 58, 0.22);
   --color-border-emerald: rgba(52, 211, 153, 0.08);
 
-  /* Gradients */
+  /* Gradients — steel industrial con toque azulado */
   --gradient-hero:
-    radial-gradient(ellipse at 30% 20%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(217, 119, 6, 0.06) 0%, transparent 50%),
-    linear-gradient(180deg, #09090b 0%, #18181b 30%, #27272a 60%, #18181b 85%, #09090b 100%);
-  --gradient-section-dark: linear-gradient(180deg, #09090b 0%, #0f0f12 50%, #09090b 100%);
-  --gradient-footer: linear-gradient(180deg, #09090b, #030304);
+    radial-gradient(ellipse at 25% 18%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 72% 75%, rgba(226, 184, 58, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 40%, rgba(79, 70, 229, 0.06) 0%, transparent 55%),
+    linear-gradient(180deg, #08090e 0%, #0e1018 25%, #1a1d2c 55%, #10121a 80%, #08090e 100%);
+  --gradient-section-dark: linear-gradient(180deg, #08090e 0%, #0c0e16 50%, #08090e 100%);
+  --gradient-footer: linear-gradient(180deg, #08090e, #030406);
   --gradient-card-glass: linear-gradient(
     135deg,
-    rgba(28, 28, 32, 0.9) 0%,
-    rgba(19, 19, 22, 0.95) 100%
+    rgba(22, 25, 34, 0.92) 0%,
+    rgba(15, 17, 24, 0.96) 100%
   );
-  --gradient-card-step: linear-gradient(135deg, rgba(28, 28, 32, 0.4) 0%, rgba(9, 9, 11, 0.6) 100%);
+  --gradient-card-step: linear-gradient(135deg, rgba(22, 25, 34, 0.4) 0%, rgba(8, 9, 14, 0.6) 100%);
 
-  /* Shadows — cool & deep */
-  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.4);
-  --shadow-elevated: 0 16px 40px rgba(0, 0, 0, 0.4);
-  --shadow-amber-glow: 0 4px 15px rgba(251, 191, 36, 0.15);
-  --shadow-amber-glow-lg: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 60px rgba(251, 191, 36, 0.04);
+  /* Button — cooler gold */
+  --gradient-button-primary: linear-gradient(
+    135deg,
+    #e2b83a 0%,
+    #d4a82e 50%,
+    #f0cc4e 100%
+  );
 
-  /* Navbar */
-  --navbar-bg: rgba(9, 9, 11, 0.6);
-  --navbar-bg-scrolled: rgba(9, 9, 11, 0.85);
-  --navbar-border: rgba(255, 255, 255, 0.03);
-  --navbar-border-scrolled: rgba(251, 191, 36, 0.06);
-  --navbar-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(251, 191, 36, 0.02);
+  /* Shadows — cold steel + subtle blue */
+  --shadow-card: 0 4px 15px rgba(0, 0, 20, 0.45);
+  --shadow-elevated: 0 16px 40px rgba(0, 0, 20, 0.45);
+  --shadow-amber-glow: 0 4px 15px rgba(226, 184, 58, 0.14), 0 0 8px rgba(99, 102, 241, 0.06);
+  --shadow-amber-glow-lg: 0 25px 60px rgba(0, 0, 20, 0.6), 0 0 50px rgba(226, 184, 58, 0.04);
+
+  /* Navbar — frosted steel */
+  --navbar-bg: rgba(8, 9, 14, 0.65);
+  --navbar-bg-scrolled: rgba(8, 9, 14, 0.88);
+  --navbar-border: rgba(140, 160, 220, 0.04);
+  --navbar-border-scrolled: rgba(226, 184, 58, 0.08);
+  --navbar-shadow: 0 4px 30px rgba(0, 0, 20, 0.45), 0 0 20px rgba(99, 102, 241, 0.03);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -313,62 +446,62 @@
     color: var(--color-text-primary) !important;
   }
   .text-white\/80 {
-    color: rgba(28, 20, 16, 0.85) !important;
+    color: rgba(60, 56, 54, 0.85) !important;
   }
   .text-white\/60 {
-    color: rgba(28, 20, 16, 0.74) !important;
+    color: rgba(60, 56, 54, 0.74) !important;
   }
   .text-white\/50 {
-    color: rgba(28, 20, 16, 0.68) !important;
+    color: rgba(60, 56, 54, 0.68) !important;
   }
   .text-white\/45 {
-    color: rgba(28, 20, 16, 0.64) !important;
+    color: rgba(60, 56, 54, 0.64) !important;
   }
   .text-white\/40 {
-    color: rgba(28, 20, 16, 0.58) !important;
+    color: rgba(60, 56, 54, 0.58) !important;
   }
   .text-white\/35 {
-    color: rgba(28, 20, 16, 0.52) !important;
+    color: rgba(60, 56, 54, 0.52) !important;
   }
   .text-white\/25 {
-    color: rgba(28, 20, 16, 0.4) !important;
+    color: rgba(60, 56, 54, 0.4) !important;
   }
   .text-white\/15 {
-    color: rgba(28, 20, 16, 0.28) !important;
+    color: rgba(60, 56, 54, 0.28) !important;
   }
 
   .border-white\/40 {
-    border-color: rgba(28, 20, 16, 0.24) !important;
+    border-color: rgba(60, 56, 54, 0.22) !important;
   }
   .border-white\/20 {
-    border-color: rgba(28, 20, 16, 0.18) !important;
+    border-color: rgba(60, 56, 54, 0.15) !important;
   }
   .border-white\/10 {
-    border-color: rgba(28, 20, 16, 0.14) !important;
+    border-color: rgba(60, 56, 54, 0.10) !important;
   }
   .border-white\/5 {
-    border-color: rgba(28, 20, 16, 0.12) !important;
+    border-color: rgba(60, 56, 54, 0.08) !important;
   }
 
   .bg-white\/10 {
-    background-color: rgba(28, 20, 16, 0.09) !important;
+    background-color: rgba(60, 56, 54, 0.08) !important;
   }
   .bg-white\/5 {
-    background-color: rgba(28, 20, 16, 0.07) !important;
+    background-color: rgba(60, 56, 54, 0.05) !important;
   }
   .bg-white\/\[0\.03\] {
-    background-color: rgba(28, 20, 16, 0.05) !important;
+    background-color: rgba(60, 56, 54, 0.03) !important;
   }
   .hover\:bg-white\/10:hover {
-    background-color: rgba(28, 20, 16, 0.12) !important;
+    background-color: rgba(60, 56, 54, 0.10) !important;
   }
   .hover\:bg-white\/5:hover {
-    background-color: rgba(28, 20, 16, 0.1) !important;
+    background-color: rgba(60, 56, 54, 0.07) !important;
   }
 
   /* group-hover card border */
   .group:hover .group-hover\:border-white\/10 {
-    border-color: rgba(28, 20, 16, 0.14) !important;
+    border-color: rgba(60, 56, 54, 0.10) !important;
   }
 
   /* Amber utilities — deepen faint gold on cream backgrounds */
@@ -407,6 +540,28 @@
   .bg-amber-400\/20 {
     background-color: rgba(133, 77, 14, 0.14) !important;
   }
+
+  /* CTA buttons: white text on violet gradient */
+  button.text-black,
+  a.text-black {
+    color: #ffffff !important;
+  }
+}
+
+/* Lager magic: animated Gruvbox shift on gradient elements */
+@keyframes lagerGruvboxShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+[data-theme="lager"] [style*="gradient-button-primary"] {
+  background-size: 200% 200% !important;
+  animation: lagerGruvboxShift 5s ease-in-out infinite !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -420,12 +575,22 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 17px; /* +1px base — escala todos los rem (text-sm, text-xs, etc.) */
+  /* Prevent amber flash before CSS custom properties resolve */
+  background-color: #160800;
+}
+
+/* Hide native cursor on desktop when custom cursor is active */
+html.custom-cursor-active,
+html.custom-cursor-active * {
+  cursor: none !important;
 }
 
 body {
   background: var(--gradient-body);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
+  font-weight: 500; /* ligeramente más grueso que el default 400 */
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -468,5 +633,70 @@ h3 {
 
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Global Input / Form Styling
+   ═══════════════════════════════════════════════════════════ */
+
+/* MUI TextField overrides — all themes */
+.MuiTextField-root {
+  .MuiOutlinedInput-root {
+    border-radius: 14px !important;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
+
+    .MuiOutlinedInput-notchedOutline {
+      border-color: var(--color-border-light) !important;
+      transition: border-color 0.2s ease !important;
+    }
+
+    &:hover .MuiOutlinedInput-notchedOutline {
+      border-color: var(--color-border-medium) !important;
+    }
+
+    &.Mui-focused .MuiOutlinedInput-notchedOutline {
+      border-color: var(--color-amber-primary) !important;
+      border-width: 1.5px !important;
+    }
+
+    &.Mui-focused {
+      box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.12), 0 0 16px rgba(251, 191, 36, 0.08) !important;
+    }
+  }
+
+  .MuiInputLabel-root {
+    color: var(--color-text-muted) !important;
+
+    &.Mui-focused {
+      color: var(--color-amber-primary) !important;
+    }
+  }
+
+  .MuiInputBase-input {
+    color: var(--color-text-primary) !important;
+  }
+}
+
+/* Native input/textarea focus glow */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]),
+textarea,
+select {
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.12), 0 0 12px rgba(251, 191, 36, 0.06);
+  }
+}
+
+/* Lager theme: violet-amber focus glow */
+[data-theme="lager"] {
+  .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12), 0 0 16px rgba(124, 58, 237, 0.06) !important;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1), 0 0 12px rgba(124, 58, 237, 0.05);
   }
 }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Outfit } from "next/font/google";
 import ThemeRegistry from "@/theme/ThemeRegistry";
+import { ReactQueryProvider } from "@/components/ReactQueryProvider";
+import AppLoader from "@/components/AppLoader";
 import "./globals.scss";
 
 const geistSans = Geist({
@@ -31,9 +33,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}>
-        <ThemeRegistry>{children}</ThemeRegistry>
+    <html lang="es" suppressHydrationWarning style={{ background: "#0c0a09" }}>
+      <head>
+        {/* Inline script: set data-theme before first paint to prevent FOUC */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('lupulos-theme'),v=['lager','ambar','stout'],t=v.indexOf(s)>=0?s:'ambar';document.documentElement.setAttribute('data-theme',t);document.documentElement.style.background=t==='lager'?'#f0e9dc':'#0c0a09';}catch(e){}}())`,
+          }}
+        />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
+      >
+        <ReactQueryProvider>
+          <ThemeRegistry>
+            <AppLoader>{children}</AppLoader>
+          </ThemeRegistry>
+        </ReactQueryProvider>
       </body>
     </html>
   );

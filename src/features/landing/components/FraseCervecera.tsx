@@ -23,7 +23,7 @@ export default function BeerQuote() {
       sx={{
         py: 8,
         px: 4,
-        background: "linear-gradient(90deg, var(--color-amber-muted), #fcd34d)",
+        background: "linear-gradient(90deg, var(--color-amber-muted), var(--color-amber-light))",
         textAlign: "center",
         mt: 8,
         animation: "fadeIn 2s ease-in-out",
@@ -35,8 +35,8 @@ export default function BeerQuote() {
           fontFamily: "'Lora', serif",
           fontWeight: 700,
           fontSize: { xs: "1.4rem", md: "1.8rem" },
-          color: "#4A2502",
-          textShadow: "1px 1px 2px #fff",
+          color: "var(--color-text-primary)",
+          textShadow: "1px 1px 2px color-mix(in srgb, var(--color-surface-elevated) 60%, transparent)",
         }}
       >
         {quote}

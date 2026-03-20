@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { fadeUp, SectionBadge, GradientText, StepIcon } from "./shared";
+import { fadeUp, SectionBadge, GradientText, StepIcon, TiltCard } from "./shared";
 import { STEPS } from "./data";
 
 export default function StepsSection() {
@@ -14,7 +14,7 @@ export default function StepsSection() {
       {/* Ambient glow */}
       <div
         className="pointer-events-none absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
-        style={{ background: "rgba(251,191,36,0.03)" }}
+        style={{ background: "color-mix(in srgb, var(--color-amber-primary) 3%, transparent)" }}
         aria-hidden="true"
       />
 
@@ -27,24 +27,27 @@ export default function StepsSection() {
           viewport={{ once: true }}
           className="mb-16 flex flex-col items-center text-center"
         >
-          <SectionBadge>Cómo funciona</SectionBadge>
+          <SectionBadge>Empieza en segundos</SectionBadge>
           <h2 className="text-text-primary mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Tres pasos para comenzar <GradientText>tu aventura</GradientText>
+            Tres pasos entre tú y <GradientText>tu próximo descubrimiento</GradientText>
           </h2>
           <p className="text-text-muted mt-3 max-w-md text-sm leading-relaxed">
-            Regístrate, explora y conecta con la comunidad cervecera más apasionada.
+            Da igual si vienes a probar o a mostrar lo que elaboras. Entrar es gratis, rápido y sin letra chica.
           </p>
         </motion.div>
 
         <div className="relative grid gap-8 md:grid-cols-3">
-          {/* Connecting line */}
-          <div
+          {/* Animated connecting line */}
+          <motion.div
             className="pointer-events-none absolute top-[52px] right-[calc(100%/6)] left-[calc(100%/6)] hidden h-px md:block"
             style={{
               background:
                 "linear-gradient(90deg, transparent 0%, var(--color-border-amber) 10%, var(--color-border-amber) 90%, transparent 100%)",
-              opacity: 0.45,
             }}
+            initial={{ scaleX: 0, opacity: 0 }}
+            whileInView={{ scaleX: 1, opacity: 0.45 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
             aria-hidden="true"
           />
 
@@ -58,44 +61,41 @@ export default function StepsSection() {
               viewport={{ once: true, margin: "-40px" }}
               className="relative"
             >
-              <motion.div
-                whileHover={{ y: -6, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="group border-border-subtle hover:border-amber-primary/25 relative flex h-full flex-col overflow-hidden rounded-2xl border p-7 transition-all duration-500"
-                style={{ background: "var(--gradient-card-step)" }}
+              <TiltCard
+                className="glass-card group hover:border-amber-primary/25 relative flex h-full flex-col overflow-hidden rounded-2xl p-7"
+                style={{}}
+                tiltDeg={5}
+                glowColor="color-mix(in srgb, var(--color-amber-primary) 6%, transparent)"
               >
-                {/* Hover glow overlay */}
-                <div
-                  className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                  style={{
-                    background:
-                      "radial-gradient(circle at 50% 0%, rgba(251,191,36,0.08), transparent 60%)",
-                  }}
-                  aria-hidden="true"
-                />
-
-                {/* Step number badge */}
-                <div
-                  className="text-amber-primary relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-full text-sm font-black transition-shadow duration-500 group-hover:shadow-[0_0_20px_rgba(251,191,36,0.25)]"
+                {/* Step number badge with pulse on hover */}
+                <motion.div
+                  className="text-amber-primary relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-full text-sm font-black"
                   style={{
                     background: "var(--color-surface-deepest)",
                     border: "1.5px solid var(--color-border-amber)",
                     boxShadow: "0 0 0 4px var(--color-border-subtle)",
                   }}
+                  whileHover={{
+                    boxShadow: "0 0 0 4px var(--color-border-subtle), 0 0 20px color-mix(in srgb, var(--color-amber-primary) 30%, transparent)",
+                    scale: 1.1,
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
                   aria-label={`Paso ${step.number}`}
                 >
                   {step.number}
-                </div>
+                </motion.div>
 
-                <div
-                  className="text-amber-primary relative mb-4 transition-transform duration-300 group-hover:scale-110"
+                <motion.div
+                  className="text-amber-primary relative mb-4"
                   aria-hidden="true"
+                  whileHover={{ scale: 1.15, rotate: 8 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 12 }}
                 >
                   <StepIcon name={step.icon} />
-                </div>
+                </motion.div>
 
                 <h3 className="text-text-primary relative text-lg font-bold">{step.title}</h3>
-                <p className="text-text-muted relative mt-2 flex-1 text-sm leading-relaxed">
+                <p className="text-text-muted relative mt-2 flex-1 text-sm leading-relaxed transition-colors duration-300 group-hover:text-text-secondary">
                   {step.desc}
                 </p>
 
@@ -108,7 +108,7 @@ export default function StepsSection() {
                   }}
                   aria-hidden="true"
                 />
-              </motion.div>
+              </TiltCard>
             </motion.div>
           ))}
         </div>

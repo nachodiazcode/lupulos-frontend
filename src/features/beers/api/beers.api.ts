@@ -1,8 +1,15 @@
 import api from "@/lib/api";
+import { ApiError } from "@/lib/errors";
 import type { Beer, BeersApiResponse } from "../model/types";
 
 const normalizeBeers = (payload: BeersApiResponse): Beer[] => {
-  if (!payload?.success || !Array.isArray(payload.data)) return [];
+  if (!payload?.success || !Array.isArray(payload.data)) {
+    throw new ApiError(
+      "La respuesta del servidor no tiene el formato esperado.",
+      0,
+      "INVALID_RESPONSE",
+    );
+  }
   return [...payload.data].reverse();
 };
 

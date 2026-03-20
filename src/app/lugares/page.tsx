@@ -23,7 +23,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import PlaceFormModal from "@/components/LugarFormModal";
+import PlaceFormModal from "@/features/lugares/components/LugarFormModal";
 import GoldenBackground from "@/components/GoldenBackground";
 const amarillo = "var(--color-amber-primary)";
 

@@ -4,11 +4,61 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Snackbar, Alert } from "@mui/material";
 import api from "@/lib/api";
 import { GOOGLE_AUTH_URL } from "@/lib/constants";
 import useAuth from "@/hooks/useAuth";
+
+/* ─── Gradient Border ─── */
+function GradientBorder({
+  children,
+  radius = 24,
+  borderWidth = 1.5,
+}: {
+  children: React.ReactNode;
+  radius?: number;
+  borderWidth?: number;
+}) {
+  const rotation = useMotionValue(0);
+
+  useEffect(() => {
+    const ctrl = animate(rotation, 360, {
+      duration: 4,
+      repeat: Infinity,
+      ease: "linear",
+    });
+    return () => ctrl.stop();
+  }, [rotation]);
+
+  const background = useTransform(
+    rotation,
+    (r) =>
+      `conic-gradient(from ${r}deg, #fbbf24, #f59e0b, #34d399, #3b82f6, #a855f7, #f59e0b, #fbbf24)`,
+  );
+
+  return (
+    <div className="relative" style={{ borderRadius: radius, padding: borderWidth }}>
+      <motion.div
+        className="absolute inset-0"
+        style={{ borderRadius: radius, background, opacity: 0.5, transition: "opacity 0.3s" }}
+      />
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          borderRadius: radius,
+          background,
+          filter: "blur(14px)",
+          opacity: 0.15,
+          transition: "opacity 0.3s",
+        }}
+      />
+      <div className="relative" style={{ borderRadius: radius - borderWidth }}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 /* ─── Bubble animation ─── */
 interface Bubble {
@@ -315,11 +365,12 @@ export default function RegisterPage() {
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="w-full max-w-md"
         >
+          <GradientBorder radius={24} borderWidth={1.5}>
           <div
-            className="rounded-3xl border border-white/10 p-8 shadow-2xl backdrop-blur-xl sm:p-10"
+            className="rounded-3xl p-8 shadow-2xl backdrop-blur-xl sm:p-10"
             style={{
               background:
-                "linear-gradient(135deg, rgba(45,26,14,0.85) 0%, rgba(30,18,10,0.92) 100%)",
+                "linear-gradient(135deg, rgba(45,26,14,0.92) 0%, rgba(30,18,10,0.96) 100%)",
               boxShadow:
                 "0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(251,191,36,0.06), inset 0 1px 0 rgba(255,255,255,0.05)",
             }}
@@ -519,20 +570,22 @@ export default function RegisterPage() {
                 </motion.div>
               )}
 
-              {/* Submit */}
+              {/* Submit — shimmer sweep */}
               <motion.button
                 type="submit"
                 disabled={loading}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="relative mt-1 w-full overflow-hidden rounded-xl py-3.5 text-sm font-semibold text-black shadow-lg transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group relative mt-1 w-full overflow-hidden rounded-xl py-3.5 text-sm font-semibold text-black shadow-lg transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
                 style={{
                   background: "var(--gradient-button-primary)",
                   boxShadow: "var(--shadow-amber-glow)",
                 }}
               >
+                {/* Shimmer sweep */}
+                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 {loading ? (
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="relative flex items-center justify-center gap-2">
                     <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                       <circle
                         cx="12"
@@ -551,7 +604,7 @@ export default function RegisterPage() {
                     Creando cuenta...
                   </span>
                 ) : (
-                  "Crear cuenta"
+                  <span className="relative">Crear cuenta</span>
                 )}
               </motion.button>
             </motion.form>
@@ -601,6 +654,7 @@ export default function RegisterPage() {
               </Link>
             </p>
           </div>
+          </GradientBorder>
         </motion.div>
       </div>
 

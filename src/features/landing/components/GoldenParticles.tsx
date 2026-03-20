@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
 /**
@@ -35,7 +35,14 @@ function generateParticles(count: number): Particle[] {
 }
 
 export default function GoldenParticles({ count = 30 }: { count?: number }) {
+  const [mounted, setMounted] = useState(false);
   const particles = useMemo(() => generateParticles(count), [count]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">

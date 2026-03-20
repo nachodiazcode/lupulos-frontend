@@ -22,7 +22,7 @@ export default function CtaSection() {
       {/* Multiple ambient glows */}
       <div
         className="pointer-events-none absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px]"
-        style={{ background: "var(--color-amber-primary)", opacity: 0.08 }}
+        style={{ background: "var(--color-amber-primary)", opacity: 0.06 }}
         aria-hidden="true"
       />
       <motion.div
@@ -72,49 +72,65 @@ export default function CtaSection() {
             />
 
             <h2 className="text-text-primary mt-10 text-3xl font-extrabold tracking-tight sm:text-4xl">
-              ¿Listo para tu próxima <GradientText>cerveza favorita?</GradientText>
+              Hay una comunidad entera esperando <GradientText>brindar contigo</GradientText>
             </h2>
             <p className="text-text-muted mt-3 text-base">
-              Únete gratis a la comunidad cervecera más grande de Chile.
+              Si amas la cerveza artesanal o la creas con tus manos — este es el lugar donde tu pasión tiene sentido.
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              {/* Primary CTA with pulsating glow */}
+              {/* Primary CTA with pulsating glow + shimmer */}
               <motion.div className="relative">
-                {/* Pulsing ring */}
                 <motion.div
                   className="absolute -inset-1 rounded-full"
                   animate={{
                     boxShadow: [
-                      "0 0 20px 2px rgba(251,191,36,0.0)",
-                      "0 0 30px 8px rgba(251,191,36,0.25)",
-                      "0 0 20px 2px rgba(251,191,36,0.0)",
+                      "0 0 20px 2px color-mix(in srgb, var(--color-amber-primary) 0%, transparent)",
+                      "0 0 30px 8px color-mix(in srgb, var(--color-amber-primary) 25%, transparent)",
+                      "0 0 20px 2px color-mix(in srgb, var(--color-amber-primary) 0%, transparent)",
                     ],
                   }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                   aria-hidden="true"
                 />
-                <Link
-                  href="/auth/register"
-                  prefetch
-                  className="relative inline-block rounded-full px-10 py-4 text-sm font-bold shadow-xl transition-all duration-300 hover:scale-105 hover:brightness-110"
-                  style={{
-                    background: "var(--gradient-button-primary)",
-                    color: "var(--color-text-dark)",
-                    boxShadow: "0 8px 30px rgba(251,191,36,0.3)",
-                  }}
+                <motion.div
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  Crear mi cuenta gratis
-                </Link>
+                  <Link
+                    href="/auth/register"
+                    prefetch
+                    className="group relative inline-block overflow-hidden rounded-full px-10 py-4 text-sm font-bold shadow-xl transition-all duration-300 hover:brightness-110"
+                    style={{
+                      background: "var(--gradient-button-primary)",
+                      color: "var(--color-text-dark)",
+                      boxShadow: "var(--shadow-amber-glow)",
+                    }}
+                  >
+                    <span className="relative z-10">Entrar al mundo Lúpulos</span>
+                    <span
+                      className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-600 group-hover:translate-x-full"
+                      style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
+                    />
+                  </Link>
+                </motion.div>
               </motion.div>
 
-              <Link
-                href="/auth/login"
-                prefetch
-                className="border-border-medium text-text-muted hover:border-amber-primary/40 hover:text-amber-primary rounded-full border px-10 py-4 text-sm font-medium backdrop-blur-sm transition-all duration-300 hover:scale-105"
-              >
-                Ya tengo cuenta →
-              </Link>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+                <Link
+                  href="/auth/login"
+                  prefetch
+                  className="group relative inline-block overflow-hidden rounded-full border px-10 py-4 text-sm font-medium backdrop-blur-sm transition-all duration-300"
+                  style={{
+                    borderColor: "var(--color-border-medium)",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  <span className="relative z-10 transition-colors duration-300 group-hover:text-amber-primary">
+                    Ya soy parte de la tribu →
+                  </span>
+                </Link>
+              </motion.div>
             </div>
           </motion.div>
         </div>

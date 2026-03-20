@@ -1,24 +1,46 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createBeerReview, getBeers, toggleBeerLike } from "../api/beers.api";
 import type { Beer } from "../model/types";
 
-export const useBeers = () => {
-  const [beers, setBeers] = useState<Beer[]>([]);
+export const BEERS_QUERY_KEY = ["beers"];
 
-  const refreshBeers = useCallback(async (query = "") => {
-    const data = await getBeers(query);
-    setBeers(data);
-  }, []);
+export const useBeers = (query = "") => {
+  const queryClient = useQueryClient();
 
-  const onToggleLike = useCallback(async (beerId: string) => {
-    await toggleBeerLike(beerId);
-  }, []);
+  const {
+    data: beers = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery<Beer[]>({
+    queryKey: [...BEERS_QUERY_KEY, query],
+    queryFn: () => getBeers(query),
+  });
 
-  const onCreateReview = useCallback(async (beerId: string, comment: string) => {
-    await createBeerReview(beerId, comment);
-  }, []);
+  const { mutateAsync: onToggleLike } = useMutation({
+    mutationFn: toggleBeerLike,
+    onSuccess: () => {
+      // Invalidar cache de cervezas
+      queryClient.invalidateQueries({ queryKey: BEERS_QUERY_KEY });
+    },
+  });
 
-  return { beers, refreshBeers, onToggleLike, onCreateReview };
+  const { mutateAsync: onCreateReview } = useMutation({
+    mutationFn: ({ beerId, comment }: { beerId: string; comment: string }) =>
+      createBeerReview(beerId, comment),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BEERS_QUERY_KEY });
+    },
+  });
+
+  return {
+    beers,
+    isLoading,
+    isError,
+    refreshBeers: refetch, // Para mantener compatibilidad si se llama explícitamente
+    onToggleLike,
+    onCreateReview,
+  };
 };

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import LoginSuccessClient from "@/components/LoginSuccessClient";
+import LoginSuccessClient from "@/features/auth/components/LoginSuccessClient";
 
 export default function GoogleSuccessPage() {
   return (

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { fadeUp, SectionBadge, GradientText } from "./shared";
+import { fadeUp, SectionBadge, GradientText, staggerContainer, popIn } from "./shared";
 import { FEATURES } from "./data";
 
 export default function CommunitySection() {
@@ -19,12 +19,12 @@ export default function CommunitySection() {
       {/* Ambient side glows */}
       <div
         className="pointer-events-none absolute top-1/4 left-0 h-80 w-80 -translate-x-1/2 rounded-full blur-[120px]"
-        style={{ background: "rgba(251,191,36,0.04)" }}
+        style={{ background: "color-mix(in srgb, var(--color-amber-primary) 4%, transparent)" }}
         aria-hidden="true"
       />
       <div
         className="pointer-events-none absolute right-0 bottom-1/4 h-80 w-80 translate-x-1/2 rounded-full blur-[120px]"
-        style={{ background: "rgba(52,211,153,0.03)" }}
+        style={{ background: "color-mix(in srgb, var(--color-emerald) 3%, transparent)" }}
         aria-hidden="true"
       />
 
@@ -41,6 +41,7 @@ export default function CommunitySection() {
             <motion.div
               animate={{ y: [0, -14, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              whileHover={{ scale: 1.05, rotate: -2 }}
             >
               <Image
                 src="/assets/personajes/teamlupulos.png"
@@ -53,7 +54,7 @@ export default function CommunitySection() {
                   maxWidth: 380,
                   height: "auto",
                   filter:
-                    "drop-shadow(0 20px 50px rgba(0,0,0,0.3)) drop-shadow(0 0 30px rgba(251,191,36,0.08))",
+                    "drop-shadow(0 20px 50px rgba(0,0,0,0.25)) drop-shadow(0 0 30px color-mix(in srgb, var(--color-amber-primary) 8%, transparent))",
                 }}
               />
             </motion.div>
@@ -67,27 +68,39 @@ export default function CommunitySection() {
             viewport={{ once: true }}
             className="flex-1 text-center lg:text-left"
           >
-            <SectionBadge>Comunidad activa</SectionBadge>
+            <SectionBadge>Para fans y creadores</SectionBadge>
             <h2 className="text-text-primary mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
-              Más que una app, <GradientText>una familia cervecera</GradientText>
+              Todo lo que la cerveza artesanal <GradientText>necesitaba en un lugar</GradientText>
             </h2>
             <p className="text-text-muted mt-4 text-sm leading-relaxed sm:text-base">
-              Recomendaciones inteligentes, rankings, fotos, eventos y miles de cerveceros
-              conectados cada día.
+              Un sommelier IA que aprende tu paladar. Una vitrina para cerveceros artesanales que quieren brillar.
+              Rankings reales, eventos imperdibles y un mapa que el mundo cervecero pedía a gritos.
             </p>
 
-            <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {FEATURES.map((feat, i) => (
+            <motion.div
+              className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              {FEATURES.map((feat) => (
                 <motion.div
                   key={feat.label}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 + i * 0.08, duration: 0.4 }}
-                  whileHover={{ x: 4, scale: 1.02 }}
-                  className="group border-border-subtle hover:border-amber-primary/25 flex items-center gap-3 rounded-xl border px-4 py-3 transition-all duration-300"
-                  style={{ background: "var(--color-surface-card-alt)" }}
+                  variants={popIn}
+                  whileHover={{ x: 6, scale: 1.03 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className="group relative flex items-center gap-3 overflow-hidden rounded-xl border px-4 py-3 transition-colors duration-300"
+                  style={{
+                    background: "var(--color-surface-card-alt)",
+                    borderColor: "var(--color-border-subtle)",
+                  }}
                 >
+                  {/* Left accent bar on hover */}
+                  <div
+                    className="absolute left-0 top-0 h-full w-0.5 scale-y-0 transition-transform duration-300 group-hover:scale-y-100"
+                    style={{ background: "var(--gradient-button-primary)", transformOrigin: "top" }}
+                  />
                   <motion.span
                     className="shrink-0 text-xl leading-none"
                     aria-hidden="true"
@@ -96,12 +109,12 @@ export default function CommunitySection() {
                   >
                     {feat.icon}
                   </motion.span>
-                  <span className="text-text-secondary text-sm font-medium group-hover:text-text-primary transition-colors duration-200">
+                  <span className="text-text-secondary group-hover:text-text-primary text-sm font-medium transition-colors duration-200">
                     {feat.label}
                   </span>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -111,14 +124,18 @@ export default function CommunitySection() {
               <Link
                 href="/auth/register"
                 prefetch
-                className="inline-block rounded-full px-8 py-3.5 text-sm font-bold transition-all duration-300 hover:shadow-lg hover:brightness-110"
+                className="group relative inline-block overflow-hidden rounded-full px-8 py-3.5 text-sm font-bold transition-all duration-300 hover:shadow-lg hover:brightness-110"
                 style={{
                   background: "var(--gradient-button-primary)",
                   color: "var(--color-text-dark)",
                   boxShadow: "var(--shadow-amber-glow)",
                 }}
               >
-                Unirme a la comunidad
+                <span className="relative z-10">Quiero ser parte</span>
+                <span
+                  className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-600 group-hover:translate-x-full"
+                  style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)" }}
+                />
               </Link>
             </motion.div>
           </motion.div>
