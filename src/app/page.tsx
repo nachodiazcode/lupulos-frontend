@@ -8,17 +8,19 @@ import StepsSection from "@/features/landing/components/StepsSection";
 import CommunitySection from "@/features/landing/components/CommunitySection";
 import CtaSection from "@/features/landing/components/CtaSection";
 import GoldenParticles from "@/features/landing/components/GoldenParticles";
+import TrendsSidenav from "@/features/landing/components/TrendsSidenav";
 
 export default function HomePage() {
   return (
     <>
       <GoldenParticles count={25} />
       <Navbar />
+      <TrendsSidenav />
+      <CommunitySection />
       <HeroSection />
       <BentoFeatures />
       <StorySection />
       <StepsSection />
-      <CommunitySection />
       <CtaSection />
       <Footer />
     </>

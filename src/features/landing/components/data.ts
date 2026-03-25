@@ -1,53 +1,53 @@
 export const STATS = [
-  { value: "1.2K+", label: "Etiquetas artesanales", icon: "🍺" },
-  { value: "280+", label: "Cervecerías y bares", icon: "🏭" },
-  { value: "8.5K+", label: "Amantes del lúpulo", icon: "💛" },
-  { value: "42K+", label: "Reseñas y brindis", icon: "🍻" },
+  { value: "1.2K+", label: "Cervezas craft catalogadas", icon: "🍺" },
+  { value: "280+", label: "Cervecerías y taprooms en Chile", icon: "🏭" },
+  { value: "8.5K+", label: "Cerveceros compartiendo pasión", icon: "💛" },
+  { value: "42K+", label: "Reseñas honestas de la comunidad", icon: "🍻" },
 ] as const;
 
 export const STORY = [
   {
     chapter: "Capítulo I",
-    title: "Aromas que despiertan algo nuevo",
+    title: "Mil sabores esperando por tu próximo sorbo",
     narrative:
-      "Maracuyá, cacao tostado, pimienta rosa. Cada cerveza artesanal es un viaje sensorial creado con pasión. Aquí no buscas una birra más — encuentras la que va a cambiar tu forma de entender el lúpulo.",
-    img: "/assets/personajes-landing/explorar-cervezas.png",
+      "Pomelo fresco en una IPA de Valparaíso. Vainilla ahumada en una Stout del sur profundo. Merkén sobre una Golden Ale que nadie más ha probado. Cada cerveza artesanal en Chile tiene una historia fermentando adentro — y acá vas a encontrar las que te erizen la piel.",
+    illustration: "explorar-cervezas" as const,
     accent: "#fbbf24",
     href: "/cervezas",
-    cta: "Explorar el catálogo",
+    cta: "Descubrir cervezas artesanales",
     icon: "🍺",
   },
   {
     chapter: "Capítulo II",
-    title: "Donde el maestro cervecero abre la puerta",
+    title: "Taprooms secretos, cervecerías con alma",
     narrative:
-      "La cervecería de barrio con recetas de tres generaciones. El taproom escondido donde prueban lotes experimentales. El rooftop donde el sunset sabe a dry hop. Lo mejor de la cerveza artesanal no está en las guías — está aquí.",
-    img: "/assets/personajes-landing/encuentra-bares.png",
+      "El brewpub escondido en un pasaje de Bellavista donde fermentan a metros de tu mesa. La cervecería artesanal familiar en el Valle del Elqui que solo abre los viernes. El taproom frente al Pacífico donde cada pinta sabe a atardecer y sal. Chile cervecero es inmenso — y este mapa lo dibuja la gente que lo vive.",
+    illustration: "encuentra-bares" as const,
     accent: "#ef4444",
     href: "/lugares",
-    cta: "Descubrir lugares",
+    cta: "Explorar el mapa cervecero",
     icon: "📍",
   },
   {
     chapter: "Capítulo III",
-    title: "Fans y creadores, misma mesa",
+    title: "Donde la birra se convierte en conversación",
     narrative:
-      "Cerveceros que comparten recetas. Fans que descubren pequeños productores. Debates sobre si la Hazy cuenta como IPA. Fotos de tiradas perfectas. Aquí la pasión por la artesanal une a quienes la crean y quienes la disfrutan.",
-    img: "/assets/personajes/sofilupula.png",
+      "Maestros cerveceros que comparten sus recetas sin guardarse nada. Fans que ponen en el mapa a productores invisibles. Debates eternos sobre si la Hazy merece llamarse IPA. Fotos de tiradas que te hacen buscar las llaves del auto. Acá la cerveza craft se vive en primera persona y en buena compañía.",
+    illustration: "comunidad" as const,
     accent: "#10b981",
     href: "/posts",
-    cta: "Sentarme a la mesa",
+    cta: "Unirme a la conversación",
     icon: "💬",
   },
   {
     chapter: "Epílogo",
-    title: "Cada gran cerveza empezó con un primer sorbo",
+    title: "Tu próximo capítulo se escribe con lúpulo",
     narrative:
-      "Da igual si recién descubriste las IPAs o si llevas años perfeccionando tu receta. Todos empezamos curiosos. Aquí vas a encontrar tu gente, tus cervezas y los lugares que van a marcar tu historia.",
-    img: "/assets/personajes/teamlupulos.png",
+      "No importa si recién descubriste qué es una IPA o si llevas años perfeccionando tu Stout imperial. Todos arrancamos con curiosidad y una pinta en la mano. Acá vas a encontrar tu gente, tus cervecerías artesanales favoritas y los rincones de Chile que van a marcar tu historia cervecera para siempre.",
+    illustration: "team" as const,
     accent: "#fbbf24",
     href: "/auth/register",
-    cta: "Empezar mi camino",
+    cta: "Crear mi cuenta gratis",
     icon: "✨",
   },
 ];
@@ -57,20 +57,20 @@ export type StoryItem = (typeof STORY)[number];
 export const STEPS = [
   {
     number: "01",
-    title: "Crea tu perfil cervecero",
-    desc: "30 segundos, cero costo. Cuéntanos si vienes a descubrir, a crear, o a las dos cosas.",
+    title: "Tu perfil cervecero en un parpadeo",
+    desc: "Gratis y sin letra chica. Cuéntanos si vienes a descubrir cerveza artesanal, a mostrar la que fabricas, o ambas — te armamos la experiencia a tu medida.",
     icon: "user" as const,
   },
   {
     number: "02",
-    title: "Explora un mundo curado",
-    desc: "Catálogo artesanal, bares verificados y rankings honestos. Todo filtrado por estilo, aroma y puntuación.",
+    title: "Encuentra la cerveza que no sabías que buscabas",
+    desc: "+1.200 cervezas artesanales de Chile con notas de cata, opiniones reales y filtros por estilo — IPA, Stout, Lager, Sour y más. Tu próxima favorita está a un scroll.",
     icon: "search" as const,
   },
   {
     number: "03",
-    title: "Comparte y conecta",
-    desc: "Reseña, sube fotos, recomienda. Si además fabricas cerveza, muestra tu trabajo al público que lo valora.",
+    title: "Publica, recomienda y hazte notar",
+    desc: "Deja reseñas, sube fotos de tus hallazgos y recomienda cervecerías. Si brasceas, acá tu craft beer tiene la vitrina y el público que merece.",
     icon: "chat" as const,
   },
 ] as const;
@@ -78,18 +78,18 @@ export const STEPS = [
 export type StepIconName = (typeof STEPS)[number]["icon"];
 
 export const FEATURES = [
-  { icon: "🧠", label: "Sommelier IA que conoce tu paladar" },
-  { icon: "🏭", label: "Vitrina para cervecerías artesanales" },
-  { icon: "🏆", label: "Rankings honestos de la comunidad" },
-  { icon: "🍻", label: "Catas, festivales y encuentros" },
-  { icon: "🗺️", label: "Mapa vivo de cervecerías y bares" },
-  { icon: "⚡", label: "Conexión directa fan ↔ creador" },
+  { icon: "🧠", label: "IA que afina tus gustos y anticipa tu próxima favorita" },
+  { icon: "🏭", label: "Perfil propio para cada cervecería artesanal de Chile" },
+  { icon: "🏆", label: "Rankings reales votados por miles, cero algoritmos turbios" },
+  { icon: "🍻", label: "Catas, festivales y encuentros que no te puedes perder" },
+  { icon: "🗺️", label: "Mapa vivo de taprooms, brewpubs y cervecerías en todo Chile" },
+  { icon: "⚡", label: "Puente directo entre quien bebe craft beer y quien la crea" },
 ] as const;
 
 export const QUOTES = [
-  "La mejor cerveza del mundo es la que aún no probaste.",
-  "Detrás de cada gran cerveza hay alguien que puso el alma en la receta.",
-  "El lúpulo une. La malta abraza. La comunidad lo celebra.",
-  "No buscamos la cerveza perfecta — buscamos la perfecta para ti.",
-  "Donde un fan descubre y un cervecero crea, nace algo mágico.",
+  "La mejor cerveza artesanal del mundo es la que todavía no probaste — y alguien en Chile la está fermentando ahora mismo.",
+  "Cada pinta craft lleva adentro las manos de alguien que eligió crear algo propio en vez de repetir lo de siempre.",
+  "La malta abraza, el lúpulo despierta y la comunidad brinda: así nace todo lo que vale la pena.",
+  "No existe la cerveza perfecta — pero existe la perfecta para esta noche, esta mesa y esta compañía.",
+  "Donde alguien descubre una IPA que le vuela la cabeza y alguien más la creó en su garage, ahí empieza algo grande.",
 ];

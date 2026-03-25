@@ -27,37 +27,37 @@ const features: BentoFeature[] = [
   {
     id: "catalog",
     emoji: "🍺",
-    title: "Catálogo artesanal",
+    title: "1.200 cervezas. Cero humo.",
     description:
-      "Más de 1.200 etiquetas con notas de cata, reseñas honestas y puntuaciones de la comunidad. Filtra por estilo, aroma y cervecería.",
+      "Cada cerveza artesanal con ficha completa: aromas, maridaje, puntuación real y opiniones sin filtro. Filtra por estilo, cervecería, IBU o lo que se te ocurra. El catálogo craft más honesto de Chile.",
     href: "/cervezas",
-    cta: "Explorar cervezas",
+    cta: "Abrir el catálogo",
     accentBg: "radial-gradient(ellipse at 88% 88%, rgba(251,191,36,0.12), transparent 65%)",
     glowColor: "rgba(251,191,36,0.12)",
-    gridClass: "col-span-12 md:col-span-7",
+    gridClass: "col-span-12 md:col-span-6",
     image: "/assets/personajes-landing/explorar-cervezas.png",
   },
   {
     id: "map",
-    emoji: "📍",
-    title: "Mapa vivo",
+    emoji: "📌",
+    title: "El mapa cervecero que faltaba",
     description:
-      "Cervecerías, taprooms y bares con alma. Los mejores lugares cerveceros de Chile, curados y recomendados por la comunidad.",
+      "280+ cervecerías, taprooms y bares craft verificados por la comunidad. Desde el brewpub escondido en Valpo hasta el taproom de montaña en Pucón. Lugares que solo los cerveceros conocen.",
     href: "/lugares",
-    cta: "Ver mapa",
+    cta: "Explorar el mapa",
     accentBg: "radial-gradient(ellipse at 88% 88%, rgba(239,68,68,0.1), transparent 65%)",
     glowColor: "rgba(239,68,68,0.1)",
-    gridClass: "col-span-12 md:col-span-5",
+    gridClass: "col-span-12 md:col-span-6",
     image: "/assets/personajes-landing/encuentra-bares.png",
   },
   {
     id: "community",
     emoji: "💬",
-    title: "Comunidad",
+    title: "Tu gente. Tu mesa. Tu voz.",
     description:
-      "8.500+ fans y cerveceros en la misma mesa. Comparte descubrimientos, debate estilos y muestra tus creaciones.",
+      "8.500 cerveceros que comparten hallazgos, debaten estilos y ponen en el mapa a productores que nadie conocía. Aquí no manda un algoritmo — manda la pasión.",
     href: "/posts",
-    cta: "Unirme",
+    cta: "Tomar asiento",
     accentBg: "radial-gradient(ellipse at 88% 88%, rgba(52,211,153,0.1), transparent 65%)",
     glowColor: "rgba(52,211,153,0.1)",
     gridClass: "col-span-12 md:col-span-5",
@@ -66,11 +66,11 @@ const features: BentoFeature[] = [
   {
     id: "ai",
     emoji: "🧠",
-    title: "IA Cervecera",
+    title: "Una IA que entiende tu paladar",
     description:
-      "Tu sommelier digital. Recomendaciones personalizadas, pairings perfectos y descubrimientos basados en tu paladar.",
+      "No es un filtro random. Aprende de cada reseña, cada estrella, cada cerveza que guardas. Te sugiere lo que no sabías que necesitabas — y cada vez acierta más.",
     href: "/auth/register",
-    cta: "Probar gratis",
+    cta: "Probar la IA",
     accentBg: "radial-gradient(ellipse at 88% 88%, rgba(139,92,246,0.12), transparent 65%)",
     glowColor: "rgba(139,92,246,0.12)",
     gridClass: "col-span-12 md:col-span-7",
@@ -163,15 +163,15 @@ function BentoCard({ feature, index }: { feature: BentoFeature; index: number })
         {/* Content — constrained width when image is present */}
         <div
           className="relative z-10 flex-1"
-          style={{ maxWidth: hasImage ? "56%" : "100%" }}
+          style={{ maxWidth: hasImage ? "60%" : "100%" }}
         >
           <span className="text-4xl" role="img" aria-label={feature.title}>
             {feature.emoji}
           </span>
-          <h3 className="text-text-primary mt-3 text-xl font-bold leading-snug tracking-tight">
+          <h3 className="text-text-primary mt-3 text-lg font-black leading-snug tracking-tight sm:text-xl">
             {feature.title}
           </h3>
-          <p className="text-text-secondary mt-2 text-sm leading-relaxed">
+          <p className="text-text-secondary mt-2 text-xs font-semibold leading-relaxed sm:text-sm">
             {feature.description}
           </p>
         </div>
@@ -202,8 +202,8 @@ function BentoCard({ feature, index }: { feature: BentoFeature; index: number })
         {/* Decoration: character image */}
         {feature.image && (
           <div
-            className="pointer-events-none absolute right-0 bottom-0 z-[5]"
-            style={{ width: "46%", height: "88%" }}
+            className="pointer-events-none absolute top-0 bottom-0 z-[5]"
+            style={{ width: "38%", right: "4%" }}
             aria-hidden="true"
           >
             <Image
@@ -211,7 +211,7 @@ function BentoCard({ feature, index }: { feature: BentoFeature; index: number })
               alt=""
               fill
               unoptimized
-              className="object-contain object-right-bottom drop-shadow-xl"
+              className="object-contain object-right-center drop-shadow-xl"
               sizes="200px"
             />
           </div>
@@ -280,13 +280,13 @@ export default function BentoFeatures() {
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
         >
-          <SectionBadge>Todo en un lugar</SectionBadge>
+          <SectionBadge>Todo lo que necesitas</SectionBadge>
           <h2 className="text-text-primary mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            La plataforma que une{" "}
-            <GradientText>fans y creadores</GradientText>
+            Por qué 8.500 cerveceros{" "}
+            <GradientText>eligieron Lúpulos</GradientText>
           </h2>
           <p className="text-text-muted mx-auto mt-3 max-w-xl text-sm leading-relaxed">
-            Cuatro pilares que hacen de Lúpulos el lugar donde la cerveza artesanal cobra vida.
+            Catálogo honesto, mapa vivo, comunidad real e inteligencia artificial — conectados para que descubras, compartas y vivas la cerveza artesanal como nunca.
           </p>
         </motion.div>
 

@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { fadeUp, SectionBadge, GradientText, AmberDivider, ArrowIcon } from "./shared";
 import { STORY } from "./data";
+import { StoryIllustrations, type StoryIllustrationType } from "./StoryIllustrations";
 
 /* ─── Page flip variants ─── */
 
@@ -76,7 +76,7 @@ export default function StorySection() {
           viewport={{ once: true, margin: "-60px" }}
           className="mb-10 flex flex-col items-center text-center"
         >
-          <SectionBadge>Tu camino cervecero</SectionBadge>
+          <SectionBadge>Una historia en cuatro actos</SectionBadge>
           <h2 className="text-text-primary mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
             De la curiosidad al <GradientText>primer brindis</GradientText>
           </h2>
@@ -129,30 +129,13 @@ export default function StorySection() {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
+                    className="flex items-center justify-center"
+                    style={{ height: 260 }}
                   >
-                    <motion.div
-                      animate={{ y: [0, -8, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      className="flex items-center justify-center"
-                      style={{ height: 260 }}
-                    >
-                      <Image
-                        src={story.img}
-                        alt={story.title}
-                        width={400}
-                        height={300}
-                        unoptimized
-                        className="relative drop-shadow-2xl"
-                        style={{
-                          maxWidth: 260,
-                          maxHeight: 260,
-                          width: "auto",
-                          height: "auto",
-                          objectFit: "contain",
-                          filter: `drop-shadow(0 16px 32px rgba(0,0,0,0.3)) drop-shadow(0 0 20px ${story.accent}15)`,
-                        }}
-                      />
-                    </motion.div>
+                    {(() => {
+                      const IllustrationComponent = StoryIllustrations[story.illustration as StoryIllustrationType];
+                      return IllustrationComponent ? <IllustrationComponent /> : null;
+                    })()}
                   </motion.div>
                 </div>
 

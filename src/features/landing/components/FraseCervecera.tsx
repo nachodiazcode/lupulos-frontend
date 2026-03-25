@@ -4,11 +4,11 @@ import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
 const quotes = [
-  "🍺 «El arte de la cerveza es unir lo amargo con lo inolvidable.»",
-  "👑 «Donde hay cerveza, hay historias que valen oro.»",
-  "🔥 «El lúpulo no se explica, se siente.»",
-  "🛡️ «Una buena cerveza no se bebe… se honra.»",
-  "🍻 «Brindemos por las cervezas que nos unen y los bares que nos salvan.»",
+  "🍺 «El lúpulo no pide permiso. Llega, conquista y te cambia el paladar para siempre.»",
+  "👑 «La cerveza artesanal no se toma — se vive, se debate y se defiende con el vaso en alto.»",
+  "🔥 «Detrás de cada cerveza craft hay alguien que apostó todo por un sabor que nadie había probado.»",
+  "🛡️ «Una cerveza honesta vale más que cien etiquetas bonitas. Y la comunidad siempre lo sabe.»",
+  "🍻 «Por los que piden la carta de cervezas antes que la de comida. Este lugar es para ustedes.»",
 ];
 export default function BeerQuote() {
   const [quote, setQuote] = useState(quotes[0]);

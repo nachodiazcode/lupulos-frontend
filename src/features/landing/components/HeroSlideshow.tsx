@@ -6,6 +6,8 @@ import Image from "next/image";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import ScrollIndicator from "./ScrollIndicator";
 import CommunityAnimation from "./CommunityAnimation";
+import HeroCharacterIllustration from "./HeroCharacterIllustration";
+import { ExploreCervezasIllustration, EncuentraBaresIllustration } from "./StoryIllustrations";
 
 /* ═══════════════════════════════════
    Slide Data
@@ -24,46 +26,46 @@ interface Slide {
 
 const slides: Slide[] = [
   {
-    tag: "Donde nace y se celebra la cerveza artesanal 🇨🇱",
-    title: "Donde se encuentran quienes crean y disfrutan la",
-    highlight: "cerveza artesanal",
+    tag: "+8.500 cerveceros ya están dentro 🇨🇱",
+    title: "Tu próxima cerveza favorita está aquí. Solo falta que la",
+    highlight: "descubras",
     description:
-      "Catálogo curado, cervecerías con alma, una comunidad que vive por el lúpulo. Si la cerveza artesanal te mueve — ya sea beberla o crearla — este es tu lugar.",
-    image: "/assets/personajes/lupinvikingoylupincervesota.png",
-    cta: { label: "Entrar al mundo Lúpulos", href: "/auth/register" },
+      "El catálogo más completo de cerveza artesanal en Chile, con opiniones reales, cervecerías que no vas a encontrar en Google y una IA que aprende lo que le gusta a tu paladar.",
+    image: "__hero_illustration__",
+    cta: { label: "Empezar gratis", href: "/auth/register" },
     accent: "rgba(251,191,36,0.35)",
     glowPosition: "30% 40%",
   },
   {
-    tag: "🍺 +1.200 etiquetas artesanales",
-    title: "Cada cerveza tiene su historia — aquí la",
-    highlight: "descubres",
+    tag: "🍺 +1.200 cervezas artesanales chilenas",
+    title: "Notas de cata, aromas, maridajes — cada cerveza tiene su",
+    highlight: "ficha completa",
     description:
-      "Notas de cata, aromas, maridajes. Reseñas honestas de la comunidad. Si fabricas, tu cerveza tiene vitrina. Si buscas, tu próxima favorita está a un scroll.",
-    image: "/assets/personajes-landing/explorar-cervezas.png",
-    cta: { label: "Explorar el catálogo", href: "/cervezas" },
+      "Opiniones de gente real, no de bots. Puntuaciones de la comunidad. Si fabricas, tu cerveza tiene vitrina propia. Si buscas, tu próxima obsesión está a un scroll.",
+    image: "__explorar_cervezas__",
+    cta: { label: "Explorar cervezas", href: "/cervezas" },
     accent: "rgba(245,158,11,0.35)",
     glowPosition: "70% 30%",
   },
   {
-    tag: "📍 Cervecerías, taprooms y bares con alma",
-    title: "Los mejores lugares cerveceros de Chile en un",
+    tag: "📍 280+ cervecerías verificadas por la comunidad",
+    title: "Los lugares que los cerveceros recomiendan, en un",
     highlight: "mapa vivo",
     description:
-      "Taprooms con lotes experimentales, brewpubs de barrio, rooftops con vista. Los lugares que los cerveceros de verdad recomiendan — todos en un solo mapa.",
-    image: "/assets/personajes-landing/encuentra-bares.png",
+      "Taprooms con lotes experimentales que nunca llegan a botillería. Brewpubs de barrio con recetas de tres generaciones. Los rincones con alma que Google no conoce.",
+    image: "__encuentra_bares__",
     cta: { label: "Abrir el mapa", href: "/lugares" },
     accent: "rgba(239,68,68,0.3)",
     glowPosition: "25% 60%",
   },
   {
-    tag: "⚡ 8.500 amantes del lúpulo",
-    title: "Fans y cerveceros artesanales, en la",
+    tag: "⚡ La comunidad cervecera más activa de Chile",
+    title: "El lugar donde fans y cerveceros comparten la",
     highlight: "misma mesa",
     description:
-      "Comparte descubrimientos, debate estilos, muestra tus creaciones. Una comunidad donde la pasión artesanal conecta a quienes beben y quienes elaboran.",
+      "Descubrimientos que te cambian el fin de semana. Debates sobre estilos que no terminan. Cerveceros mostrando lo que acaban de sacar del fermentador. Esto es comunidad real.",
     image: "__community_animation__",
-    cta: { label: "Sentarme a la mesa", href: "/auth/register" },
+    cta: { label: "Unirme ahora", href: "/auth/register" },
     accent: "rgba(52,211,153,0.3)",
     glowPosition: "65% 50%",
   },
@@ -480,7 +482,7 @@ export default function HeroSlideshow() {
                     prefetch
                     className="border-border-medium bg-border-subtle text-text-primary hover:border-border-amber hover:bg-border-light rounded-full border px-9 py-4 text-center text-sm font-medium backdrop-blur-sm transition-all duration-300"
                   >
-                    Explorar cervezas
+                    Ver catálogo
                   </Link>
                 </motion.div>
               </motion.div>
@@ -514,8 +516,8 @@ export default function HeroSlideshow() {
                     ))}
                   </div>
                   <p className="text-text-muted text-sm">
-                    <span className="text-amber-primary font-semibold">2,500+</span> cerveceros ya
-                    exploran
+                    <span className="text-amber-primary font-semibold">8.500+</span> cerveceros ya
+                    están dentro
                   </p>
                 </motion.div>
               )}
@@ -528,6 +530,12 @@ export default function HeroSlideshow() {
             >
               {slide.image === "__community_animation__" ? (
                 <CommunityAnimation />
+              ) : slide.image === "__hero_illustration__" ? (
+                <HeroCharacterIllustration />
+              ) : slide.image === "__explorar_cervezas__" ? (
+                <ExploreCervezasIllustration />
+              ) : slide.image === "__encuentra_bares__" ? (
+                <EncuentraBaresIllustration />
               ) : (
                 <motion.div
                   animate={{ y: [0, -12, 0] }}

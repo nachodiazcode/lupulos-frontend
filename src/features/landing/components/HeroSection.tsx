@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useInView, useSpring, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import AiPromptBar from "./AiPromptBar";
 
 /* ═══════════════════════════════════
@@ -43,23 +43,17 @@ function generateSparkles(count: number): Sparkle[] {
 const avatarNames = ["ragnar", "Lagertha", "bjorn", "Kwenthrith"] as const;
 
 const statChips = [
-  { icon: "🍺", value: "1.200+", label: "cervezas" },
-  { icon: "📍", value: "280+",   label: "lugares" },
-  { icon: "💬", value: "42K+",   label: "reseñas" },
+  { icon: "🍺", value: "1.200+", label: "cervezas con ficha" },
+  { icon: "📍", value: "280+",   label: "cervecerías activas" },
+  { icon: "💬", value: "42K+",   label: "reseñas reales" },
 ];
-
-const floatingPills = [
-  { icon: "🍺", label: "1.200+ cervezas", pos: { top: "8%",    left: "-10%"  }, delay: 0,   dur: 4.2 },
-  { icon: "⭐", label: "4.8 / 5 rating",  pos: { top: "22%",   right: "-11%" }, delay: 0.9, dur: 5.1 },
-  { icon: "📍", label: "280+ lugares",    pos: { bottom: "20%",left: "-12%"  }, delay: 1.6, dur: 4.7 },
-] as const;
 
 /* ═══════════════════════════════════
    Word Cycler
    ═══════════════════════════════════ */
 
 const CYCLING_WORDS = [
-  "artesanal,", "craft,", "lúpulo,", "IPA,", "Stout,", "local 🇨🇱",
+  "artesanal,", "que amaste,", "con historia,", "imposible,", "perfecta,", "chilena 🇨🇱",
 ] as const;
 
 function WordCycler() {
@@ -119,176 +113,6 @@ function WordCycler() {
         transition={{ duration: 0.55, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
       />
     </span>
-  );
-}
-
-/* ═══════════════════════════════════
-   3-D Orbit Image
-   ═══════════════════════════════════ */
-
-function OrbitImage() {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const isInView   = useInView(wrapperRef, { amount: 0.4 });
-  const [spinKey, setSpinKey] = useState(0);
-  const prevInView = useRef(false);
-
-  /* Re-trigger spin each time the element enters the viewport */
-  useEffect(() => {
-    if (isInView && !prevInView.current) {
-      setSpinKey((k) => k + 1);
-    }
-    prevInView.current = isInView;
-  }, [isInView]);
-
-  /* Mouse parallax — spring suave */
-  const cfg   = { stiffness: 55, damping: 18 };
-  const prlxX = useSpring(0, cfg);
-  const prlxY = useSpring(0, cfg);
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      prlxX.set((e.clientX / window.innerWidth  - 0.5) * 24);
-      prlxY.set((e.clientY / window.innerHeight - 0.5) * 16);
-    };
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, [prlxX, prlxY]);
-
-  return (
-    <motion.div
-      ref={wrapperRef}
-      className="relative flex flex-1 items-center justify-center"
-      style={{ perspective: "1000px", minHeight: 420 }}
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {/* ── Warm glow disc ── */}
-      <div
-        className="pointer-events-none absolute rounded-full"
-        style={{
-          width: 320, height: 320,
-          background:
-            "radial-gradient(circle, rgba(249,115,22,0.18) 0%, rgba(251,191,36,0.12) 50%, transparent 75%)",
-          filter: "blur(36px)",
-        }}
-      />
-
-      {/* ── Orbit ring 1 — outer, tilted 72° ── */}
-      <div
-        className="pointer-events-none absolute"
-        style={{
-          width: 380, height: 380,
-          transform: "rotateX(72deg)",
-          transformStyle: "preserve-3d",
-          borderRadius: "50%",
-        }}
-      >
-        <motion.div
-          style={{
-            width: "100%", height: "100%",
-            borderRadius: "50%",
-            border: "1.5px solid rgba(249,115,22,0.35)",
-            position: "relative",
-          }}
-          animate={{ rotate: [0, 360] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
-        >
-          {/* Travelling dot */}
-          <span
-            style={{
-              position: "absolute",
-              width: 10, height: 10,
-              background: "#f97316",
-              borderRadius: "50%",
-              top: -5, left: "calc(50% - 5px)",
-              boxShadow: "0 0 16px rgba(249,115,22,0.9), 0 0 6px #f97316",
-            }}
-          />
-        </motion.div>
-      </div>
-
-      {/* ── Orbit ring 2 — inner, tilted + offset 55° ── */}
-      <div
-        className="pointer-events-none absolute"
-        style={{
-          width: 300, height: 300,
-          transform: "rotateX(72deg) rotateZ(55deg)",
-          transformStyle: "preserve-3d",
-          borderRadius: "50%",
-        }}
-      >
-        <motion.div
-          style={{
-            width: "100%", height: "100%",
-            borderRadius: "50%",
-            border: "1px dashed rgba(251,191,36,0.32)",
-            position: "relative",
-          }}
-          animate={{ rotate: [360, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              width: 7, height: 7,
-              background: "#fbbf24",
-              borderRadius: "50%",
-              top: -3.5, left: "calc(50% - 3.5px)",
-              boxShadow: "0 0 10px rgba(251,191,36,0.95)",
-            }}
-          />
-        </motion.div>
-      </div>
-
-      {/* ── Character — parallax mouse + 3-D spin on viewport entry ── */}
-      <motion.div className="relative z-10" style={{ x: prlxX, y: prlxY }}>
-        <motion.div
-          key={`orbit-spin-${spinKey}`}
-          style={{ transformStyle: "preserve-3d" }}
-          initial={{ rotateY: -720, opacity: 0, scale: 0.7 }}
-          animate={{ rotateY: 0,    opacity: 1, scale: 1   }}
-          transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {/* Float suave encima del spin */}
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Image
-              src="/assets/personajes/lupinvikingoylupincervesota.png"
-              alt="Personajes Lúpulos"
-              width={420}
-              height={360}
-              priority
-              unoptimized
-              style={{
-                width: "100%",
-                maxWidth: 360,
-                height: "auto",
-                filter: "drop-shadow(0 18px 44px rgba(180,80,0,0.22))",
-              }}
-            />
-          </motion.div>
-        </motion.div>
-      </motion.div>
-
-      {/* ── Floating info pills (desktop only) ── */}
-      {floatingPills.map((pill) => (
-        <motion.div
-          key={pill.label}
-          className="glass-pill absolute z-20 hidden items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold lg:flex"
-          style={{
-            ...pill.pos,
-            color: "var(--color-text-secondary)",
-          }}
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: pill.dur, repeat: Infinity, delay: pill.delay, ease: "easeInOut" }}
-        >
-          <span className="text-sm">{pill.icon}</span>
-          <span>{pill.label}</span>
-        </motion.div>
-      ))}
-    </motion.div>
   );
 }
 
@@ -397,10 +221,10 @@ export default function HeroSection() {
 
       {/* ─── Content ─── */}
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-8 sm:py-10">
-        <div className="flex flex-col items-center gap-12 text-center lg:flex-row lg:items-center lg:gap-16 lg:text-left">
+        <div className="flex flex-col items-center gap-12 text-center lg:flex-row lg:items-center lg:justify-end lg:gap-16 lg:text-left">
 
-          {/* ── LEFT: Text ── */}
-          <div className="flex flex-1 flex-col">
+          {/* ── RIGHT: Text ── */}
+          <div className="flex w-full flex-col lg:max-w-2xl">
 
             {/* Badge */}
             <motion.span
@@ -414,7 +238,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
             >
-              Plataforma #1 de cerveza artesanal en Chile 🇨🇱
+              La comunidad craft más grande de Chile 🇨🇱
             </motion.span>
 
             {/* H1 */}
@@ -425,9 +249,9 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.22, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
             >
-              Todo sobre<br />
-              cerveza{" "}<WordCycler /><br />
-              en un lugar.
+              Tu próxima cerveza<br />
+              <WordCycler /><br />
+              te espera aquí.
             </motion.h1>
             {/* Subtitle */}
             <motion.p
@@ -436,8 +260,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.36, duration: 0.6 }}
             >
-              Catálogo curado, cervecerías con alma y una comunidad que vive por el lúpulo.
-              Tu próxima favorita está a un click de distancia.
+              1.200 cervezas artesanales. 280 cervecerías con alma. Una IA que aprende tu paladar con cada sorbo. Y una comunidad de 8.500 cerveceros que ya cambiaron la forma de vivir la cerveza craft en Chile.
             </motion.p>
 
             {/* CTAs */}
@@ -458,7 +281,7 @@ export default function HeroSection() {
                     boxShadow: "0 4px 24px rgba(249,115,22,0.45)",
                   }}
                 >
-                  <span className="relative z-10">Entrar al mundo Lúpulos</span>
+                  <span className="relative z-10">Unirme gratis</span>
                   <span
                     className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-[600ms] group-hover:translate-x-full"
                     style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
@@ -477,7 +300,7 @@ export default function HeroSection() {
                     color: "var(--color-amber-primary)",
                   }}
                 >
-                  Explorar cervezas
+                  Explorar cervezas →
                 </Link>
               </motion.div>
             </motion.div>
@@ -510,7 +333,7 @@ export default function HeroSection() {
                 ))}
               </div>
               <p className="text-base" style={{ color: "var(--color-text-muted)" }}>
-                <span style={{ color: "var(--color-amber-primary)", fontWeight: 600 }}>2.500+</span> cerveceros ya exploran
+                <span style={{ color: "var(--color-amber-primary)", fontWeight: 600 }}>8.500+</span> se unieron este mes
               </p>
             </motion.div>
 
@@ -536,14 +359,11 @@ export default function HeroSection() {
 
           </div>
 
-          {/* ── RIGHT: 3-D Orbit Image ── */}
-          <OrbitImage />
-
         </div>
 
         {/* ── Cool gradient line ── */}
         <motion.div
-          className="mx-auto mt-6 mb-3 h-px w-full max-w-md"
+          className="mx-auto mt-5 mb-3 h-px w-full max-w-md"
           style={{
             background: "linear-gradient(90deg, transparent, rgba(249,115,22,0.35), rgba(251,191,36,0.25), rgba(249,115,22,0.35), transparent)",
           }}

@@ -214,11 +214,11 @@ function LiquidGlassBorder({
    ═══════════════════════════════════ */
 
 const AI_PLACEHOLDER_HINTS = [
-  "¿Qué cerveza va bien con un asado? 🔥",
-  "Recomiéndame una IPA frutal y aromática...",
-  "Busco una cerveza suave para el verano ☀️",
-  "¿Cuál es la mejor Stout con notas de café?",
-  "Quiero probar algo nuevo, sorpréndeme...",
+  "Dame una IPA chilena que me vuele la cabeza 🔥",
+  "¿Qué cerveza craft va perfecto con un asado de tira?",
+  "Quiero algo cítrico y refrescante para este sábado ☀️",
+  "¿Cuál es la mejor Stout con notas de café en Chile? ☕",
+  "Sorpréndeme con algo que nunca habría elegido solo...",
 ];
 
 function useTypewriter(phrases: string[], speed = 50, pause = 2200, deleteSpeed = 30) {
@@ -253,24 +253,26 @@ function useTypewriter(phrases: string[], speed = 50, pause = 2200, deleteSpeed 
    ═══════════════════════════════════ */
 
 const suggestions = [
-  { label: "¿Para qué sirve?", icon: "🍺", full: "¿Para qué sirve esta app?" },
   { label: "¿Qué es Lúpulos?", icon: "🌿", full: "¿Qué es Lúpulos?" },
-  { label: "Beneficios", icon: "✨", full: "¿Qué beneficios tiene?" },
+  { label: "Recomiéndame algo", icon: "🍺", full: "Recomiéndame una cerveza artesanal" },
+  { label: "¿Para qué sirve?", icon: "✨", full: "¿Para qué sirve esta app?" },
   { label: "Buscar cervezas", icon: "🔍", full: "¿Cómo encuentro cervezas?" },
-  { label: "Agregar lugares", icon: "📍", full: "¿Puedo agregar lugares?" },
+  { label: "Sumar mi bar", icon: "📍", full: "¿Puedo agregar lugares?" },
 ];
 
 const localAnswers: Record<string, string> = {
   "¿Para qué sirve esta app?":
-    "Lúpulos App es tu compañera cervecera: descubre cervezas artesanales, encuentra bares y brewpubs cerca de ti, publica reseñas con fotos y conecta con una comunidad apasionada por el lúpulo. ¡Es como el Airbnb de la cerveza artesanal! 🍻",
+    "Lúpulos es donde vives la cerveza artesanal de verdad. +1.200 cervezas con fichas completas de cata, 280+ cervecerías en un mapa vivo, 42.000+ reseñas de cerveceros reales y una IA que aprende exactamente lo que le gusta a tu paladar. Gratis y sin publicidad. 🍻",
   "¿Qué es Lúpulos?":
-    "Lúpulos es la comunidad cervecera #1 de Chile. Una plataforma donde los amantes de la cerveza artesanal pueden explorar un catálogo colaborativo de cervezas, descubrir lugares cerveceros y compartir experiencias con otros fans. 🌿",
+    "La comunidad cervecera más grande de Chile. Descubre cervezas artesanales con fichas de cata completas, encuentra taprooms y cervecerías que solo los locales conocen, publica opiniones honestas y conecta con 8.500 personas que viven por el lúpulo. Pensado para Chile, hecho por cerveceros. 🌿",
   "¿Qué beneficios tiene?":
-    "Con Lúpulos puedes: explorar cientos de cervezas con reseñas y puntuaciones, encontrar bares y brewpubs en un mapa interactivo, publicar tus descubrimientos, seguir a otros cerveceros y recibir recomendaciones personalizadas. ¡Todo gratis! ✨",
+    "Catálogo craft con filtros inteligentes por estilo, aroma e IBU. Mapa interactivo de cervecerías y taprooms verificados. Rankings 100% democráticos. IA que mejora con cada cerveza que pruebas. Eventos y catas en tu zona. Vitrina para cervecerías artesanales. Todo gratis, sin publicidad ni letra chica. ✨",
   "¿Cómo encuentro cervezas?":
-    "Ve a la sección 'Cervezas' en el menú principal. Puedes filtrar por estilo (IPA, Stout, Lager...), cervecería, puntuación y más. Cada cerveza tiene su ficha con notas de cata, fotos y reseñas de la comunidad. 🔍",
+    "Ve a 'Cervezas' en el menú. Filtra por estilo (IPA, Stout, Lager, Hazy, Sour...), cervecería, puntuación, aroma o IBU. Cada cerveza tiene ficha completa con notas de cata, fotos reales de la comunidad y puntuación honesta. También puedes preguntarme directamente y te recomiendo según tu gusto. 🔍",
   "¿Puedo agregar lugares?":
-    "¡Claro! Regístrate y podrás agregar bares, brewpubs, tiendas de cerveza y cualquier lugar cervecero. Solo necesitas el nombre, dirección y una foto. La comunidad se encargará de enriquecerlo con reseñas. 📍",
+    "¡Claro que sí! Crea tu cuenta y suma bares, brewpubs, taprooms o tiendas cerveceras al mapa. Solo necesitas nombre, dirección y una foto. La comunidad se encarga de enriquecerlo con reseñas, fotos y puntuaciones. Si tienes cervecería propia, puedes reclamar tu perfil y gestionarlo tú mismo. 📍",
+  "Recomiéndame una cerveza artesanal":
+    "¡Con gusto! Para darte la mejor recomendación necesito conocer tu paladar. Regístrate gratis y después de calificar un par de cervezas, mi IA empieza a entender qué te gusta. Mientras tanto: si te va lo cítrico prueba una Session IPA; si prefieres lo intenso, una Imperial Stout te va a volar la cabeza. 🍺",
 };
 
 /* ═══════════════════════════════════

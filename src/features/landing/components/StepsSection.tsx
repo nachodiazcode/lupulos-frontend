@@ -27,12 +27,12 @@ export default function StepsSection() {
           viewport={{ once: true }}
           className="mb-16 flex flex-col items-center text-center"
         >
-          <SectionBadge>Empieza en segundos</SectionBadge>
+          <SectionBadge>Simple como abrir una chela</SectionBadge>
           <h2 className="text-text-primary mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Tres pasos entre tú y <GradientText>tu próximo descubrimiento</GradientText>
+            De curioso a cervecero en <GradientText>tres pasos</GradientText>
           </h2>
           <p className="text-text-muted mt-3 max-w-md text-sm leading-relaxed">
-            Da igual si vienes a probar o a mostrar lo que elaboras. Entrar es gratis, rápido y sin letra chica.
+            Ya sea que vengas a descubrir tu próxima cerveza favorita o a mostrar lo que fabricas — en menos de un minuto estás dentro.
           </p>
         </motion.div>
 

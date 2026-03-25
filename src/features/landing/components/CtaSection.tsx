@@ -72,48 +72,34 @@ export default function CtaSection() {
             />
 
             <h2 className="text-text-primary mt-10 text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Hay una comunidad entera esperando <GradientText>brindar contigo</GradientText>
+              8.500 cerveceros. 1.200 cervezas. 280 cervecerías.<br /><GradientText>Solo falta tu nombre en la mesa</GradientText>
             </h2>
             <p className="text-text-muted mt-3 text-base">
-              Si amas la cerveza artesanal o la creas con tus manos — este es el lugar donde tu pasión tiene sentido.
+              Da igual si destapas o si fabricas — acá tu pasión por la cerveza craft tiene nombre, comunidad y un lugar que la honra.
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              {/* Primary CTA with pulsating glow + shimmer */}
-              <motion.div className="relative">
-                <motion.div
-                  className="absolute -inset-1 rounded-full"
-                  animate={{
-                    boxShadow: [
-                      "0 0 20px 2px color-mix(in srgb, var(--color-amber-primary) 0%, transparent)",
-                      "0 0 30px 8px color-mix(in srgb, var(--color-amber-primary) 25%, transparent)",
-                      "0 0 20px 2px color-mix(in srgb, var(--color-amber-primary) 0%, transparent)",
-                    ],
+              {/* Primary CTA with shimmer */}
+              <motion.div
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Link
+                  href="/auth/register"
+                  prefetch
+                  className="group relative inline-block overflow-hidden rounded-full px-10 py-4 text-sm font-bold shadow-xl transition-all duration-300 hover:brightness-110"
+                  style={{
+                    background: "var(--gradient-button-primary)",
+                    color: "var(--color-text-dark)",
+                    boxShadow: "var(--shadow-amber-glow)",
                   }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                  aria-hidden="true"
-                />
-                <motion.div
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.98 }}
                 >
-                  <Link
-                    href="/auth/register"
-                    prefetch
-                    className="group relative inline-block overflow-hidden rounded-full px-10 py-4 text-sm font-bold shadow-xl transition-all duration-300 hover:brightness-110"
-                    style={{
-                      background: "var(--gradient-button-primary)",
-                      color: "var(--color-text-dark)",
-                      boxShadow: "var(--shadow-amber-glow)",
-                    }}
-                  >
-                    <span className="relative z-10">Entrar al mundo Lúpulos</span>
-                    <span
-                      className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-600 group-hover:translate-x-full"
-                      style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
-                    />
-                  </Link>
-                </motion.div>
+                  <span className="relative z-10">Empezar ahora — es gratis</span>
+                  <span
+                    className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-600 group-hover:translate-x-full"
+                    style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
+                  />
+                </Link>
               </motion.div>
 
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
@@ -127,7 +113,7 @@ export default function CtaSection() {
                   }}
                 >
                   <span className="relative z-10 transition-colors duration-300 group-hover:text-amber-primary">
-                    Ya soy parte de la tribu →
+                    Ya soy parte →
                   </span>
                 </Link>
               </motion.div>
