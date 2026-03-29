@@ -32,6 +32,7 @@ import {
 } from "@mui/icons-material";
 import { getImageUrl } from "@/lib/constants";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
+import { clearAuthSession, getStoredUser } from "@/lib/auth-storage";
 
 /* ═══════════════════════════════════
    Config
@@ -44,19 +45,11 @@ interface NavItem {
 }
 
 interface Usuario {
-  _id: string;
+  _id?: string;
+  id?: string;
   username?: string;
   fotoPerfil?: string;
 }
-
-const parseStoredUser = (value: string | null): Usuario | null => {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as Usuario;
-  } catch {
-    return null;
-  }
-};
 
 const navItems: NavItem[] = [
   { text: "Inicio", href: "/", icon: <HomeIcon fontSize="small" /> },
@@ -82,8 +75,10 @@ export default function Navbar() {
   const getInitial = (u: Usuario | null) => (u?.username?.[0] ?? "U").toUpperCase();
 
   useEffect(() => {
-    const storedUser = parseStoredUser(localStorage.getItem("user"));
-    if (storedUser) setUsuario(storedUser);
+    const syncUser = () => setUsuario(getStoredUser() as Usuario | null);
+    syncUser();
+    window.addEventListener("storage", syncUser);
+    return () => window.removeEventListener("storage", syncUser);
   }, []);
 
   useEffect(() => {
@@ -93,8 +88,8 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("authToken");
+    clearAuthSession();
+    setUsuario(null);
     setAnchorEl(null);
     router.push("/auth/login");
   };

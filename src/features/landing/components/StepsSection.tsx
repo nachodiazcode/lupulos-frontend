@@ -18,7 +18,7 @@ export default function StepsSection() {
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="home-content-shell">
         <motion.div
           variants={fadeUp}
           custom={0}

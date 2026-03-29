@@ -593,9 +593,19 @@ export default function CervezasPage() {
             variants={fadeUp}
             custom={1}
             className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
+            style={{ color: "var(--color-text-primary)" }}
           >
             Explora{" "}
-            <span className="from-amber-primary via-amber-light to-orange-cta bg-gradient-to-r bg-clip-text text-transparent">
+            <span
+              style={{
+                background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 20%, var(--color-amber-hover) 40%, var(--color-amber-primary) 60%, var(--color-amber-light) 80%, var(--color-amber-primary) 100%)",
+                backgroundSize: "300% 300%",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                animation: "magic-gradient-shift 4s ease-in-out infinite",
+              }}
+            >
               cervezas únicas
             </span>
           </motion.h1>

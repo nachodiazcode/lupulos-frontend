@@ -9,6 +9,9 @@ import { Snackbar, Alert } from "@mui/material";
 import useAuth from "@/hooks/useAuth";
 import { GOOGLE_AUTH_URL } from "@/lib/constants";
 import api from "@/lib/api";
+import { persistAuthSession } from "@/lib/auth-storage";
+import { getErrorMessage } from "@/lib/errors";
+import HeroIllustration from "@/components/ui/HeroIllustration";
 
 /* ─── Gradient Border ─── */
 function GradientBorder({
@@ -124,8 +127,7 @@ export default function LoginPage() {
         email: data.user?.email,
         fotoPerfil: data.user?.photo,
       };
-
-      localStorage.setItem("authToken", data.accessToken);
+      persistAuthSession({ token: data.accessToken, user: usuario });
       localStorage.setItem("user", JSON.stringify(usuario));
 
       setToken(data.accessToken);
@@ -136,18 +138,7 @@ export default function LoginPage() {
         router.push("/cervezas");
       }, 1200);
     } catch (err: unknown) {
-      if (err && typeof err === "object" && "response" in err) {
-        const axiosError = err as {
-          response?: { data?: { mensaje?: string; message?: string } };
-        };
-        setError(
-          axiosError.response?.data?.mensaje ||
-            axiosError.response?.data?.message ||
-            "Error desconocido al iniciar sesión",
-        );
-      } else {
-        setError(err instanceof Error ? err.message : "Ocurrió un error inesperado");
-      }
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -196,32 +187,14 @@ export default function LoginPage() {
 
       {/* Contenido principal — imagen izquierda, form derecha */}
       <div className="relative z-10 flex w-full max-w-5xl items-center justify-center gap-8 px-4 py-8 lg:justify-between lg:gap-16 lg:px-8">
-        {/* Imagen decorativa — solo desktop, lado izquierdo */}
+        {/* Ilustración animada — solo desktop, lado izquierdo */}
         <motion.div
           initial={{ x: -60, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="hidden flex-1 items-center justify-center lg:flex"
         >
-          <motion.div
-            animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Image
-              src="/assets/personajes/login-team.png"
-              alt="Team Lúpulos"
-              width={600}
-              height={500}
-              priority
-              className="drop-shadow-2xl"
-              style={{
-                maxWidth: "100%",
-                height: "auto",
-                objectFit: "contain",
-                filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.3))",
-              }}
-            />
-          </motion.div>
+          <HeroIllustration />
         </motion.div>
 
         {/* Tarjeta de Login — lado derecho */}

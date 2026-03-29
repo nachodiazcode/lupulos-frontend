@@ -255,14 +255,14 @@ function useTypewriter(phrases: string[], speed = 50, pause = 2200, deleteSpeed 
 const suggestions = [
   { label: "¿Qué es Lúpulos?", icon: "🌿", full: "¿Qué es Lúpulos?" },
   { label: "Recomiéndame algo", icon: "🍺", full: "Recomiéndame una cerveza artesanal" },
-  { label: "¿Para qué sirve?", icon: "✨", full: "¿Para qué sirve esta app?" },
+  { label: "¿Por qué entrar?", icon: "✨", full: "¿Por qué entrar a Lúpulos?" },
   { label: "Buscar cervezas", icon: "🔍", full: "¿Cómo encuentro cervezas?" },
   { label: "Sumar mi bar", icon: "📍", full: "¿Puedo agregar lugares?" },
 ];
 
 const localAnswers: Record<string, string> = {
-  "¿Para qué sirve esta app?":
-    "Lúpulos es donde vives la cerveza artesanal de verdad. +1.200 cervezas con fichas completas de cata, 280+ cervecerías en un mapa vivo, 42.000+ reseñas de cerveceros reales y una IA que aprende exactamente lo que le gusta a tu paladar. Gratis y sin publicidad. 🍻",
+  "¿Por qué entrar a Lúpulos?":
+    "Catálogo honesto, mapa vivo, comunidad real e inteligencia artificial — conectados para que descubras, compartas y vivas la cerveza artesanal como nunca. +1.200 cervezas con fichas completas, 280+ cervecerías verificadas, 42.000+ reseñas honestas y una IA que aprende tu paladar. Todo gratis, sin publicidad. 🍻",
   "¿Qué es Lúpulos?":
     "La comunidad cervecera más grande de Chile. Descubre cervezas artesanales con fichas de cata completas, encuentra taprooms y cervecerías que solo los locales conocen, publica opiniones honestas y conecta con 8.500 personas que viven por el lúpulo. Pensado para Chile, hecho por cerveceros. 🌿",
   "¿Qué beneficios tiene?":
@@ -279,7 +279,7 @@ const localAnswers: Record<string, string> = {
    Component
    ═══════════════════════════════════ */
 
-export default function AiPromptBar() {
+export default function AiPromptBar({ embedded = false }: { embedded?: boolean }) {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
@@ -340,6 +340,18 @@ export default function AiPromptBar() {
 
   const [focused, setFocused] = useState(false);
   const typedPlaceholder = useTypewriter(AI_PLACEHOLDER_HINTS);
+  const promptRadius = embedded ? 25 : 32;
+  const promptBorderWidth = embedded ? 2 : 2.5;
+  const promptIconSize = embedded ? 34 : 42;
+  const promptBarClass = embedded
+    ? "flex items-center gap-2.5 px-3.5 py-2.5"
+    : "flex items-center gap-3.5 px-5 py-4";
+  const inputTextClass = embedded
+    ? "w-full bg-transparent text-[14px] font-semibold outline-none sm:text-[15px]"
+    : "w-full bg-transparent text-base font-bold outline-none";
+  const placeholderTextClass = embedded
+    ? "pointer-events-none absolute inset-0 flex items-center text-[14px] font-semibold sm:text-[15px]"
+    : "pointer-events-none absolute inset-0 flex items-center text-base font-semibold";
 
   /* 3D tilt on mouse move */
   const tiltX = useMotionValue(0);
@@ -362,7 +374,7 @@ export default function AiPromptBar() {
 
   return (
     <div className="relative z-20 w-full">
-      <div className="mx-auto max-w-2xl px-4 pt-3 pb-3">
+      <div className={embedded ? "w-full pt-1 pb-1" : "mx-auto max-w-2xl px-4 pt-3 pb-3"}>
         {/* ─── Prompt bar with rotating gradient border ─── */}
         <motion.div
           ref={formRef}
@@ -371,17 +383,21 @@ export default function AiPromptBar() {
           style={{ perspective: 800, rotateX: tiltX, rotateY: tiltY }}
         >
         <form onSubmit={handleSubmit}>
-          <LiquidGlassBorder active={focused || expanded || loading} radius={32} borderWidth={2.5}>
+          <LiquidGlassBorder
+            active={focused || expanded || loading}
+            radius={promptRadius}
+            borderWidth={promptBorderWidth}
+          >
             <div
-              className="flex items-center gap-3.5 px-5 py-4"
+              className={promptBarClass}
               style={{
                 background: "var(--color-surface-card)",
-                borderRadius: 29.5,
+                borderRadius: promptRadius - promptBorderWidth,
                 backdropFilter: "blur(24px) saturate(1.4)",
                 WebkitBackdropFilter: "blur(24px) saturate(1.4)",
               }}
             >
-              <AiSparkleIcon loading={loading} size={42} />
+              <AiSparkleIcon loading={loading} size={promptIconSize} />
 
               <div className="relative flex-1">
                 <input
@@ -391,13 +407,13 @@ export default function AiPromptBar() {
                   onChange={(e) => setQuery(e.target.value)}
                   onFocus={() => setFocused(true)}
                   onBlur={() => setFocused(false)}
-                  className="w-full bg-transparent text-base font-bold outline-none"
+                  className={inputTextClass}
                   style={{ color: "var(--color-text-primary)" }}
                 />
                 {/* Typewriter placeholder */}
                 {!query && (
                   <div
-                    className="pointer-events-none absolute inset-0 flex items-center text-base font-semibold"
+                    className={placeholderTextClass}
                     style={{ color: "var(--color-text-muted)" }}
                   >
                     <span>{typedPlaceholder}</span>
@@ -423,13 +439,13 @@ export default function AiPromptBar() {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     disabled={loading}
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl transition-all disabled:opacity-40"
+                    className={`flex flex-shrink-0 items-center justify-center rounded-xl transition-all disabled:opacity-40 ${embedded ? "h-8 w-8" : "h-9 w-9"}`}
                     style={{
                       background: "var(--gradient-button-primary)",
                       color: "var(--color-text-dark)",
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width={embedded ? 13 : 14} height={embedded ? 13 : 14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                   </motion.button>
@@ -448,7 +464,7 @@ export default function AiPromptBar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.25 }}
-              className="mt-2.5 flex flex-wrap justify-center gap-1.5"
+              className={`mt-2 flex flex-wrap gap-1.5 ${embedded ? "justify-center lg:justify-start" : "justify-center"}`}
             >
               {suggestions.map((s, i) => (
                 <motion.button
@@ -459,7 +475,7 @@ export default function AiPromptBar() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleSuggestion(s.full)}
-                  className="flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-medium transition-all duration-200 hover:border-amber-primary/30"
+                  className={`flex items-center gap-1.5 rounded-xl border font-medium transition-all duration-200 hover:border-amber-primary/30 ${embedded ? "px-3 py-1.5 text-[11px] sm:text-xs" : "px-3.5 py-2 text-xs"}`}
                   style={{
                     background: "var(--color-surface-elevated)",
                     borderColor: "var(--color-border-subtle)",

@@ -4,9 +4,9 @@
    🎨 Lúpulos App — Design Tokens (Multi-theme)
    ═══════════════════════════════════════════════════════════
    Three beer-inspired themes controlled via data-theme on <html>:
-     • ambar  (dark warm)  — Amber Ale, pub acogedor
-     • lager  (light)      — Pilsner dorada, beer garden
-     • stout  (dark cold)  — Porter, pub industrial
+     • ambar        (dark warm)   — Amber Ale, pub acogedor
+     • saintpatrick (light green) — St. Patrick, prado irlandés
+     • stout        (dark cold)   — Porter, pub industrial
 
    Usage:
      CSS / SCSS  → var(--color-amber-primary)
@@ -80,7 +80,7 @@
 
 /* ═══════════════════════════════════════════════════════════
    🪟 Glass — macOS Tahoe liquid glass
-   Funciona en todos los temas. Variante lager con tint cálido.
+   Funciona en todos los temas. Variante saintpatrick con tint verde.
    ═══════════════════════════════════════════════════════════ */
 
 /* Cards (secciones, bento, steps) */
@@ -105,39 +105,71 @@
     0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* Overrides light (lager) — liquid glass mágico */
-[data-theme="lager"] .glass-card {
-  background: rgba(254, 237, 212, 0.56);
-  backdrop-filter: blur(28px) saturate(200%) brightness(1.04);
-  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.04);
-  border-color: rgba(255, 255, 255, 0.90);
+/* Overrides light (saintpatrick) — Shamrock Green Liquid Glass 3D Magic */
+[data-theme="saintpatrick"] .glass-card {
+  background: rgba(242, 249, 245, 0.68);
+  backdrop-filter: blur(38px) saturate(210%) brightness(1.05);
+  -webkit-backdrop-filter: blur(38px) saturate(210%) brightness(1.05);
+  border-color: rgba(220, 242, 230, 0.88);
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.98),
-    inset 1.5px 0 0 rgba(255, 255, 255, 0.72),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.45),
-    0 8px 32px rgba(212, 98, 12, 0.09),
-    0 2px 8px rgba(0, 0, 0, 0.04);
+    inset 0 2px 0 rgba(250, 255, 252, 0.95),
+    inset 1.5px 0 0 rgba(230, 248, 238, 0.72),
+    inset 0 -1px 0 rgba(58, 140, 92, 0.10),
+    0 10px 40px rgba(30, 90, 55, 0.09),
+    0 4px 16px rgba(82, 183, 136, 0.07),
+    0 20px 60px rgba(0, 0, 0, 0.03);
   position: relative;
   isolation: isolate;
+  transform: translateZ(0);
+  transition: box-shadow 0.4s ease, transform 0.3s ease;
 }
 
-[data-theme="lager"] .glass-card::after {
+[data-theme="saintpatrick"] .glass-card:hover {
+  box-shadow:
+    inset 0 2px 0 rgba(250, 255, 252, 0.95),
+    inset 1.5px 0 0 rgba(230, 248, 238, 0.72),
+    inset 0 -1px 0 rgba(58, 140, 92, 0.14),
+    0 14px 50px rgba(30, 90, 55, 0.14),
+    0 6px 20px rgba(82, 183, 136, 0.10),
+    0 24px 70px rgba(0, 0, 0, 0.05),
+    0 0 30px rgba(240, 165, 0, 0.04);
+  transform: translateY(-2px) translateZ(0);
+}
+
+[data-theme="saintpatrick"] .glass-card::after {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(
     108deg,
-    transparent 18%,
-    rgba(255, 255, 255, 0.62) 36%,
-    rgba(255, 224, 150, 0.28) 50%,
-    rgba(255, 255, 255, 0.52) 64%,
-    transparent 82%
+    transparent 10%,
+    rgba(190, 235, 210, 0.45) 28%,
+    rgba(82, 183, 136, 0.16) 42%,
+    rgba(240, 165, 0, 0.08) 55%,
+    rgba(210, 245, 225, 0.38) 72%,
+    transparent 90%
   );
-  background-size: 280% 100%;
-  animation: glass-liquid-sweep 5s ease-in-out infinite;
+  background-size: 300% 100%;
+  animation: glass-liquid-sweep 5.5s ease-in-out infinite;
   pointer-events: none;
   border-radius: inherit;
   z-index: 1;
+}
+
+/* Saint Patrick glass-card: 3D frosted edge highlight */
+[data-theme="saintpatrick"] .glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.52) 0%,
+    rgba(255, 255, 255, 0.00) 38%,
+    rgba(240, 165, 0, 0.02) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* Ámbar theme glass-card — tint dorado cálido */
@@ -149,17 +181,140 @@ html:not([data-theme]) .glass-card {
     0 8px 32px rgba(0, 0, 0, 0.28);
 }
 
-[data-theme="lager"] .glass-pill {
-  background: rgba(255, 238, 210, 0.72);
-  border-color: rgba(255, 255, 255, 0.88);
+[data-theme="saintpatrick"] .glass-pill {
+  background: rgba(242, 249, 245, 0.76);
+  backdrop-filter: blur(24px) saturate(200%) brightness(1.04);
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.04);
+  border-color: rgba(230, 248, 238, 0.82);
   box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.97),
-    0 4px 16px rgba(212, 98, 12, 0.08),
-    0 1px 4px rgba(0, 0, 0, 0.03);
+    inset 0 1.5px 0 rgba(250, 255, 252, 0.92),
+    0 6px 22px rgba(30, 90, 55, 0.09),
+    0 2px 8px rgba(82, 183, 136, 0.06);
+}
+
+/* Stout glass-card — dark purple liquid glass magic */
+[data-theme="stout"] .glass-card {
+  background: rgba(90, 40, 180, 0.07);
+  backdrop-filter: blur(32px) saturate(180%) brightness(0.94);
+  -webkit-backdrop-filter: blur(32px) saturate(180%) brightness(0.94);
+  border-color: rgba(139, 92, 246, 0.22);
+  box-shadow:
+    inset 0 1.5px 0 rgba(180, 130, 255, 0.20),
+    inset 1.5px 0 0 rgba(139, 92, 246, 0.10),
+    inset 0 -1px 0 rgba(60, 20, 120, 0.18),
+    0 8px 40px rgba(5, 0, 20, 0.50),
+    0 0 60px rgba(100, 40, 220, 0.05);
+  position: relative;
+  isolation: isolate;
+}
+
+[data-theme="stout"] .glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    108deg,
+    transparent 18%,
+    rgba(139, 92, 246, 0.14) 36%,
+    rgba(200, 150, 255, 0.07) 50%,
+    rgba(109, 60, 220, 0.11) 64%,
+    transparent 82%
+  );
+  background-size: 280% 100%;
+  animation: glass-liquid-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+[data-theme="stout"] .glass-pill {
+  background: rgba(100, 50, 200, 0.11);
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  border-color: rgba(160, 100, 255, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(180, 130, 255, 0.18),
+    0 4px 16px rgba(5, 0, 20, 0.35);
+}
+
+/* Dorado glass-card — molten gold + mint liquid glass 3D magic */
+[data-theme="dorado"] .glass-card {
+  background: rgba(255, 215, 0, 0.04);
+  backdrop-filter: blur(40px) saturate(200%) brightness(0.92);
+  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(0.92);
+  border-color: rgba(255, 215, 0, 0.14);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 230, 100, 0.12),
+    inset 1.5px 0 0 rgba(255, 215, 0, 0.06),
+    inset 0 -1px 0 rgba(94, 234, 212, 0.05),
+    0 10px 48px rgba(0, 0, 0, 0.70),
+    0 0 80px rgba(255, 215, 0, 0.03);
+  position: relative;
+  isolation: isolate;
+  transform: translateZ(0);
+  transition: box-shadow 0.4s ease, transform 0.3s ease;
+}
+
+[data-theme="dorado"] .glass-card:hover {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 230, 100, 0.18),
+    inset 1.5px 0 0 rgba(255, 215, 0, 0.10),
+    inset 0 -1px 0 rgba(94, 234, 212, 0.08),
+    0 14px 58px rgba(0, 0, 0, 0.75),
+    0 0 100px rgba(255, 215, 0, 0.05),
+    0 0 30px rgba(94, 234, 212, 0.03);
+  transform: translateY(-2px) translateZ(0);
+}
+
+[data-theme="dorado"] .glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    108deg,
+    transparent 10%,
+    rgba(255, 215, 0, 0.10) 26%,
+    rgba(94, 234, 212, 0.04) 40%,
+    rgba(255, 228, 77, 0.06) 54%,
+    rgba(94, 234, 212, 0.03) 68%,
+    rgba(255, 215, 0, 0.08) 80%,
+    transparent 92%
+  );
+  background-size: 320% 100%;
+  animation: glass-liquid-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* 3D frosted edge highlight — gold sheen + subtle mint bottom */
+[data-theme="dorado"] .glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 230, 100, 0.10) 0%,
+    rgba(255, 215, 0, 0.00) 40%,
+    rgba(94, 234, 212, 0.02) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="dorado"] .glass-pill {
+  background: rgba(255, 215, 0, 0.06);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border-color: rgba(255, 215, 0, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 100, 0.10),
+    0 4px 20px rgba(0, 0, 0, 0.55);
 }
 
 /* ═══════════════════════════════════════════════════════════
-   🍺 Theme: Ámbar (default) — Amber Ale, pub acogedor
+   🍺 Theme: Ámbar (default)
    ═══════════════════════════════════════════════════════════ */
 :root {
   /* Gradients */
@@ -241,177 +396,182 @@ html:not([data-theme]) .glass-card {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   🍺 Theme: Lager (light) — Gruvbox light-dark crossover, refined
+   🍀 Theme: Saint Patrick (light) — Shamrock Green, Celtic Gold, Liquid Glass
+   ═══════════════════════════════════════════════════════════
+   Soft meadow-green background, frosted shamrock glass depth,
+   Celtic gold accents, and dreamy 3D floating aesthetic.
    ═══════════════════════════════════════════════════════════ */
-[data-theme="lager"] {
-  /* Primary — warm orange */
-  --color-amber-primary: #d4620c;
-  --color-amber-hover:   #b44d08;
-  --color-amber-dark:    #943d06;
-  --color-amber-light:   #f07920;
-  --color-amber-muted:   #fecba0;
+[data-theme="saintpatrick"] {
+  /* Primary — shamrock green → deeper on interaction */
+  --color-amber-primary: #3a8c5c;
+  --color-amber-hover:   #2d7549;
+  --color-amber-dark:    #1e5c34;
+  --color-amber-light:   #52b788;
+  --color-amber-muted:   #b7e4c7;
 
-  /* Surfaces — naranja pastel vibrante */
-  --color-surface-deepest: #fef0da;
-  --color-surface-dark:    #fee3bc;
-  --color-surface-mid:     #fdd4a0;
-  --color-surface-card:    #fff6ec;
-  --color-surface-card-alt:#fef0da;
-  --color-surface-elevated:#fff9f3;
-  --color-surface-overlay: #fee3bc;
+  /* Surfaces — soft meadow greens, prado irlandés */
+  --color-surface-deepest: #e0f0e6;
+  --color-surface-dark:    #eaf5ef;
+  --color-surface-mid:     #d8eadf;
+  --color-surface-card:    #f2f9f5;
+  --color-surface-card-alt:#e8f5ed;
+  --color-surface-elevated:#f5fbf7;
+  --color-surface-overlay: #d4e8db;
 
-  /* Warm orange accents */
-  --color-brown-navbar-start: #fef0da;
-  --color-brown-navbar-end:   #fee3bc;
-  --color-brown-drawer:  #fff6ec;
-  --color-brown-modal:   #fff6ec;
-  --color-brown-barrel-start: #fef0da;
-  --color-brown-barrel-end:   #fee3bc;
+  /* Green accents (navbar, drawer, etc.) */
+  --color-brown-navbar-start: #eaf5ef;
+  --color-brown-navbar-end:   #d8eadf;
+  --color-brown-drawer:  #f2f9f5;
+  --color-brown-modal:   #f2f9f5;
+  --color-brown-barrel-start: #e0f0e6;
+  --color-brown-barrel-end:   #d8eadf;
 
-  /* Accent colors */
-  --color-gold-nav: #d4620c;
-  --color-emerald: #8ec07c;
-  --color-emerald-dark: #689d6a;
-  --color-emerald-darker: #427b58;
-  --color-orange-cta: #f97316;
-  --color-orange-cta-hover: #ea580c;
-  --color-error: #dc2626;
-  --color-error-dark: #b91c1c;
-  --color-info: #6366f1;
+  /* Accent colors — Celtic gold magic */
+  --color-gold-nav: #3a8c5c;
+  --color-emerald: #3a8c5c;
+  --color-emerald-dark: #2d7549;
+  --color-emerald-darker: #1e5c34;
+  --color-orange-cta: #f0a500;
+  --color-orange-cta-hover: #d97706;
+  --color-error: #e53935;
+  --color-error-dark: #c62828;
+  --color-info: #1565c0;
 
-  /* Text — warm plum/ciruela (~10:1 contrast on cream) */
-  --color-text-primary:   #3d1652;
-  --color-text-secondary: rgba(61, 22, 82, 0.72);
-  --color-text-muted:     rgba(61, 22, 82, 0.50);
-  --color-text-subtle:    rgba(61, 22, 82, 0.32);
-  --color-text-ghost:     rgba(61, 22, 82, 0.15);
-  --color-text-dark:      #ffffff;
+  /* Text — deep forest green, high contrast on meadow */
+  --color-text-primary:   #0d2b1a;
+  --color-text-secondary: rgba(13, 43, 26, 0.76);
+  --color-text-muted:     rgba(13, 43, 26, 0.50);
+  --color-text-subtle:    rgba(13, 43, 26, 0.28);
+  --color-text-ghost:     rgba(13, 43, 26, 0.14);
+  --color-text-dark:      #f2f9f5;
 
-  /* Borders — orange-tinted */
-  --color-border-subtle:  rgba(212, 98, 12, 0.08);
-  --color-border-light:   rgba(212, 98, 12, 0.16);
-  --color-border-medium:  rgba(61, 22, 82, 0.20);
-  --color-border-amber:   rgba(212, 98, 12, 0.32);
-  --color-border-emerald: rgba(104, 157, 106, 0.20);
+  /* Borders — soft shamrock, defined */
+  --color-border-subtle:  rgba(30, 90, 55, 0.10);
+  --color-border-light:   rgba(30, 90, 55, 0.18);
+  --color-border-medium:  rgba(13, 43, 26, 0.20);
+  --color-border-amber:   rgba(58, 140, 92, 0.36);
+  --color-border-emerald: rgba(82, 183, 136, 0.26);
 
-  /* Gradients — naranja pastel vibrante */
+  /* Gradients — morning meadow, prado irlandés */
   --gradient-hero:
-    radial-gradient(ellipse at 25% 20%, rgba(249, 115, 22, 0.24) 0%, transparent 52%),
-    radial-gradient(ellipse at 78% 70%, rgba(251, 191, 36, 0.18) 0%, transparent 50%),
-    radial-gradient(ellipse at 55% 45%, rgba(234, 88, 12, 0.12) 0%, transparent 50%),
-    linear-gradient(160deg, #fff3e0 0%, #ffe6c8 35%, #ffd8a8 65%, #ffe2bc 88%, #ffeedd 100%);
+    radial-gradient(ellipse at 15% 10%, rgba(58, 140, 92, 0.30) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 80%, rgba(30, 92, 52, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 35%, rgba(82, 183, 136, 0.20) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 20%, rgba(240, 165, 0, 0.10) 0%, transparent 40%),
+    linear-gradient(160deg, #eaf5ef 0%, #e0f0e6 20%, #d8eadf 45%, #e0f0e6 70%, #eaf5ef 100%);
   --gradient-section-dark: linear-gradient(
     180deg,
-    #fee3bc 0%,
-    #fef0da 50%,
-    #fee3bc 100%
+    #d8eadf 0%,
+    #eaf5ef 50%,
+    #d8eadf 100%
   );
-  --gradient-section-darker: linear-gradient(180deg, #fef0da 0%, #fee3bc 100%);
+  --gradient-section-darker: linear-gradient(180deg, #e0f0e6 0%, #d8eadf 100%);
   --gradient-footer: linear-gradient(
     180deg,
-    #fee3bc 0%,
-    #fdd4a0 100%
+    #d8eadf 0%,
+    #cce0d4 100%
   );
   --gradient-card-glass: linear-gradient(
     135deg,
-    rgba(255, 233, 204, 0.95) 0%,
-    rgba(255, 244, 232, 0.99) 100%
+    rgba(242, 249, 245, 0.94) 0%,
+    rgba(245, 251, 247, 0.97) 100%
   );
   --gradient-card-step: linear-gradient(
     135deg,
-    rgba(253, 219, 172, 0.50) 0%,
-    rgba(255, 249, 242, 0.72) 100%
+    rgba(224, 240, 230, 0.50) 0%,
+    rgba(242, 249, 245, 0.70) 100%
   );
 
-  /* Heading gradient — dorado → naranja pulento */
-  --gradient-heading: linear-gradient(135deg, #d97706 0%, #f97316 50%, #ea580c 100%);
+  /* Heading gradient — shamrock greens */
+  --gradient-heading: linear-gradient(135deg, #1e5c34 0%, #2d7549 35%, #3a8c5c 65%, #52b788 100%);
 
-  /* Button — warm orange */
+  /* Button — shamrock green to deep forest */
   --gradient-button-primary: linear-gradient(
     135deg,
-    #f97316 0%,
-    #ea580c 50%,
-    #fb923c 100%
+    #52b788 0%,
+    #3a8c5c 45%,
+    #2d7549 75%,
+    #1e5c34 100%
   );
 
-  /* Shadows — orange glow */
-  --shadow-card: 0 2px 12px rgba(212, 98, 12, 0.10);
-  --shadow-elevated: 0 8px 28px rgba(212, 98, 12, 0.14);
-  --shadow-amber-glow: 0 4px 18px rgba(249, 115, 22, 0.35), 0 2px 8px rgba(234, 88, 12, 0.18);
-  --shadow-amber-glow-lg: 0 12px 40px rgba(0, 0, 0, 0.10), 0 0 32px rgba(249, 115, 22, 0.14);
-  --shadow-emerald-glow: 0 0 20px rgba(104, 157, 106, 0.12);
-  --shadow-emerald-glow-sm: 0 0 12px rgba(104, 157, 106, 0.08);
+  /* Shadows — shamrock green glow */
+  --shadow-card: 0 4px 20px rgba(30, 90, 55, 0.12), 0 0 0 1px rgba(30, 90, 55, 0.05), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-elevated: 0 12px 40px rgba(30, 90, 55, 0.16), 0 0 30px rgba(82, 183, 136, 0.08);
+  --shadow-amber-glow: 0 6px 28px rgba(58, 140, 92, 0.30), 0 2px 10px rgba(30, 90, 55, 0.16);
+  --shadow-amber-glow-lg: 0 16px 50px rgba(30, 90, 55, 0.18), 0 0 50px rgba(58, 140, 92, 0.12);
+  --shadow-emerald-glow: 0 0 24px rgba(58, 140, 92, 0.22);
+  --shadow-emerald-glow-sm: 0 0 16px rgba(58, 140, 92, 0.16);
 
-  /* Navbar — frosted naranja */
-  --navbar-bg: rgba(254, 240, 218, 0.86);
-  --navbar-bg-scrolled: rgba(254, 240, 218, 0.97);
-  --navbar-border: rgba(212, 98, 12, 0.07);
-  --navbar-border-scrolled: rgba(249, 115, 22, 0.28);
-  --navbar-shadow: 0 2px 16px rgba(0, 0, 0, 0.05), 0 0 14px rgba(249, 115, 22, 0.10);
+  /* Navbar — frosted meadow with blur */
+  --navbar-bg: rgba(234, 245, 239, 0.82);
+  --navbar-bg-scrolled: rgba(234, 245, 239, 0.96);
+  --navbar-border: rgba(30, 90, 55, 0.08);
+  --navbar-border-scrolled: rgba(58, 140, 92, 0.24);
+  --navbar-shadow: 0 4px 24px rgba(30, 90, 55, 0.12), 0 0 20px rgba(82, 183, 136, 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════════
-   🍺 Theme: Stout (dark cold) — Porter, pub industrial
+   🍺 Theme: Stout (dark purple) — Porter oscuro, tinta de uva
    ═══════════════════════════════════════════════════════════ */
 [data-theme="stout"] {
-  /* Primary — cool gold on steel dark */
+  /* Primary — gold on deep purple dark */
   --color-amber-primary: #e2b83a;
   --color-amber-hover: #d4a82e;
   --color-amber-dark: #b8922a;
   --color-amber-light: #f0cc4e;
   --color-amber-muted: #fef3c7;
 
-  /* Surfaces — steel blue-gray darks */
-  --color-surface-deepest: #08090e;
-  --color-surface-dark: #12141c;
-  --color-surface-mid: #1e2130;
-  --color-surface-card: #161922;
-  --color-surface-card-alt: #0f1118;
-  --color-surface-elevated: #1e2130;
-  --color-surface-overlay: #050609;
+  /* Surfaces — deep purple darks */
+  --color-surface-deepest: #080610;
+  --color-surface-dark: #100c1a;
+  --color-surface-mid: #1a1430;
+  --color-surface-card: #13102a;
+  --color-surface-card-alt: #0c0a18;
+  --color-surface-elevated: #1a1430;
+  --color-surface-overlay: #050310;
 
-  /* Steel blue-gray — industrial */
-  --color-brown-navbar-start: #12141c;
-  --color-brown-navbar-end: #1e2130;
-  --color-brown-drawer: #0d0e14;
-  --color-brown-modal: #1e2130;
-  --color-brown-barrel-start: #0d0e14;
-  --color-brown-barrel-end: #08090e;
+  /* Deep purple — liquid dark */
+  --color-brown-navbar-start: #100c1e;
+  --color-brown-navbar-end: #1a1432;
+  --color-brown-drawer: #0c0918;
+  --color-brown-modal: #1a1432;
+  --color-brown-barrel-start: #0c0918;
+  --color-brown-barrel-end: #080610;
 
   /* Accent */
   --color-gold-nav: #e2b83a;
 
-  /* Text — cool white */
-  --color-text-primary: #eef0f6;
-  --color-text-secondary: rgba(220, 225, 240, 0.62);
-  --color-text-muted: rgba(200, 210, 230, 0.42);
-  --color-text-subtle: rgba(180, 190, 220, 0.25);
-  --color-text-ghost: rgba(160, 170, 200, 0.15);
-  --color-text-dark: #12141c;
+  /* Text — lavender white */
+  --color-text-primary: #f0eeff;
+  --color-text-secondary: rgba(220, 210, 255, 0.62);
+  --color-text-muted: rgba(200, 185, 245, 0.42);
+  --color-text-subtle: rgba(180, 160, 230, 0.25);
+  --color-text-ghost: rgba(160, 140, 210, 0.15);
+  --color-text-dark: #13102a;
 
-  /* Borders — cool steel */
-  --color-border-subtle: rgba(140, 160, 220, 0.06);
-  --color-border-light: rgba(140, 160, 220, 0.10);
-  --color-border-medium: rgba(180, 195, 240, 0.16);
+  /* Borders — violet tinted */
+  --color-border-subtle: rgba(160, 120, 255, 0.06);
+  --color-border-light: rgba(160, 120, 255, 0.11);
+  --color-border-medium: rgba(180, 140, 255, 0.18);
   --color-border-amber: rgba(226, 184, 58, 0.22);
   --color-border-emerald: rgba(52, 211, 153, 0.08);
 
-  /* Gradients — steel industrial con toque azulado */
+  /* Gradients — purple liquid magic */
   --gradient-hero:
-    radial-gradient(ellipse at 25% 18%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 25% 18%, rgba(139, 92, 246, 0.18) 0%, transparent 50%),
     radial-gradient(ellipse at 72% 75%, rgba(226, 184, 58, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 40%, rgba(79, 70, 229, 0.06) 0%, transparent 55%),
-    linear-gradient(180deg, #08090e 0%, #0e1018 25%, #1a1d2c 55%, #10121a 80%, #08090e 100%);
-  --gradient-section-dark: linear-gradient(180deg, #08090e 0%, #0c0e16 50%, #08090e 100%);
-  --gradient-footer: linear-gradient(180deg, #08090e, #030406);
+    radial-gradient(ellipse at 50% 40%, rgba(109, 40, 217, 0.10) 0%, transparent 55%),
+    linear-gradient(180deg, #08060e 0%, #0e0a1a 25%, #1a1430 55%, #100a1e 80%, #08060e 100%);
+  --gradient-section-dark: linear-gradient(180deg, #08060e 0%, #0d0a1a 50%, #08060e 100%);
+  --gradient-footer: linear-gradient(180deg, #08060e, #050212);
   --gradient-card-glass: linear-gradient(
     135deg,
-    rgba(22, 25, 34, 0.92) 0%,
-    rgba(15, 17, 24, 0.96) 100%
+    rgba(20, 16, 38, 0.92) 0%,
+    rgba(13, 10, 26, 0.96) 100%
   );
-  --gradient-card-step: linear-gradient(135deg, rgba(22, 25, 34, 0.4) 0%, rgba(8, 9, 14, 0.6) 100%);
+  --gradient-card-step: linear-gradient(135deg, rgba(20, 16, 38, 0.4) 0%, rgba(8, 6, 14, 0.6) 100%);
 
-  /* Button — cooler gold */
+  /* Button — warm gold on purple */
   --gradient-button-primary: linear-gradient(
     135deg,
     #e2b83a 0%,
@@ -419,18 +579,317 @@ html:not([data-theme]) .glass-card {
     #f0cc4e 100%
   );
 
-  /* Shadows — cold steel + subtle blue */
-  --shadow-card: 0 4px 15px rgba(0, 0, 20, 0.45);
-  --shadow-elevated: 0 16px 40px rgba(0, 0, 20, 0.45);
-  --shadow-amber-glow: 0 4px 15px rgba(226, 184, 58, 0.14), 0 0 8px rgba(99, 102, 241, 0.06);
-  --shadow-amber-glow-lg: 0 25px 60px rgba(0, 0, 20, 0.6), 0 0 50px rgba(226, 184, 58, 0.04);
+  /* Shadows — deep purple glow */
+  --shadow-card: 0 4px 15px rgba(10, 0, 30, 0.50);
+  --shadow-elevated: 0 16px 40px rgba(10, 0, 30, 0.50);
+  --shadow-amber-glow: 0 4px 15px rgba(226, 184, 58, 0.14), 0 0 8px rgba(139, 92, 246, 0.08);
+  --shadow-amber-glow-lg: 0 25px 60px rgba(5, 0, 20, 0.65), 0 0 50px rgba(139, 92, 246, 0.06);
 
-  /* Navbar — frosted steel */
-  --navbar-bg: rgba(8, 9, 14, 0.65);
-  --navbar-bg-scrolled: rgba(8, 9, 14, 0.88);
-  --navbar-border: rgba(140, 160, 220, 0.04);
-  --navbar-border-scrolled: rgba(226, 184, 58, 0.08);
-  --navbar-shadow: 0 4px 30px rgba(0, 0, 20, 0.45), 0 0 20px rgba(99, 102, 241, 0.03);
+  /* Navbar — frosted purple */
+  --navbar-bg: rgba(10, 7, 18, 0.65);
+  --navbar-bg-scrolled: rgba(10, 7, 18, 0.90);
+  --navbar-border: rgba(160, 120, 255, 0.05);
+  --navbar-border-scrolled: rgba(226, 184, 58, 0.10);
+  --navbar-shadow: 0 4px 30px rgba(10, 0, 30, 0.50), 0 0 20px rgba(139, 92, 246, 0.05);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   👑 Theme: Dorado (dark) — Epic Gold, Obsidian, 3D Magic
+   ═══════════════════════════════════════════════════════════
+   Molten gold on obsidian black. Rich, luxurious, zero green.
+   Copper/bronze secondary. Deep warm shadows with gold glow.
+   ═══════════════════════════════════════════════════════════ */
+[data-theme="dorado"] {
+  /* Primary — pure epic gold */
+  --color-amber-primary: #ffd700;
+  --color-amber-hover: #e6b800;
+  --color-amber-dark: #c9a800;
+  --color-amber-light: #ffe44d;
+  --color-amber-muted: #fff3b0;
+
+  /* Surfaces — deep obsidian (near pitch-black with warm tint) */
+  --color-surface-deepest: #030201;
+  --color-surface-dark: #0a0804;
+  --color-surface-mid: #12100a;
+  --color-surface-card: #0c0a06;
+  --color-surface-card-alt: #060504;
+  --color-surface-elevated: #141208;
+  --color-surface-overlay: #020101;
+
+  /* Warm obsidian accents (navbar, drawer) */
+  --color-brown-navbar-start: #0c0a04;
+  --color-brown-navbar-end: #181408;
+  --color-brown-drawer: #060504;
+  --color-brown-modal: #141008;
+  --color-brown-barrel-start: #060504;
+  --color-brown-barrel-end: #030201;
+
+  /* Accent — teal-mint (gold + mint = luxury) */
+  --color-gold-nav: #ffd700;
+  --color-emerald: #5eead4;
+  --color-emerald-dark: #2dd4bf;
+  --color-emerald-darker: #14b8a6;
+  --color-orange-cta: #f59e0b;
+  --color-orange-cta-hover: #d97706;
+  --color-error: #ef4444;
+  --color-error-dark: #dc2626;
+  --color-info: #5eead4;
+
+  /* Text — warm cream-white */
+  --color-text-primary: #fff8e1;
+  --color-text-secondary: rgba(255, 248, 225, 0.65);
+  --color-text-muted: rgba(255, 240, 200, 0.42);
+  --color-text-subtle: rgba(255, 230, 180, 0.25);
+  --color-text-ghost: rgba(255, 220, 160, 0.15);
+  --color-text-dark: #0c0a06;
+
+  /* Borders — gold + hint of mint */
+  --color-border-subtle: rgba(255, 215, 0, 0.05);
+  --color-border-light: rgba(255, 215, 0, 0.10);
+  --color-border-medium: rgba(255, 215, 0, 0.18);
+  --color-border-amber: rgba(255, 215, 0, 0.30);
+  --color-border-emerald: rgba(94, 234, 212, 0.12);
+
+  /* Gradients — molten gold on deep obsidian + mint glow */
+  --gradient-hero:
+    radial-gradient(ellipse at 25% 15%, rgba(255, 215, 0, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 78% 82%, rgba(94, 234, 212, 0.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 40%, rgba(230, 184, 0, 0.05) 0%, transparent 55%),
+    linear-gradient(180deg, #020101 0%, #0a0804 25%, #12100a 55%, #060504 80%, #020101 100%);
+  --gradient-section-dark: linear-gradient(180deg, #020101 0%, #080604 50%, #020101 100%);
+  --gradient-section-darker: linear-gradient(180deg, #030201 0%, #020101 100%);
+  --gradient-footer: linear-gradient(180deg, #020101, #010100);
+  --gradient-card-glass: linear-gradient(
+    135deg,
+    rgba(12, 10, 6, 0.94) 0%,
+    rgba(6, 5, 4, 0.97) 100%
+  );
+  --gradient-card-step: linear-gradient(135deg, rgba(18, 16, 10, 0.45) 0%, rgba(3, 2, 1, 0.65) 100%);
+
+  /* Heading gradient — liquid gold shimmer */
+  --gradient-heading: linear-gradient(135deg, #c9a800 0%, #ffd700 40%, #ffe44d 70%, #ffd700 100%);
+
+  /* Button — molten gold */
+  --gradient-button-primary: linear-gradient(
+    135deg,
+    #ffe44d 0%,
+    #ffd700 30%,
+    #e6b800 60%,
+    #c9a800 100%
+  );
+
+  /* Shadows — abyss-deep obsidian with gold + mint glow */
+  --shadow-card: 0 4px 18px rgba(0, 0, 0, 0.70);
+  --shadow-elevated: 0 16px 44px rgba(0, 0, 0, 0.75);
+  --shadow-amber-glow: 0 4px 20px rgba(255, 215, 0, 0.18), 0 0 12px rgba(94, 234, 212, 0.04);
+  --shadow-amber-glow-lg: 0 25px 60px rgba(0, 0, 0, 0.80), 0 0 60px rgba(255, 215, 0, 0.05);
+  --shadow-emerald-glow: 0 0 20px rgba(94, 234, 212, 0.15);
+  --shadow-emerald-glow-sm: 0 0 12px rgba(94, 234, 212, 0.10);
+
+  /* Navbar — frosted obsidian */
+  --navbar-bg: rgba(3, 2, 1, 0.75);
+  --navbar-bg-scrolled: rgba(3, 2, 1, 0.94);
+  --navbar-border: rgba(255, 215, 0, 0.03);
+  --navbar-border-scrolled: rgba(255, 215, 0, 0.12);
+  --navbar-shadow: 0 4px 30px rgba(0, 0, 0, 0.70), 0 0 20px rgba(255, 215, 0, 0.03);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🔮 Theme: Haze (light) — Purple Pastel, Holographic Aurora, 3D Magic
+   ═══════════════════════════════════════════════════════════
+   Soft lavender-lilac background with holographic aurora effects,
+   prismatic glass cards, pink-cyan accents, and dreamy 3D floating.
+   Inspired by the hazy, ethereal glow of a Hazy IPA.
+   ═══════════════════════════════════════════════════════════ */
+[data-theme="haze"] {
+  /* Primary — vivid violet-purple */
+  --color-amber-primary: #8b5cf6;
+  --color-amber-hover:   #7c3aed;
+  --color-amber-dark:    #6d28d9;
+  --color-amber-light:   #a78bfa;
+  --color-amber-muted:   #ddd6fe;
+
+  /* Surfaces — soft lavender-lilac pastel */
+  --color-surface-deepest: #ede5ff;
+  --color-surface-dark:    #f3efff;
+  --color-surface-mid:     #e8dff8;
+  --color-surface-card:    #faf7ff;
+  --color-surface-card-alt:#f3efff;
+  --color-surface-elevated:#fcfaff;
+  --color-surface-overlay: #ede5ff;
+
+  /* Warm lavender accents (navbar, drawer) */
+  --color-brown-navbar-start: #f3efff;
+  --color-brown-navbar-end:   #e8dff8;
+  --color-brown-drawer:  #faf7ff;
+  --color-brown-modal:   #faf7ff;
+  --color-brown-barrel-start: #ede5ff;
+  --color-brown-barrel-end:   #e8dff8;
+
+  /* Accent colors — pink + cyan aurora */
+  --color-gold-nav: #8b5cf6;
+  --color-emerald: #06b6d4;
+  --color-emerald-dark: #0891b2;
+  --color-emerald-darker: #0e7490;
+  --color-orange-cta: #ec4899;
+  --color-orange-cta-hover: #db2777;
+  --color-error: #ef4444;
+  --color-error-dark: #dc2626;
+  --color-info: #3b82f6;
+
+  /* Text — deep cosmic purple, high contrast on lavender */
+  --color-text-primary:   #1a1028;
+  --color-text-secondary: rgba(26, 16, 40, 0.70);
+  --color-text-muted:     rgba(26, 16, 40, 0.45);
+  --color-text-subtle:    rgba(26, 16, 40, 0.26);
+  --color-text-ghost:     rgba(26, 16, 40, 0.13);
+  --color-text-dark:      #faf7ff;
+
+  /* Borders — soft violet, crisp */
+  --color-border-subtle:  rgba(139, 92, 246, 0.08);
+  --color-border-light:   rgba(139, 92, 246, 0.15);
+  --color-border-medium:  rgba(26, 16, 40, 0.16);
+  --color-border-amber:   rgba(139, 92, 246, 0.30);
+  --color-border-emerald: rgba(6, 182, 212, 0.22);
+
+  /* Gradients — aurora holographic with pink-cyan crossover */
+  --gradient-hero:
+    radial-gradient(ellipse at 10% 15%, rgba(236, 72, 153, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 80%, rgba(6, 182, 212, 0.22) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 30%, rgba(139, 92, 246, 0.20) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 15%, rgba(167, 139, 250, 0.14) 0%, transparent 40%),
+    radial-gradient(ellipse at 30% 85%, rgba(236, 72, 153, 0.10) 0%, transparent 40%),
+    linear-gradient(160deg, #f3efff 0%, #ede5ff 20%, #e8dff8 45%, #ede5ff 70%, #f3efff 100%);
+  --gradient-section-dark: linear-gradient(
+    180deg,
+    #e8dff8 0%,
+    #f3efff 50%,
+    #e8dff8 100%
+  );
+  --gradient-section-darker: linear-gradient(180deg, #ede5ff 0%, #e8dff8 100%);
+  --gradient-footer: linear-gradient(
+    180deg,
+    #e8dff8 0%,
+    #e0d5f2 100%
+  );
+  --gradient-card-glass: linear-gradient(
+    135deg,
+    rgba(250, 247, 255, 0.92) 0%,
+    rgba(243, 239, 255, 0.97) 100%
+  );
+  --gradient-card-step: linear-gradient(
+    135deg,
+    rgba(232, 223, 248, 0.50) 0%,
+    rgba(250, 247, 255, 0.70) 100%
+  );
+
+  /* Heading gradient — violet → pink → cyan aurora */
+  --gradient-heading: linear-gradient(135deg, #7c3aed 0%, #ec4899 45%, #06b6d4 100%);
+
+  /* Button — aurora gradient: purple → pink → cyan */
+  --gradient-button-primary: linear-gradient(
+    135deg,
+    #8b5cf6 0%,
+    #a855f7 25%,
+    #ec4899 55%,
+    #06b6d4 100%
+  );
+
+  /* Shadows — soft violet glow with holographic pink hints */
+  --shadow-card: 0 4px 20px rgba(139, 92, 246, 0.10), 0 0 0 1px rgba(139, 92, 246, 0.04), 0 1px 3px rgba(0,0,0,0.03);
+  --shadow-elevated: 0 12px 40px rgba(139, 92, 246, 0.14), 0 0 30px rgba(236, 72, 153, 0.06);
+  --shadow-amber-glow: 0 6px 28px rgba(139, 92, 246, 0.28), 0 2px 10px rgba(236, 72, 153, 0.12);
+  --shadow-amber-glow-lg: 0 16px 50px rgba(109, 40, 217, 0.16), 0 0 50px rgba(236, 72, 153, 0.10);
+  --shadow-emerald-glow: 0 0 24px rgba(6, 182, 212, 0.18);
+  --shadow-emerald-glow-sm: 0 0 16px rgba(6, 182, 212, 0.14);
+
+  /* Navbar — frosted lavender with aurora tint */
+  --navbar-bg: rgba(243, 239, 255, 0.78);
+  --navbar-bg-scrolled: rgba(243, 239, 255, 0.95);
+  --navbar-border: rgba(139, 92, 246, 0.06);
+  --navbar-border-scrolled: rgba(139, 92, 246, 0.18);
+  --navbar-shadow: 0 4px 24px rgba(109, 40, 217, 0.08), 0 0 20px rgba(236, 72, 153, 0.06);
+}
+
+/* Haze glass-card — Prismatic Holographic Liquid Glass */
+[data-theme="haze"] .glass-card {
+  background: rgba(250, 247, 255, 0.58);
+  backdrop-filter: blur(44px) saturate(240%) brightness(1.08);
+  -webkit-backdrop-filter: blur(44px) saturate(240%) brightness(1.08);
+  border-color: rgba(220, 200, 255, 0.80);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 252, 255, 0.95),
+    inset 1.5px 0 0 rgba(240, 230, 255, 0.65),
+    inset 0 -1px 0 rgba(139, 92, 246, 0.10),
+    0 10px 40px rgba(109, 40, 217, 0.08),
+    0 4px 16px rgba(236, 72, 153, 0.05),
+    0 20px 60px rgba(0, 0, 0, 0.03);
+  position: relative;
+  isolation: isolate;
+  transform: translateZ(0);
+  transition: box-shadow 0.4s ease, transform 0.3s ease;
+}
+
+[data-theme="haze"] .glass-card:hover {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 252, 255, 0.95),
+    inset 1.5px 0 0 rgba(240, 230, 255, 0.65),
+    inset 0 -1px 0 rgba(139, 92, 246, 0.14),
+    0 14px 50px rgba(109, 40, 217, 0.12),
+    0 6px 20px rgba(236, 72, 153, 0.08),
+    0 24px 70px rgba(0, 0, 0, 0.05),
+    0 0 30px rgba(6, 182, 212, 0.04);
+  transform: translateY(-2px) translateZ(0);
+}
+
+/* Prismatic aurora sweep inside glass cards */
+[data-theme="haze"] .glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    108deg,
+    transparent 8%,
+    rgba(167, 139, 250, 0.22) 22%,
+    rgba(236, 72, 153, 0.12) 38%,
+    rgba(6, 182, 212, 0.10) 52%,
+    rgba(139, 92, 246, 0.18) 68%,
+    rgba(236, 72, 153, 0.08) 82%,
+    transparent 92%
+  );
+  background-size: 350% 100%;
+  animation: glass-liquid-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* 3D frosted top-edge highlight — holographic sheen */
+[data-theme="haze"] .glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.00) 35%,
+    rgba(6, 182, 212, 0.03) 70%,
+    rgba(236, 72, 153, 0.02) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="haze"] .glass-pill {
+  background: rgba(250, 247, 255, 0.70);
+  backdrop-filter: blur(26px) saturate(220%) brightness(1.06);
+  -webkit-backdrop-filter: blur(26px) saturate(220%) brightness(1.06);
+  border-color: rgba(220, 200, 255, 0.75);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 252, 255, 0.90),
+    0 6px 22px rgba(109, 40, 217, 0.08),
+    0 2px 8px rgba(236, 72, 153, 0.05);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -548,7 +1007,7 @@ html:not([data-theme]) .glass-card {
   }
 }
 
-/* Lager magic: animated Gruvbox shift on gradient elements */
+/* Lager magic: animated gradient shift on gradient elements */
 @keyframes lagerGruvboxShift {
   0%,
   100% {
@@ -565,6 +1024,131 @@ html:not([data-theme]) .glass-card {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   Haze contrast bridge
+   ═══════════════════════════════════════════════════════════
+   Remap Tailwind white utilities to dark purple for contrast
+   on lavender backgrounds.
+*/
+[data-theme="haze"] {
+  .text-white {
+    color: var(--color-text-primary) !important;
+  }
+  .text-white\/80 {
+    color: rgba(26, 16, 40, 0.82) !important;
+  }
+  .text-white\/60 {
+    color: rgba(26, 16, 40, 0.70) !important;
+  }
+  .text-white\/50 {
+    color: rgba(26, 16, 40, 0.64) !important;
+  }
+  .text-white\/45 {
+    color: rgba(26, 16, 40, 0.60) !important;
+  }
+  .text-white\/40 {
+    color: rgba(26, 16, 40, 0.54) !important;
+  }
+  .text-white\/35 {
+    color: rgba(26, 16, 40, 0.48) !important;
+  }
+  .text-white\/25 {
+    color: rgba(26, 16, 40, 0.36) !important;
+  }
+  .text-white\/15 {
+    color: rgba(26, 16, 40, 0.24) !important;
+  }
+
+  .border-white\/40 {
+    border-color: rgba(26, 16, 40, 0.20) !important;
+  }
+  .border-white\/20 {
+    border-color: rgba(26, 16, 40, 0.13) !important;
+  }
+  .border-white\/10 {
+    border-color: rgba(26, 16, 40, 0.08) !important;
+  }
+  .border-white\/5 {
+    border-color: rgba(26, 16, 40, 0.06) !important;
+  }
+
+  .bg-white\/10 {
+    background-color: rgba(26, 16, 40, 0.07) !important;
+  }
+  .bg-white\/5 {
+    background-color: rgba(26, 16, 40, 0.04) !important;
+  }
+  .bg-white\/\[0\.03\] {
+    background-color: rgba(26, 16, 40, 0.025) !important;
+  }
+  .hover\:bg-white\/10:hover {
+    background-color: rgba(26, 16, 40, 0.08) !important;
+  }
+  .hover\:bg-white\/5:hover {
+    background-color: rgba(26, 16, 40, 0.06) !important;
+  }
+
+  .group:hover .group-hover\:border-white\/10 {
+    border-color: rgba(26, 16, 40, 0.08) !important;
+  }
+
+  /* Amber utilities → violet on lavender */
+  .text-amber-200\/60 {
+    color: rgba(109, 40, 217, 0.72) !important;
+  }
+  .text-amber-400\/80 {
+    color: rgba(109, 40, 217, 0.88) !important;
+  }
+  .text-amber-400\/10 {
+    color: rgba(109, 40, 217, 0.22) !important;
+  }
+  .text-amber-400\/15 {
+    color: rgba(109, 40, 217, 0.36) !important;
+  }
+
+  .border-amber-400\/20 {
+    border-color: rgba(109, 40, 217, 0.28) !important;
+  }
+  .hover\:border-amber-400\/15:hover {
+    border-color: rgba(109, 40, 217, 0.28) !important;
+  }
+
+  .bg-amber-400\/5 {
+    background-color: rgba(139, 92, 246, 0.07) !important;
+  }
+  .bg-amber-400\/20 {
+    background-color: rgba(139, 92, 246, 0.12) !important;
+  }
+
+  /* CTA buttons: white text on aurora gradient */
+  button.text-black,
+  a.text-black {
+    color: #ffffff !important;
+  }
+}
+
+/* Haze magic: aurora holographic shift on gradient elements */
+@keyframes hazeAuroraShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  33% {
+    background-position: 50% 100%;
+    filter: hue-rotate(15deg);
+  }
+  66% {
+    background-position: 100% 50%;
+    filter: hue-rotate(-10deg);
+  }
+}
+
+[data-theme="haze"] [style*="gradient-button-primary"] {
+  background-size: 250% 250% !important;
+  animation: hazeAuroraShift 6s ease-in-out infinite !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
    Base Resets
    ═══════════════════════════════════════════════════════════ */
 *,
@@ -576,8 +1160,8 @@ html:not([data-theme]) .glass-card {
 html {
   scroll-behavior: smooth;
   font-size: 17px; /* +1px base — escala todos los rem (text-sm, text-xs, etc.) */
-  /* Prevent amber flash before CSS custom properties resolve */
-  background-color: #160800;
+  /* Prevent flash before CSS custom properties resolve — matches stout default */
+  background-color: #0c0a14;
 }
 
 /* Hide native cursor on desktop when custom cursor is active */
@@ -590,7 +1174,7 @@ body {
   background: var(--gradient-body);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
-  font-weight: 500; /* ligeramente más grueso que el default 400 */
+  font-weight: 600;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -601,11 +1185,100 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Heading typography — uses Outfit for premium feel */
+.home-content-shell {
+  width: 100%;
+  max-width: 68rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .home-content-shell {
+    padding-inline: 2rem;
+  }
+}
+
+/* Heading typography — uses Outfit, extra black */
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+}
+
+/* Paragraphs — larger base, semibold */
+p {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  font-weight: 600;
+}
+
+strong, b {
+  font-weight: 800;
+}
+
+/* Lager: bolder, crisper text rendering */
+[data-theme="lager"] body {
+  font-weight: 600;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+[data-theme="lager"] h1,
+[data-theme="lager"] h2,
+[data-theme="lager"] h3,
+[data-theme="lager"] h4,
+[data-theme="lager"] h5,
+[data-theme="lager"] h6 {
+  font-weight: 900;
+  letter-spacing: -0.025em;
+}
+
+[data-theme="lager"] p,
+[data-theme="lager"] span,
+[data-theme="lager"] a,
+[data-theme="lager"] label,
+[data-theme="lager"] li,
+[data-theme="lager"] button {
+  font-weight: 600;
+}
+
+[data-theme="lager"] strong,
+[data-theme="lager"] b {
+  font-weight: 800;
+}
+
+/* Haze: bold, crisp text rendering */
+[data-theme="haze"] body {
+  font-weight: 600;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+[data-theme="haze"] h1,
+[data-theme="haze"] h2,
+[data-theme="haze"] h3,
+[data-theme="haze"] h4,
+[data-theme="haze"] h5,
+[data-theme="haze"] h6 {
+  font-weight: 900;
+  letter-spacing: -0.025em;
+}
+
+[data-theme="haze"] p,
+[data-theme="haze"] span,
+[data-theme="haze"] a,
+[data-theme="haze"] label,
+[data-theme="haze"] li,
+[data-theme="haze"] button {
+  font-weight: 600;
+}
+
+[data-theme="haze"] strong,
+[data-theme="haze"] b {
+  font-weight: 800;
 }
 
 /* ─── Scrollbar ─── */
@@ -688,15 +1361,236 @@ select {
   }
 }
 
-/* Lager theme: violet-amber focus glow */
+/* Lager theme: warm peach-orange + grass focus glow */
 [data-theme="lager"] {
+  .MuiTextField-root .MuiOutlinedInput-root {
+    background: rgba(255, 250, 245, 0.80) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    border-radius: 16px !important;
+    transition: box-shadow 0.35s ease, transform 0.25s ease, border-color 0.3s ease !important;
+  }
+
   .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12), 0 0 16px rgba(124, 58, 237, 0.06) !important;
+    box-shadow:
+      0 0 0 3px rgba(232, 113, 58, 0.14),
+      0 0 20px rgba(245, 149, 92, 0.10),
+      0 0 40px rgba(76, 175, 80, 0.05) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .MuiTextField-root .MuiOutlinedInput-root:hover:not(.Mui-focused) {
+    box-shadow: 0 4px 16px rgba(232, 113, 58, 0.08) !important;
   }
 
   input:focus,
   textarea:focus,
   select:focus {
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1), 0 0 12px rgba(124, 58, 237, 0.05);
+    box-shadow:
+      0 0 0 3px rgba(232, 113, 58, 0.12),
+      0 0 16px rgba(245, 149, 92, 0.08),
+      0 0 32px rgba(76, 175, 80, 0.04);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ✨ Magic Input / Form Styles — All themes
+   ═══════════════════════════════════════════════════════════ */
+
+/* Magic border rotation for newsletter + special inputs */
+@keyframes magic-border-rotate {
+  0%   { --magic-angle: 0deg; }
+  100% { --magic-angle: 360deg; }
+}
+
+/* Lager-specific liquid glass inputs */
+[data-theme="lager"] .magic-input-wrapper input,
+[data-theme="lager"] .magic-input-wrapper textarea {
+  background: rgba(255, 250, 245, 0.70) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 14px;
+  transition: background 0.3s ease, box-shadow 0.35s ease;
+}
+
+[data-theme="lager"] .magic-input-wrapper input:focus,
+[data-theme="lager"] .magic-input-wrapper textarea:focus {
+  background: rgba(255, 252, 250, 0.85) !important;
+  box-shadow:
+    0 0 0 2px rgba(232, 113, 58, 0.15),
+    0 4px 24px rgba(245, 149, 92, 0.12),
+    0 0 40px rgba(76, 175, 80, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.60);
+}
+
+/* Glass effect for all form containers in lager */
+[data-theme="lager"] form {
+  position: relative;
+}
+
+/* Lager buttons: liquid glass 3D depth */
+[data-theme="lager"] [style*="gradient-button-primary"] {
+  box-shadow:
+    0 6px 24px rgba(232, 113, 58, 0.28),
+    0 2px 8px rgba(200, 90, 40, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transition: box-shadow 0.3s ease, transform 0.25s ease !important;
+}
+
+[data-theme="lager"] [style*="gradient-button-primary"]:hover {
+  box-shadow:
+    0 8px 32px rgba(232, 113, 58, 0.35),
+    0 4px 14px rgba(200, 90, 40, 0.20),
+    0 0 20px rgba(76, 175, 80, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Haze theme: form + input magic
+   ═══════════════════════════════════════════════════════════ */
+
+/* Haze: holographic aurora focus glow */
+[data-theme="haze"] {
+  .MuiTextField-root .MuiOutlinedInput-root {
+    background: rgba(250, 247, 255, 0.75) !important;
+    backdrop-filter: blur(18px) saturate(200%) !important;
+    border-radius: 16px !important;
+    transition: box-shadow 0.35s ease, transform 0.25s ease, border-color 0.3s ease !important;
+  }
+
+  .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+    box-shadow:
+      0 0 0 3px rgba(139, 92, 246, 0.14),
+      0 0 20px rgba(167, 139, 250, 0.10),
+      0 0 40px rgba(236, 72, 153, 0.05),
+      0 0 60px rgba(6, 182, 212, 0.03) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .MuiTextField-root .MuiOutlinedInput-root:hover:not(.Mui-focused) {
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.07) !important;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    box-shadow:
+      0 0 0 3px rgba(139, 92, 246, 0.12),
+      0 0 16px rgba(167, 139, 250, 0.08),
+      0 0 32px rgba(236, 72, 153, 0.04);
+  }
+}
+
+/* Haze-specific liquid glass inputs */
+[data-theme="haze"] .magic-input-wrapper input,
+[data-theme="haze"] .magic-input-wrapper textarea {
+  background: rgba(250, 247, 255, 0.65) !important;
+  backdrop-filter: blur(22px) saturate(200%);
+  -webkit-backdrop-filter: blur(22px) saturate(200%);
+  border-radius: 14px;
+  transition: background 0.3s ease, box-shadow 0.35s ease;
+}
+
+[data-theme="haze"] .magic-input-wrapper input:focus,
+[data-theme="haze"] .magic-input-wrapper textarea:focus {
+  background: rgba(252, 250, 255, 0.82) !important;
+  box-shadow:
+    0 0 0 2px rgba(139, 92, 246, 0.14),
+    0 4px 24px rgba(167, 139, 250, 0.10),
+    0 0 40px rgba(236, 72, 153, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+/* Haze buttons: aurora holographic 3D depth */
+[data-theme="haze"] [style*="gradient-button-primary"] {
+  box-shadow:
+    0 6px 24px rgba(139, 92, 246, 0.25),
+    0 2px 8px rgba(236, 72, 153, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30) !important;
+  transition: box-shadow 0.3s ease, transform 0.25s ease !important;
+}
+
+[data-theme="haze"] [style*="gradient-button-primary"]:hover {
+  box-shadow:
+    0 8px 32px rgba(139, 92, 246, 0.32),
+    0 4px 14px rgba(236, 72, 153, 0.16),
+    0 0 20px rgba(6, 182, 212, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Dorado theme: form + input + button magic
+   ═══════════════════════════════════════════════════════════ */
+
+/* Dorado: gold + mint focus glow on inputs */
+[data-theme="dorado"] {
+  .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+    box-shadow:
+      0 0 0 3px rgba(255, 215, 0, 0.12),
+      0 0 20px rgba(255, 215, 0, 0.08),
+      0 0 40px rgba(94, 234, 212, 0.04) !important;
+  }
+
+  .MuiTextField-root .MuiOutlinedInput-root:hover:not(.Mui-focused) {
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.05) !important;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    box-shadow:
+      0 0 0 3px rgba(255, 215, 0, 0.10),
+      0 0 16px rgba(255, 215, 0, 0.06),
+      0 0 32px rgba(94, 234, 212, 0.03);
+  }
+}
+
+/* Dorado: molten gold magic inputs */
+[data-theme="dorado"] .magic-input-wrapper input,
+[data-theme="dorado"] .magic-input-wrapper textarea {
+  transition: background 0.3s ease, box-shadow 0.35s ease;
+}
+
+[data-theme="dorado"] .magic-input-wrapper input:focus,
+[data-theme="dorado"] .magic-input-wrapper textarea:focus {
+  box-shadow:
+    0 0 0 2px rgba(255, 215, 0, 0.14),
+    0 4px 24px rgba(255, 215, 0, 0.08),
+    0 0 40px rgba(94, 234, 212, 0.04),
+    inset 0 1px 0 rgba(255, 230, 100, 0.08);
+}
+
+/* Dorado buttons: molten gold 3D depth + mint hint */
+[data-theme="dorado"] [style*="gradient-button-primary"] {
+  box-shadow:
+    0 6px 28px rgba(255, 215, 0, 0.20),
+    0 2px 10px rgba(201, 168, 0, 0.12),
+    inset 0 1px 0 rgba(255, 230, 100, 0.18) !important;
+  transition: box-shadow 0.3s ease, transform 0.25s ease !important;
+}
+
+[data-theme="dorado"] [style*="gradient-button-primary"]:hover {
+  box-shadow:
+    0 8px 36px rgba(255, 215, 0, 0.28),
+    0 4px 16px rgba(201, 168, 0, 0.16),
+    0 0 28px rgba(94, 234, 212, 0.06),
+    inset 0 1px 0 rgba(255, 230, 100, 0.22) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Dorado magic: animated molten gold shift */
+@keyframes doradoGoldShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+[data-theme="dorado"] [style*="gradient-button-primary"] {
+  background-size: 200% 200% !important;
+  animation: doradoGoldShift 4s ease-in-out infinite !important;
 }

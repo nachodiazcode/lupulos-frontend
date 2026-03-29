@@ -4,6 +4,8 @@ import { Outfit } from "next/font/google";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import { ReactQueryProvider } from "@/components/ReactQueryProvider";
 import AppLoader from "@/components/AppLoader";
+import { AuthProvider } from "@/context/AuthContext";
+import "leaflet/dist/leaflet.css";
 import "./globals.scss";
 
 const geistSans = Geist({
@@ -45,11 +47,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
       >
-        <ReactQueryProvider>
-          <ThemeRegistry>
-            <AppLoader>{children}</AppLoader>
-          </ThemeRegistry>
-        </ReactQueryProvider>
+        <AuthProvider>
+          <ReactQueryProvider>
+            <ThemeRegistry>
+              <AppLoader>{children}</AppLoader>
+            </ThemeRegistry>
+          </ReactQueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );

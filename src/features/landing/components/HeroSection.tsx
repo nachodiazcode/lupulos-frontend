@@ -52,24 +52,24 @@ const statChips = [
    Word Cycler
    ═══════════════════════════════════ */
 
-const CYCLING_WORDS = [
-  "artesanal,", "que amaste,", "con historia,", "imposible,", "perfecta,", "chilena 🇨🇱",
+const BEER_STYLES = [
+  "Ámbar", "Stout", "Lager", "IPA",
 ] as const;
 
-function WordCycler() {
+function BeerStyleCycler() {
   const [wordIdx, setWordIdx] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const currentWord = CYCLING_WORDS[wordIdx];
+    const currentWord = BEER_STYLES[wordIdx];
     let timeout: NodeJS.Timeout;
 
     if (!isDeleting && displayText === currentWord) {
       timeout = setTimeout(() => setIsDeleting(true), 1800);
     } else if (isDeleting && displayText === "") {
       setIsDeleting(false);
-      setWordIdx((i) => (i + 1) % CYCLING_WORDS.length);
+      setWordIdx((i) => (i + 1) % BEER_STYLES.length);
     } else if (isDeleting) {
       timeout = setTimeout(() => {
         setDisplayText(currentWord.substring(0, displayText.length - 1));
@@ -84,9 +84,9 @@ function WordCycler() {
   }, [displayText, isDeleting, wordIdx]);
 
   return (
-    <span className="relative inline-block" aria-live="polite">
+    <span className="relative inline-block align-baseline" aria-live="polite" style={{ minWidth: "8ch" }}>
       <span
-        className="font-black"
+        className="font-black inline-block align-baseline"
         style={{
           background: "linear-gradient(135deg, #ea580c, #f97316, #fbbf24, #c084fc, #a855f7, #7c3aed, #ea580c)",
           backgroundSize: "300% 300%",
@@ -220,15 +220,67 @@ export default function HeroSection() {
       )}
 
       {/* ─── Content ─── */}
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-8 sm:py-10">
-        <div className="flex flex-col items-center gap-12 text-center lg:flex-row lg:items-center lg:justify-end lg:gap-16 lg:text-left">
+      <div className="home-content-shell relative z-10 py-8 sm:py-10 lg:py-14">
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1fr)] lg:gap-9 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.02fr)] xl:gap-12">
 
-          {/* ── RIGHT: Text ── */}
-          <div className="flex w-full flex-col lg:max-w-2xl">
+          {/* ── LEFT: Hero image ── */}
+          <motion.div
+            initial={{ opacity: 0, x: -24, scale: 0.97 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ delay: 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="relative mx-auto w-full max-w-sm lg:max-w-none lg:mt-12"
+          >
+            <div
+              className="pointer-events-none absolute -inset-4 rounded-[2rem] blur-3xl"
+              style={{
+                background:
+                  "radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--color-amber-primary) 18%, transparent), transparent 70%)",
+                opacity: 0.7,
+              }}
+              aria-hidden="true"
+            />
+
+            <div
+              className="glass-card relative overflow-hidden rounded-[2rem] border p-2"
+              style={{
+                borderColor: "var(--color-border-light)",
+                boxShadow: "var(--shadow-elevated)",
+              }}
+            >
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem]">
+                <Image
+                  src="/assets/vikingos-cerveza.jpg"
+                  alt="Cerveceros disfrutando cerveza artesanal"
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 38vw"
+                />
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--color-surface-overlay) 88%, transparent) 100%)",
+                  }}
+                />
+                <div className="absolute right-4 bottom-4 left-4 flex items-end justify-between gap-3">
+                  <span
+                    className="glass-pill rounded-full px-3 py-2 text-[14px] font-semibold leading-snug"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
+                    Impresionante, así que esta app se llama Lúpulos amigo Knut, es un honor pertenecer aquí y encontrar el brebaje para la fiesta del dios de dioses
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── RIGHT: Text + AI ── */}
+          <div className="mx-auto flex w-full max-w-[34rem] flex-col text-center lg:mx-0 lg:max-w-[35rem] lg:text-left xl:max-w-[37rem]">
 
             {/* Badge */}
             <motion.span
-              className="mb-5 inline-block self-center rounded-full border px-5 py-2 text-sm font-medium tracking-wide uppercase lg:self-start"
+              className="inline-block rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase backdrop-blur-sm"
               style={{
                 borderColor: "var(--color-border-amber)",
                 background: "rgba(249,115,22,0.1)",
@@ -238,43 +290,41 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
             >
-              La comunidad craft más grande de Chile 🇨🇱
+              LA NUEVA COMUNIDAD CERVECERA, TE ESPERA!
             </motion.span>
 
             {/* H1 */}
             <motion.h1
-              className="text-text-primary text-3xl leading-[1.05] font-black tracking-tighter sm:text-4xl md:text-[3rem] lg:text-[3.4rem]"
+              className="text-text-primary mt-2 text-[2.45rem] leading-[1.03] font-black tracking-[-0.05em] sm:text-[2.8rem] md:text-[2.95rem] lg:text-[3.05rem] xl:text-[3.35rem] 2xl:text-[3.55rem]"
               style={{ textShadow: "0.6px 0.6px 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor" }}
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.22, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
             >
-              Tu próxima cerveza<br />
-              <WordCycler /><br />
-              te espera aquí.
+              ¿Listo para tu primera ronda? <BeerStyleCycler />
             </motion.h1>
             {/* Subtitle */}
             <motion.p
-              className="text-text-secondary mt-3 max-w-lg text-base font-semibold leading-relaxed lg:text-lg"
+              className="text-text-secondary mt-4 max-w-[35rem] text-[0.95rem] font-semibold leading-[1.72] sm:text-[0.98rem] lg:text-[1rem]"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.36, duration: 0.6 }}
             >
-              1.200 cervezas artesanales. 280 cervecerías con alma. Una IA que aprende tu paladar con cada sorbo. Y una comunidad de 8.500 cerveceros que ya cambiaron la forma de vivir la cerveza craft en Chile.
+              Descubre cervezas de tierras lejanas jamás vistas. Comparte tu brindis memorable, tus sensaciones, tu cerveza favorita. Los dioses estarán complacidos, de tenerte en este lugar.
             </motion.p>
 
             {/* CTAs */}
             <motion.div
-              className="mt-6 flex flex-col items-center gap-3 sm:flex-row lg:items-start"
+              className="mt-6 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center lg:items-start"
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.48, duration: 0.55 }}
             >
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
                 <Link
                   href="/auth/register"
                   prefetch
-                  className="group relative overflow-hidden rounded-full px-10 py-4 text-center text-base font-bold shadow-xl transition-all duration-300"
+                  className="group relative block w-full overflow-hidden rounded-full px-7 py-3 text-center text-sm font-bold shadow-xl transition-all duration-300 sm:inline-block sm:w-auto sm:px-8 sm:text-[15px]"
                   style={{
                     background: "linear-gradient(135deg, #f97316, #ea580c)",
                     color: "#ffffff",
@@ -289,11 +339,11 @@ export default function HeroSection() {
                 </Link>
               </motion.div>
 
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
                 <Link
                   href="/cervezas"
                   prefetch
-                  className="rounded-full border px-10 py-4 text-center text-base font-medium transition-all duration-300"
+                  className="block w-full rounded-full border px-7 py-3 text-center text-sm font-medium transition-all duration-300 sm:inline-block sm:w-auto sm:px-8 sm:text-[15px]"
                   style={{
                     borderColor: "var(--color-border-amber)",
                     background: "rgba(249,115,22,0.07)",
@@ -305,82 +355,29 @@ export default function HeroSection() {
               </motion.div>
             </motion.div>
 
-            {/* Social proof: avatars */}
+            {/* ── Divider + AI Prompt Bar ── */}
             <motion.div
-              className="mt-6 flex items-center justify-center gap-3 lg:justify-start"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.62, duration: 0.6 }}
-            >
-              <div className="flex -space-x-2">
-                {avatarNames.map((name, idx) => (
-                  <motion.div
-                    key={name}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.68 + idx * 0.08, type: "spring", stiffness: 400, damping: 15 }}
-                    whileHover={{ scale: 1.2, y: -4, zIndex: 10 }}
-                  >
-                    <Image
-                      src={`/assets/avatars/${name}.png`}
-                      alt={name}
-                      width={32}
-                      height={32}
-                      className="rounded-full border-2"
-                      style={{ width: 32, height: 32, objectFit: "cover", borderColor: "#f97316" }}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-              <p className="text-base" style={{ color: "var(--color-text-muted)" }}>
-                <span style={{ color: "var(--color-amber-primary)", fontWeight: 600 }}>8.500+</span> se unieron este mes
-              </p>
-            </motion.div>
-
-            {/* Stat chips */}
-            <motion.div
-              className="mt-5 flex flex-wrap justify-center gap-2.5 lg:justify-start"
-              initial={{ opacity: 0, y: 10 }}
+              className="mt-6"
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.76, duration: 0.5 }}
+              transition={{ delay: 0.88, duration: 0.55 }}
             >
-              {statChips.map((chip) => (
-                <div
-                  key={chip.label}
-                  className="glass-pill flex items-center gap-2 rounded-full px-4 py-2 text-sm"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  <span>{chip.icon}</span>
-                  <span style={{ color: "var(--color-amber-primary)", fontWeight: 700 }}>{chip.value}</span>
-                  <span>{chip.label}</span>
-                </div>
-              ))}
+              <motion.div
+                className="mx-auto mb-4 h-px w-full max-w-xl lg:mx-0"
+                style={{
+                  background: "linear-gradient(90deg, rgba(249,115,22,0.32), rgba(251,191,36,0.22), transparent)",
+                }}
+                initial={{ opacity: 0, scaleX: 0 }}
+                animate={{ opacity: 1, scaleX: 1 }}
+                transition={{ delay: 0.82, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              />
+
+              <div className="w-full max-w-[34rem] lg:max-w-[33rem] xl:max-w-[35rem]">
+                <AiPromptBar embedded />
+              </div>
             </motion.div>
-
           </div>
-
         </div>
-
-        {/* ── Cool gradient line ── */}
-        <motion.div
-          className="mx-auto mt-5 mb-3 h-px w-full max-w-md"
-          style={{
-            background: "linear-gradient(90deg, transparent, rgba(249,115,22,0.35), rgba(251,191,36,0.25), rgba(249,115,22,0.35), transparent)",
-          }}
-          initial={{ opacity: 0, scaleX: 0 }}
-          animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ delay: 0.82, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        />
-
-        {/* AI Prompt Bar — centered */}
-        <motion.div
-          className="mx-auto w-full max-w-3xl"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.88, duration: 0.55 }}
-        >
-          <AiPromptBar />
-        </motion.div>
       </div>
     </section>
   );

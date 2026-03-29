@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
+import { persistAuthSession } from "@/lib/auth-storage";
 
 const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
   try {
@@ -46,7 +47,6 @@ export default function LoginSuccessClient() {
 
     const run = async () => {
       try {
-        localStorage.setItem("authToken", token);
 
         const { data } = await api.get(`/auth/perfil/${userId}`);
 
@@ -56,9 +56,7 @@ export default function LoginSuccessClient() {
           email: data.user?.email,
           fotoPerfil: data.user?.photo,
         };
-
-        localStorage.setItem("user", JSON.stringify(usuario));
-        localStorage.setItem("justLoggedIn", "true");
+        persistAuthSession({ token, user: usuario, justLoggedIn: true });
 
         router.push("/cervezas");
       } catch {

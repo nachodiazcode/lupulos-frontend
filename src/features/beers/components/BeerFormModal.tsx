@@ -10,9 +10,9 @@ import {
   Typography,
   Stack,
 } from "@mui/material";
-import { useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import { getErrorMessage } from "@/lib/errors";
 
 interface Props {
   open: boolean;
@@ -29,10 +29,19 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
   const [descripcion, setDescripcion] = useState("");
   const [imagen, setImagen] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const handleSubmit = async () => {
+    setError("");
     if (!usuario) {
-      alert("Usuario no autenticado.");
+      setError("Usuario no autenticado.");
       return;
     }
 
@@ -44,13 +53,13 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
       !abv.trim() ||
       !imagen
     ) {
-      alert("Todos los campos son obligatorios, incluyendo la imagen.");
+      setError("Todos los campos son obligatorios, incluyendo la imagen.");
       return;
     }
 
     const abvValue = parseFloat(abv);
     if (isNaN(abvValue)) {
-      alert("El ABV debe ser un número válido.");
+      setError("El ABV debe ser un número válido.");
       return;
     }
 
@@ -65,20 +74,8 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
     // Multer expects file field: image
     formData.append("image", imagen);
 
+    setSubmitting(true);
     try {
-      console.info("📦 Enviando nueva cerveza:", {
-        nombre,
-        tipo,
-        cerveceria,
-        abv: abvValue,
-        descripcion,
-        usuario: usuario.username,
-        imagen,
-      });
-
-      for (const pair of formData.entries()) {
-        console.log(`${pair[0]}:`, pair[1]);
-      }
 
       await api.post("/beer", formData, {
         headers: {
@@ -97,16 +94,9 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
       setImagen(null);
       setPreview(null);
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error("❌ Error al subir cerveza:", error.response?.data || error.message);
-        alert(error.response?.data?.mensaje || "Ocurrió un error al subir la cerveza.");
-      } else if (error instanceof Error) {
-        console.error("❌ Error inesperado:", error.message);
-        alert("Error inesperado al subir la cerveza.");
-      } else {
-        console.error("❌ Error desconocido:", error);
-        alert("Error desconocido al subir la cerveza.");
-      }
+      setError(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -183,10 +173,16 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
               />
             </Box>
           )}
+          {error && (
+            <Typography variant="body2" color="error">
+              {error}
+            </Typography>
+          )}
 
           <Button
             variant="contained"
             onClick={handleSubmit}
+            disabled={submitting}
             sx={{
               bgcolor: "var(--color-orange-cta)",
               color: "black",
@@ -194,7 +190,7 @@ export default function BeerFormModal({ open, onClose, onSuccess, usuario }: Pro
               "&:hover": { bgcolor: "var(--color-orange-cta-hover)" },
             }}
           >
-            Publicar Cerveza 🚀
+            {submitting ? "Publicando..." : "Publicar Cerveza 🚀"}
           </Button>
         </Stack>
       </DialogContent>

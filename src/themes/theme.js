@@ -17,12 +17,12 @@ export const beerThemes = {
       text: { primary: "#fff" },
     },
   }),
-  lager: createTheme({
+  saintpatrick: createTheme({
     palette: {
       mode: "light",
-      primary: { main: "#FFE066" },
-      background: { default: "#fffdeb" },
-      text: { primary: "#403d00" },
+      primary: { main: "#3a8c5c" },
+      background: { default: "#e0f0e6" },
+      text: { primary: "#0d2b1a" },
     },
   }),
   pale: createTheme({

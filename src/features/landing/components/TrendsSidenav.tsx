@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /* ═══════════════════════════════════
-   Data — simulated real-time trends
+   Data — exploratory sidebar content
    ═══════════════════════════════════ */
 
 interface TrendItem {
@@ -16,29 +16,27 @@ interface TrendItem {
 }
 
 const TRENDING_NOW: TrendItem[] = [
-  { id: "t1", emoji: "🔥", label: "Hazy IPA", detail: "+42% esta semana", hot: true },
-  { id: "t2", emoji: "📈", label: "Imperial Stout", detail: "+28% búsquedas" },
-  { id: "t3", emoji: "🍊", label: "Sour de maracuyá", detail: "Tendencia nueva", hot: true },
-  { id: "t4", emoji: "🌾", label: "West Coast IPA", detail: "+19% interés" },
-  { id: "t5", emoji: "🍫", label: "Porter con cacao", detail: "Subiendo fuerte" },
+  { id: "t1", emoji: "🌫️", label: "Hazy IPA", detail: "Tropical, sedosa y muy aromática" },
+  { id: "t2", emoji: "🖤", label: "Imperial Stout", detail: "Oscura, intensa y tostada" },
+  { id: "t3", emoji: "🍊", label: "Sour de maracuyá", detail: "Ácida, frutal y refrescante" },
+  { id: "t4", emoji: "🌲", label: "West Coast IPA", detail: "Resinosa, seca y clásica" },
+  { id: "t5", emoji: "🍫", label: "Porter con cacao", detail: "Maltosa y golosa para explorar" },
 ];
 
-interface ActivityItem {
+interface DiscoveryItem {
   id: string;
   emoji: string;
   text: string;
-  time: string;
+  detail: string;
 }
 
-const LIVE_ACTIVITY: ActivityItem[] = [
-  { id: "a1", emoji: "⭐", text: "Nueva reseña 4.8★ para Kross Session IPA", time: "hace 1m" },
-  { id: "a2", emoji: "🆕", text: "Cervecería Nómade lanzó Neblina Hazy", time: "hace 4m" },
-  { id: "a3", emoji: "📍", text: "Nuevo taproom en Barrio Yungay", time: "hace 7m" },
-  { id: "a4", emoji: "🏆", text: "Atrapaniebla subió al #2 del ranking", time: "hace 11m" },
-  { id: "a5", emoji: "🔥", text: "Debate: ¿West Coast o Hazy IPA?", time: "hace 14m" },
-  { id: "a6", emoji: "🍻", text: "Check-in en Taproom La Quimera", time: "hace 17m" },
-  { id: "a7", emoji: "📸", text: "12 fotos nuevas: Noche de Stouts", time: "hace 21m" },
-  { id: "a8", emoji: "🧠", text: "IA recomendó 3 Pale Ales a 18 usuarios", time: "hace 24m" },
+const DISCOVERY_ITEMS: DiscoveryItem[] = [
+  { id: "d1", emoji: "📍", text: "Taprooms en Santiago", detail: "Para una primera ruta cervecera" },
+  { id: "d2", emoji: "🌊", text: "Bares en Valparaíso", detail: "Pintas con vista y buena conversación" },
+  { id: "d3", emoji: "🍺", text: "Cervezas para empezar", detail: "Opciones fáciles si recién entras al mundo craft" },
+  { id: "d4", emoji: "🌾", text: "Lagers con carácter", detail: "Más expresivas, pero igual de tomables" },
+  { id: "d5", emoji: "🌿", text: "IPAs chilenas", detail: "Cítricas, resinosas y con personalidad" },
+  { id: "d6", emoji: "🗺️", text: "Barrios para salir", detail: "Zonas donde siempre aparece un buen hallazgo" },
 ];
 
 interface NewsItem {
@@ -49,10 +47,10 @@ interface NewsItem {
 }
 
 const BEER_NEWS: NewsItem[] = [
-  { id: "n1", emoji: "🏆", headline: "Chile suma 3 medallas en World Beer Cup 2026", source: "Lúpulos News" },
-  { id: "n2", emoji: "🌱", headline: "Lúpulo patagónico: la cepa chilena que sorprende al mundo", source: "Reportaje" },
-  { id: "n3", emoji: "📅", headline: "Bierfest Santiago 2026 confirma fecha y cervecerías", source: "Eventos" },
-  { id: "n4", emoji: "🔬", headline: "Fermentación mixta: por qué todos quieren probarla", source: "Blog Lúpulos" },
+  { id: "n1", emoji: "🧭", headline: "Cómo elegir tu primera IPA sin perderte en el intento", source: "Guía rápida" },
+  { id: "n2", emoji: "🍯", headline: "Qué pedir si prefieres cervezas más suaves y menos amargas", source: "Para empezar" },
+  { id: "n3", emoji: "🏠", headline: "Bares con buena barra, conversación y cerveza craft", source: "Para salir" },
+  { id: "n4", emoji: "✨", headline: "Por dónde empezar si quieres explorar nuevos estilos", source: "Explora" },
 ];
 
 /* ═══════════════════════════════════
@@ -62,50 +60,37 @@ const BEER_NEWS: NewsItem[] = [
 function LiquidGlassPanel({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative">
-      {/* Conic gradient border — subtle version */}
+      {/* Panel surface */}
       <div
-        className="pointer-events-none absolute -inset-px rounded-2xl"
+        className="relative overflow-hidden rounded-[1.75rem]"
         style={{
           background:
-            "conic-gradient(from 180deg, rgba(251,191,36,0.25), rgba(245,158,11,0.12), rgba(52,211,153,0.10), rgba(96,165,250,0.08), rgba(167,139,250,0.10), rgba(245,158,11,0.15), rgba(251,191,36,0.25))",
-          mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-          maskComposite: "exclude",
-          WebkitMaskComposite: "xor",
-          padding: 1,
-          borderRadius: "inherit",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Glass surface */}
-      <div
-        className="relative overflow-hidden rounded-2xl"
-        style={{
-          background: "rgba(15, 12, 8, 0.55)",
-          backdropFilter: "blur(28px) saturate(1.5)",
-          WebkitBackdropFilter: "blur(28px) saturate(1.5)",
-          border: "1px solid rgba(251,191,36,0.08)",
+            "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)",
+          backdropFilter: "blur(18px) saturate(1.15)",
+          WebkitBackdropFilter: "blur(18px) saturate(1.15)",
+          border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
           boxShadow:
-            "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 40px rgba(0,0,0,0.3), 0 0 80px rgba(251,191,36,0.03)",
+            "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 6%, transparent), var(--shadow-elevated)",
         }}
       >
-        {/* Top glass reflection */}
+        {/* Full frame reinforcement */}
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-12"
+          className="pointer-events-none absolute inset-0 rounded-[inherit]"
           style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)",
+            border: "1px solid color-mix(in srgb, var(--color-amber-light) 22%, var(--color-border-light))",
+            boxShadow:
+              "inset 0 0 0 1px color-mix(in srgb, white 6%, transparent)",
           }}
           aria-hidden="true"
         />
 
-        {/* Liquid sweep shimmer */}
+        {/* Bottom rim highlight */}
         <div
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-x-5 bottom-[1px] h-px"
           style={{
             background:
-              "linear-gradient(105deg, transparent 40%, rgba(251,191,36,0.04) 45%, rgba(251,191,36,0.06) 50%, rgba(251,191,36,0.04) 55%, transparent 60%)",
-            backgroundSize: "250% 100%",
-            animation: "glass-liquid-sweep 8s ease-in-out infinite",
+              "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-light) 48%, transparent), transparent)",
+            opacity: 0.75,
           }}
           aria-hidden="true"
         />
@@ -136,9 +121,9 @@ function SectionTitle({ emoji, title }: { emoji: string; title: string }) {
 
 function TrendingSection() {
   return (
-    <div className="px-4 pt-4 pb-3">
+    <div className="px-5 pt-4 pb-3">
       <SectionTitle emoji="📊" title="Tendencias" />
-      <ul className="space-y-2">
+      <ul className="space-y-3">
         {TRENDING_NOW.slice(0, 4).map((item) => (
           <li key={item.id} className="flex items-center gap-2.5">
             <span className="text-sm">{item.emoji}</span>
@@ -148,17 +133,6 @@ function TrendingSection() {
                 style={{ color: "var(--color-text-primary)" }}
               >
                 {item.label}
-                {item.hot && (
-                  <span
-                    className="ml-1.5 inline-block rounded-full px-1.5 py-px text-[9px] font-bold uppercase"
-                    style={{
-                      background: "rgba(251,191,36,0.15)",
-                      color: "var(--color-amber-primary)",
-                    }}
-                  >
-                    hot
-                  </span>
-                )}
               </span>
               <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
                 {item.detail}
@@ -171,54 +145,27 @@ function TrendingSection() {
   );
 }
 
-function LiveActivitySection() {
-  const [visibleItems, setVisibleItems] = useState<ActivityItem[]>(LIVE_ACTIVITY.slice(0, 3));
-  const [currentIdx, setCurrentIdx] = useState(3);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIdx((prev) => {
-        const nextIdx = prev >= LIVE_ACTIVITY.length ? 0 : prev;
-        setVisibleItems((items) => {
-          const newItems = [LIVE_ACTIVITY[nextIdx], ...items.slice(0, 2)];
-          return newItems;
-        });
-        return nextIdx + 1;
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
+function DiscoverySection() {
   return (
-    <div className="px-4 py-3">
-      <SectionTitle emoji="⚡" title="Ahora mismo" />
+    <div className="px-5 py-3.5">
+      <SectionTitle emoji="🧭" title="Para descubrir" />
       <ul className="space-y-2.5">
-        <AnimatePresence mode="popLayout">
-          {visibleItems.map((item, i) => (
-            <motion.li
-              key={item.id + "-" + i}
-              layout
-              initial={{ opacity: 0, x: 20, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -10, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 28 }}
-              className="flex items-start gap-2"
-            >
-              <span className="mt-px text-xs">{item.emoji}</span>
-              <div className="min-w-0 flex-1">
-                <p
-                  className="truncate text-[11px] leading-snug font-medium"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  {item.text}
-                </p>
-                <span className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>
-                  {item.time}
-                </span>
-              </div>
-            </motion.li>
-          ))}
-        </AnimatePresence>
+        {DISCOVERY_ITEMS.slice(0, 4).map((item) => (
+          <li key={item.id} className="flex items-start gap-2">
+            <span className="mt-px text-xs">{item.emoji}</span>
+            <div className="min-w-0 flex-1">
+              <p
+                className="text-[11px] leading-snug font-semibold"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                {item.text}
+              </p>
+              <span className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>
+                {item.detail}
+              </span>
+            </div>
+          </li>
+        ))}
       </ul>
     </div>
   );
@@ -226,8 +173,8 @@ function LiveActivitySection() {
 
 function NewsSection() {
   return (
-    <div className="px-4 pt-3 pb-4">
-      <SectionTitle emoji="📰" title="Noticias" />
+    <div className="px-5 pt-3.5 pb-5">
+      <SectionTitle emoji="✨" title="Empieza por aquí" />
       <ul className="space-y-2.5">
         {BEER_NEWS.slice(0, 3).map((item) => (
           <li key={item.id} className="group cursor-pointer">
@@ -263,7 +210,7 @@ function GlassDivider() {
         className="h-px w-full"
         style={{
           background:
-            "linear-gradient(90deg, transparent, rgba(251,191,36,0.2), transparent)",
+            "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-border-amber) 90%, transparent), transparent)",
         }}
         aria-hidden="true"
       />
@@ -277,6 +224,7 @@ function GlassDivider() {
 
 export default function TrendsSidenav() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   // Show after a small delay for a nice entrance
   useEffect(() => {
@@ -285,62 +233,87 @@ export default function TrendsSidenav() {
   }, []);
 
   return (
-    <>
-      {/* Desktop only — hidden below xl */}
-      <motion.aside
-        className="fixed z-40 hidden xl:block"
-        style={{
-          top: 80, // below navbar (64px) + 16px spacing
-          right: 16,
-          width: 240,
-        }}
-        initial={{ opacity: 0, x: 40 }}
-        animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
-        transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.2 }}
-      >
-        <LiquidGlassPanel>
-          <div
-            className="overflow-y-auto"
-            style={{
-              maxHeight: 420,
-              scrollbarWidth: "thin",
-              scrollbarColor: "rgba(251,191,36,0.2) transparent",
-            }}
-          >
-            {/* Trending — always visible */}
-            <TrendingSection />
-            <GlassDivider />
-
-            {/* Live Activity — always visible */}
-            <LiveActivitySection />
-
-            {/* ── Scrollable zone below ── */}
-            <GlassDivider />
-
-            {/* News — visible on scroll */}
-            <NewsSection />
-
-            {/* Bottom subtle branding */}
-            <div className="px-4 pb-3 pt-1 text-center">
-              <span
-                className="text-[9px] font-medium uppercase tracking-wider"
-                style={{ color: "var(--color-text-muted)", opacity: 0.5 }}
-              >
-                Lúpulos · En vivo
-              </span>
-            </div>
-          </div>
-        </LiquidGlassPanel>
-
-        {/* Scroll hint: subtle fade at the bottom with matching rounded corners */}
-        <div
-          className="pointer-events-none absolute right-0 bottom-0 left-0 h-10 overflow-hidden rounded-b-2xl"
+    <AnimatePresence>
+      {!isDismissed && (
+        <motion.aside
+          className="fixed z-40 hidden xl:block"
           style={{
-            background: "linear-gradient(to top, rgba(15,12,8,0.65), transparent)",
+            top: 80,
+            right: 16,
+            width: 240,
           }}
-          aria-hidden="true"
-        />
-      </motion.aside>
-    </>
+          initial={{ opacity: 0, x: 40 }}
+          animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
+          exit={{ opacity: 0, x: 32, scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.2 }}
+        >
+          <LiquidGlassPanel>
+            <div
+              className="overflow-hidden rounded-[1.75rem]"
+              style={{
+                maxHeight: 448,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setIsDismissed(true)}
+                className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full border text-sm"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-border-subtle) 86%, white 14%)",
+                  background: "color-mix(in srgb, var(--color-surface-card) 82%, transparent)",
+                  color: "var(--color-text-muted)",
+                  boxShadow: "inset 0 1px 0 color-mix(in srgb, white 12%, transparent)",
+                }}
+                aria-label="Cerrar panel de tendencias"
+              >
+                ×
+              </button>
+
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16"
+                style={{
+                  background:
+                    "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 40%, transparent), transparent)",
+                }}
+                aria-hidden="true"
+              />
+
+              <div
+                className="pointer-events-none absolute inset-x-[1px] bottom-[1px] z-10 h-14 rounded-b-[1.68rem]"
+                style={{
+                  background:
+                    "linear-gradient(to top, color-mix(in srgb, var(--color-surface-card-alt) 90%, transparent), transparent)",
+                }}
+                aria-hidden="true"
+              />
+
+              <div
+                className="overflow-y-auto rounded-[1.75rem] pt-4"
+                style={{
+                  maxHeight: 448,
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "rgba(251,191,36,0.2) transparent",
+                }}
+              >
+                <TrendingSection />
+                <GlassDivider />
+                <DiscoverySection />
+                <GlassDivider />
+                <NewsSection />
+
+                <div className="px-5 pb-5 pt-1 text-center">
+                  <span
+                    className="text-[9px] font-medium uppercase tracking-wider"
+                    style={{ color: "var(--color-text-muted)", opacity: 0.5 }}
+                  >
+                    Lúpulos · Para explorar
+                  </span>
+                </div>
+              </div>
+            </div>
+          </LiquidGlassPanel>
+        </motion.aside>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+const normalizeApiTarget = (value: string | undefined): string =>
+  (value || "").trim().replace(/\/api\/?$/, "").replace(/\/$/, "");
+
+const apiProxyTarget = normalizeApiTarget(process.env.API_PROXY_TARGET);
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
@@ -35,6 +39,15 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "127.0.0.1", port: "3001" },
       { protocol: "http", hostname: "127.0.0.1", port: "3940" },
     ],
+  },
+
+  async rewrites() {
+    if (!apiProxyTarget) return [];
+
+    return [
+      { source: "/api/:path*", destination: `${apiProxyTarget}/api/:path*` },
+      { source: "/uploads/:path*", destination: `${apiProxyTarget}/uploads/:path*` },
+    ];
   },
 };
 

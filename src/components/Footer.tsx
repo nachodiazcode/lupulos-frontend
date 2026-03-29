@@ -24,7 +24,7 @@ export default function Footer() {
       className="border-border-subtle border-t"
       style={{ background: "var(--gradient-footer)" }}
     >
-      <div className="mx-auto max-w-6xl px-4 py-14">
+      <div className="home-content-shell py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-2">

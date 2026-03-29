@@ -27,9 +27,9 @@ const features: BentoFeature[] = [
   {
     id: "catalog",
     emoji: "🍺",
-    title: "1.200 cervezas. Cero humo.",
+    title: "La cerveza aquí, nunca falla!",
     description:
-      "Cada cerveza artesanal con ficha completa: aromas, maridaje, puntuación real y opiniones sin filtro. Filtra por estilo, cervecería, IBU o lo que se te ocurra. El catálogo craft más honesto de Chile.",
+      "Tu colección de cervezas la tendrás justo aquí, sorpréndete con el buscador IA y con la columna de información en tiempo real.",
     href: "/cervezas",
     cta: "Abrir el catálogo",
     accentBg: "radial-gradient(ellipse at 88% 88%, rgba(251,191,36,0.12), transparent 65%)",
@@ -42,7 +42,7 @@ const features: BentoFeature[] = [
     emoji: "📌",
     title: "El mapa cervecero que faltaba",
     description:
-      "280+ cervecerías, taprooms y bares craft verificados por la comunidad. Desde el brewpub escondido en Valpo hasta el taproom de montaña en Pucón. Lugares que solo los cerveceros conocen.",
+      "Encuentra bares, eventos y cervecerías para invitar a tus vikingos preferidos.",
     href: "/lugares",
     cta: "Explorar el mapa",
     accentBg: "radial-gradient(ellipse at 88% 88%, rgba(239,68,68,0.1), transparent 65%)",
@@ -53,7 +53,7 @@ const features: BentoFeature[] = [
   {
     id: "community",
     emoji: "💬",
-    title: "Tu gente. Tu mesa. Tu voz.",
+    title: "Comparte tus historias, tus hallazgos",
     description:
       "8.500 cerveceros que comparten hallazgos, debaten estilos y ponen en el mapa a productores que nadie conocía. Aquí no manda un algoritmo — manda la pasión.",
     href: "/posts",
@@ -146,9 +146,9 @@ function BentoCard({ feature, index }: { feature: BentoFeature; index: number })
       viewport={{ once: true, margin: "-40px" }}
     >
       <TiltCard
-        className="glass-card group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-3xl p-7"
+        className="glass-card group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-3xl p-5 sm:p-7"
         style={{
-          minHeight: isLarge ? 300 : 270,
+          minHeight: isLarge ? 280 : 250,
         }}
         tiltDeg={6}
         glowColor={feature.glowColor}
@@ -162,8 +162,7 @@ function BentoCard({ feature, index }: { feature: BentoFeature; index: number })
 
         {/* Content — constrained width when image is present */}
         <div
-          className="relative z-10 flex-1"
-          style={{ maxWidth: hasImage ? "60%" : "100%" }}
+          className={`relative z-10 flex-1 ${hasImage ? "max-w-full sm:max-w-[60%]" : "max-w-full"}`}
         >
           <span className="text-4xl" role="img" aria-label={feature.title}>
             {feature.emoji}
@@ -171,7 +170,7 @@ function BentoCard({ feature, index }: { feature: BentoFeature; index: number })
           <h3 className="text-text-primary mt-3 text-lg font-black leading-snug tracking-tight sm:text-xl">
             {feature.title}
           </h3>
-          <p className="text-text-secondary mt-2 text-xs font-semibold leading-relaxed sm:text-sm">
+          <p className="text-text-secondary mt-4 text-xs font-semibold leading-relaxed sm:text-sm">
             {feature.description}
           </p>
         </div>
@@ -202,8 +201,7 @@ function BentoCard({ feature, index }: { feature: BentoFeature; index: number })
         {/* Decoration: character image */}
         {feature.image && (
           <div
-            className="pointer-events-none absolute top-0 bottom-0 z-[5]"
-            style={{ width: "38%", right: "4%" }}
+            className="pointer-events-none absolute top-0 right-[4%] bottom-0 z-[5] w-[30%] sm:w-[38%]"
             aria-hidden="true"
           >
             <Image
@@ -270,7 +268,7 @@ export default function BentoFeatures() {
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="home-content-shell">
         {/* Section header */}
         <motion.div
           className="mb-12 text-center"
@@ -282,11 +280,10 @@ export default function BentoFeatures() {
         >
           <SectionBadge>Todo lo que necesitas</SectionBadge>
           <h2 className="text-text-primary mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Por qué 8.500 cerveceros{" "}
-            <GradientText>eligieron Lúpulos</GradientText>
+            <GradientText>¿Por qué Lúpulos?</GradientText>
           </h2>
           <p className="text-text-muted mx-auto mt-3 max-w-xl text-sm leading-relaxed">
-            Catálogo honesto, mapa vivo, comunidad real e inteligencia artificial — conectados para que descubras, compartas y vivas la cerveza artesanal como nunca.
+            Porque valoramos la calidad de la cerveza, puedes votar tú mismo y ver las mejores chelas rankeadas por la comunidad vikinga!
           </p>
         </motion.div>
 

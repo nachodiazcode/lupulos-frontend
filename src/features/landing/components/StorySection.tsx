@@ -66,7 +66,7 @@ export default function StorySection() {
     >
       <AmberDivider className="absolute top-0 left-1/2 w-3/4 -translate-x-1/2" />
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="home-content-shell">
         {/* Header */}
         <motion.div
           variants={fadeUp}
@@ -115,7 +115,7 @@ export default function StorySection() {
 
               <div className="relative grid grid-cols-1 items-center gap-0 md:grid-cols-2">
                 {/* Left: Illustration */}
-                <div className="relative flex items-center justify-center overflow-hidden px-8" style={{ height: 320 }}>
+                <div className="relative flex h-[260px] items-center justify-center overflow-hidden px-5 sm:h-[320px] sm:px-8">
                   {/* Background pattern */}
                   <div
                     className="absolute inset-0 opacity-[0.03]"
@@ -129,8 +129,7 @@ export default function StorySection() {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
-                    className="flex items-center justify-center"
-                    style={{ height: 260 }}
+                    className="flex h-[220px] items-center justify-center sm:h-[260px]"
                   >
                     {(() => {
                       const IllustrationComponent = StoryIllustrations[story.illustration as StoryIllustrationType];
@@ -140,7 +139,7 @@ export default function StorySection() {
                 </div>
 
                 {/* Right: Text content */}
-                <div className="flex flex-col justify-center px-8 pb-10 md:py-14 md:pr-10">
+                <div className="flex flex-col justify-center px-5 pb-8 sm:px-8 md:py-14 md:pr-10">
                   {/* Chapter tag */}
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
@@ -187,7 +186,7 @@ export default function StorySection() {
                       <Link
                         href={story.href}
                         prefetch
-                        className="group relative mt-6 inline-flex items-center gap-2 overflow-hidden rounded-full px-6 py-2.5 text-sm font-bold transition-all duration-300 hover:gap-3"
+                        className="group relative mt-6 inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full px-6 py-2.5 text-sm font-bold transition-all duration-300 hover:gap-3 sm:w-auto"
                         style={{
                           background: `${story.accent}15`,
                           color: story.accent,

@@ -6,16 +6,18 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
    Types
    ═══════════════════════════════════ */
 
-export type BeerTheme = "ambar" | "lager" | "stout";
+export type BeerTheme = "ambar" | "saintpatrick" | "stout" | "haze" | "dorado";
 
 export const BEER_THEMES: { id: BeerTheme; label: string; icon: string }[] = [
-  { id: "lager", label: "Lager", icon: "🍺" },
+  { id: "saintpatrick", label: "St. Patrick", icon: "🍀" },
   { id: "ambar", label: "Ámbar", icon: "🍻" },
   { id: "stout", label: "Stout", icon: "🖤" },
+  { id: "haze", label: "Haze", icon: "🔮" },
+  { id: "dorado", label: "Dorado", icon: "👑" },
 ];
 
 const STORAGE_KEY = "lupulos-theme";
-const DEFAULT_THEME: BeerTheme = "ambar";
+const DEFAULT_THEME: BeerTheme = "stout";
 
 /* ═══════════════════════════════════
    Context
@@ -42,7 +44,7 @@ export const useBeerTheme = () => useContext(BeerThemeContext);
 function getInitialTheme(): BeerTheme {
   if (typeof window === "undefined") return DEFAULT_THEME;
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "lager" || stored === "ambar" || stored === "stout") return stored;
+  if (stored === "saintpatrick" || stored === "ambar" || stored === "stout" || stored === "haze" || stored === "dorado") return stored;
   return DEFAULT_THEME;
 }
 
@@ -62,7 +64,7 @@ export function BeerThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, t);
   }, []);
 
-  const isDark = theme !== "lager";
+  const isDark = theme !== "saintpatrick" && theme !== "haze";
 
   return (
     <BeerThemeContext.Provider value={{ theme, setTheme, isDark }}>

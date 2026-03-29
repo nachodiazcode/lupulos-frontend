@@ -1,24 +1,28 @@
 import axios, { type AxiosError } from "axios";
+import { clearAuthSession, getStoredToken } from "./auth-storage";
 import { ApiError, getDefaultStatusMessage } from "./errors";
 
 /* ═══════════════════════════════════
    Base URL
    ═══════════════════════════════════ */
 
-const DEFAULT_BASE_URL =
+const DEFAULT_API_ORIGIN =
   process.env.NODE_ENV === "development" ? "http://localhost:3940" : "https://lupulos.app";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || DEFAULT_BASE_URL;
-
-// Remover /api si está al final para evitar duplicación
-const cleanBaseUrl = BASE_URL.replace(/\/api\/?$/, "");
+const rawPublicApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || "";
+const usesRelativeProxy = rawPublicApiUrl === "/api";
+const normalizedPublicApiUrl = rawPublicApiUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
+const cleanBaseUrl = usesRelativeProxy
+  ? ""
+  : normalizedPublicApiUrl || DEFAULT_API_ORIGIN;
+const requestBaseUrl = usesRelativeProxy ? "/api" : `${cleanBaseUrl}/api`;
 
 /* ═══════════════════════════════════
    Instancia de Axios
    ═══════════════════════════════════ */
 
 export const api = axios.create({
-  baseURL: `${cleanBaseUrl}/api`,
+  baseURL: requestBaseUrl,
   timeout: 15_000,
   headers: {
     "Content-Type": "application/json",
@@ -31,11 +35,9 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("authToken");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    const token = getStoredToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -88,8 +90,7 @@ api.interceptors.response.use(
 
     // 401 — sesión expirada: limpiar storage y redirigir
     if (status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("user");
+      clearAuthSession();
       window.location.href = "/auth/login";
     }
 
@@ -102,6 +103,6 @@ api.interceptors.response.use(
    ═══════════════════════════════════ */
 
 export const API_BASE_URL = cleanBaseUrl;
-export const API_URL = `${cleanBaseUrl}/api`;
+export const API_URL = requestBaseUrl;
 
 export default api;
