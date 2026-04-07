@@ -40,6 +40,13 @@ function generateSparkles(count: number): Sparkle[] {
    Data
    ═══════════════════════════════════ */
 
+const avatarNames = ["ragnar", "Lagertha", "bjorn", "Kwenthrith"] as const;
+
+const statChips = [
+  { icon: "🍺", value: "1.200+", label: "cervezas con ficha" },
+  { icon: "📍", value: "280+",   label: "cervecerías activas" },
+  { icon: "💬", value: "42K+",   label: "reseñas reales" },
+];
 
 /* ═══════════════════════════════════
    Word Cycler
@@ -213,15 +220,15 @@ export default function HeroSection() {
       )}
 
       {/* ─── Content ─── */}
-      <div className="home-content-shell relative z-10 py-8 sm:py-10 lg:py-14">
-        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.84fr)] lg:gap-9 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.84fr)] xl:gap-12">
+      <div className="home-content-shell relative z-10 px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.84fr)] lg:gap-9 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.84fr)] xl:gap-12 3xl:max-w-[110rem] 3xl:mx-auto">
 
           {/* ── LEFT: Text + AI ── */}
-          <div className="mx-auto flex w-full max-w-[34rem] flex-col text-center lg:mx-0 lg:max-w-[35rem] lg:text-left xl:max-w-[37rem]">
+          <div className="mx-auto flex w-full min-w-0 max-w-[34rem] flex-col text-center lg:mx-0 lg:max-w-[35rem] lg:text-left xl:max-w-[37rem] 2xl:max-w-[42rem]">
 
             {/* Badge */}
             <motion.span
-              className="inline-block rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase backdrop-blur-sm"
+              className="inline-block self-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-3 py-1.5 text-[8px] font-semibold tracking-[0.08em] uppercase backdrop-blur-sm sm:px-4 sm:text-[11px] sm:tracking-[0.2em] lg:self-start"
               style={{
                 borderColor: "var(--color-border-amber)",
                 background: "rgba(249,115,22,0.1)",
@@ -231,13 +238,22 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
             >
-              🍺 Red social de cerveza artesanal · Chile
+              La aplicación web de la cerveza · Nacida en Stgo de Chile 🇨🇱
             </motion.span>
 
             {/* H1 */}
             <motion.h1
-              className="text-text-primary mt-2 text-[1.9rem] leading-[1.05] font-black tracking-[-0.04em] sm:text-[2.5rem] sm:leading-[1.03] sm:tracking-[-0.05em] md:text-[2.95rem] lg:text-[3.05rem] xl:text-[3.35rem] 2xl:text-[3.55rem]"
-              style={{ textShadow: "0.6px 0.6px 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor" }}
+              className="hero-shimmer-text text-text-primary mt-2 text-[1.25rem] leading-[1.12] font-black tracking-[-0.02em] min-[375px]:text-[1.5rem] sm:text-[2.2rem] sm:leading-[1.05] sm:tracking-[-0.04em] md:text-[2.6rem] lg:text-[3.05rem] xl:text-[3.35rem] 2xl:text-[3.55rem] min-[1920px]:text-[4rem]"
+              style={{
+                textShadow: "0.6px 0.6px 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor",
+                backgroundImage: "linear-gradient(90deg, currentColor 0%, currentColor 35%, #fbbf24 48%, #f59e0b 50%, #fbbf24 52%, currentColor 65%, currentColor 100%)",
+                backgroundSize: "250% 100%",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                animation: "hero-shimmer 4s ease-in-out infinite",
+                animationDelay: "1.5s",
+              }}
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.22, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
@@ -246,12 +262,12 @@ export default function HeroSection() {
             </motion.h1>
             {/* Subtitle */}
             <motion.p
-              className="text-text-secondary mt-4 max-w-[35rem] text-[0.95rem] font-semibold leading-[1.72] sm:text-[0.98rem] lg:text-[1rem]"
+              className="text-text-secondary mt-3 text-[0.78rem] font-semibold leading-[1.6] sm:mt-4 sm:text-[0.95rem] sm:leading-[1.72] lg:text-[1rem] 2xl:text-[1.05rem]"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.36, duration: 0.6 }}
             >
-              Lúpulos es un directorio de gente que ama la cerveza, produce, emprende y siempre busca nuevos sabores.
+              Descubre lugares, comparte tu dato del finde y disfruta sabores jamás antes explorados!
             </motion.p>
 
             {/* CTAs */}
