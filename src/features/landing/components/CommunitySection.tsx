@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { fadeUp, SectionBadge, GradientText, staggerContainer, popIn } from "./shared";
+import { fadeUp, SectionBadge, GradientText, staggerContainer } from "./shared";
 import { FEATURES } from "./data";
 
 /* ═══════════════════════════════════
@@ -153,17 +153,17 @@ export default function CommunitySection() {
           </motion.div>
         </div>
 
-        {/* ═══ Infinite Carousel — Auto-scrolling features ═══ */}
-        <div className="relative mx-auto mt-6 w-full max-w-6xl overflow-hidden sm:mt-8 lg:mt-8">
+        {/* ═══ Desktop: Infinite Carousel ═══ */}
+        <div className="relative mx-auto mt-6 hidden w-full max-w-6xl overflow-hidden sm:mt-8 sm:block lg:mt-8">
           {/* Gradient fade edges */}
           <div
-            className="pointer-events-none absolute left-0 top-0 z-10 h-full w-20 sm:w-32"
+            className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32"
             style={{
               background: "linear-gradient(90deg, var(--color-surface-deepest) 0%, transparent 100%)",
             }}
           />
           <div
-            className="pointer-events-none absolute right-0 top-0 z-10 h-full w-20 sm:w-32"
+            className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32"
             style={{
               background: "linear-gradient(270deg, var(--color-surface-deepest) 0%, transparent 100%)",
             }}
@@ -171,7 +171,6 @@ export default function CommunitySection() {
 
           {/* Infinite scrolling track */}
           <div className="marquee-track flex gap-3">
-            {/* Render features twice for seamless -50% loop */}
             {[...FEATURES, ...FEATURES].map((feat, i) => (
               <motion.div
                 key={`${feat.label}-${i}`}
@@ -184,13 +183,12 @@ export default function CommunitySection() {
                   rotateY: 5,
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="glass-card group relative flex min-h-[5rem] w-[220px] shrink-0 items-center gap-3 overflow-hidden rounded-2xl border px-4 py-4 sm:w-[300px] sm:px-5"
+                className="glass-card group relative flex min-h-[5rem] w-[300px] shrink-0 items-center gap-3 overflow-hidden rounded-2xl border px-5 py-4"
                 style={{
                   perspective: "1000px",
                   transformStyle: "preserve-3d",
                 }}
               >
-                {/* Animated gradient border on hover */}
                 <motion.div
                   className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   style={{
@@ -202,8 +200,6 @@ export default function CommunitySection() {
                     maskComposite: "exclude",
                   }}
                 />
-
-                {/* Hover glow overlay */}
                 <motion.div
                   className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   style={{
@@ -212,7 +208,6 @@ export default function CommunitySection() {
                   }}
                 />
 
-                {/* Icon with 3D rotation */}
                 <motion.div
                   className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-xl"
                   style={{
@@ -233,14 +228,12 @@ export default function CommunitySection() {
                   <span className="text-2xl">{feat.icon}</span>
                 </motion.div>
 
-                {/* Text content */}
                 <div className="relative z-10 flex-1 min-w-0">
-                  <span className="text-text-secondary group-hover:text-text-primary block text-[0.95rem] leading-snug font-bold transition-colors duration-200 sm:text-[1rem]">
+                  <span className="text-text-secondary group-hover:text-text-primary block text-[1rem] leading-snug font-bold transition-colors duration-200">
                     {feat.label}
                   </span>
                 </div>
 
-                {/* Sparkle effect on hover */}
                 <motion.div
                   className="pointer-events-none absolute right-3 top-3 text-xs opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   animate={{
@@ -258,6 +251,58 @@ export default function CommunitySection() {
             ))}
           </div>
         </div>
+
+        {/* ═══ Mobile: Vertical feature list ═══ */}
+        <motion.div
+          className="mt-8 flex flex-col gap-3 px-1 sm:hidden"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+        >
+          {FEATURES.slice(0, 3).map((feat, i) => (
+            <motion.div
+              key={feat.label}
+              variants={fadeUp}
+              custom={i}
+              className="group flex items-start gap-3.5 rounded-2xl px-4 py-3.5"
+              style={{
+                background: "color-mix(in srgb, var(--color-surface-card) 60%, transparent)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid var(--color-border-subtle)",
+              }}
+              whileInView={{
+                borderColor: [
+                  "var(--color-border-subtle)",
+                  "color-mix(in srgb, var(--color-amber-primary) 30%, transparent)",
+                  "var(--color-border-subtle)",
+                ],
+              }}
+              transition={{
+                borderColor: { duration: 3, repeat: Infinity, delay: i * 1, ease: "easeInOut" },
+              }}
+              viewport={{ once: false }}
+            >
+              <motion.span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[20px]"
+                style={{
+                  background: "color-mix(in srgb, var(--color-amber-primary) 10%, var(--color-surface-card))",
+                  boxShadow: "0 2px 8px color-mix(in srgb, var(--color-amber-primary) 10%, transparent)",
+                }}
+                animate={{ rotate: [0, -6, 6, -3, 0], scale: [1, 1.08, 1] }}
+                transition={{ duration: 4, repeat: Infinity, delay: 1.5 + i * 0.8, ease: "easeInOut" }}
+              >
+                {feat.icon}
+              </motion.span>
+              <p
+                className="flex-1 pt-1.5 text-[13px] font-semibold leading-snug"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                {feat.label}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );

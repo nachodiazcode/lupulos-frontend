@@ -267,7 +267,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.36, duration: 0.6 }}
             >
-              Descubre lugares, comparte tu dato del finde y disfruta sabores jamás antes explorados!
+              Conecta con otros usuarios que les guste compartir experiencias o tal vez crear una nueva cerveza, Lúpulos es el rincón vikingo!
             </motion.p>
 
             {/* CTAs */}
@@ -390,7 +390,7 @@ export default function HeroSection() {
                 {[
                   { icon: "🍺", title: "Catálogo", desc: "Estilo, IBU y ABV", gradient: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,191,36,0.08))", glowColor: "rgba(249,115,22,0.25)" },
                   { icon: "🗺️", title: "Mapa", desc: "Cervecerías cerca", gradient: "linear-gradient(135deg, rgba(34,197,94,0.12), rgba(16,185,129,0.06))", glowColor: "rgba(34,197,94,0.2)" },
-                  { icon: "✨", title: "IA Sommelier", desc: "Tu sommelier personal", gradient: "linear-gradient(135deg, rgba(168,85,247,0.14), rgba(139,92,246,0.07))", glowColor: "rgba(168,85,247,0.22)" },
+                  { icon: "✨", title: "Buscador IA", desc: "Tu catálogo personal", gradient: "linear-gradient(135deg, rgba(168,85,247,0.14), rgba(139,92,246,0.07))", glowColor: "rgba(168,85,247,0.22)" },
                   { icon: "🏆", title: "Rankings", desc: "Top de la comunidad", gradient: "linear-gradient(135deg, rgba(234,179,8,0.15), rgba(251,191,36,0.08))", glowColor: "rgba(234,179,8,0.22)" },
                 ].map((f, i) => (
                   <motion.div
