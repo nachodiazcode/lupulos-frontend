@@ -33,7 +33,7 @@ interface DiscoveryItem {
 const DISCOVERY_ITEMS: DiscoveryItem[] = [
   { id: "d1", emoji: "📍", text: "Taprooms en Santiago", detail: "Para una primera ruta cervecera" },
   { id: "d2", emoji: "🌊", text: "Bares en Valparaíso", detail: "Pintas con vista y buena conversación" },
-  { id: "d3", emoji: "🍺", text: "Cervezas para empezar", detail: "Opciones fáciles si recién entras al mundo craft" },
+  { id: "d3", emoji: "🍺", text: "Cervezas para empezar", detail: "Opciones fáciles si recién entras al mundo artesanal" },
   { id: "d4", emoji: "🌾", text: "Lagers con carácter", detail: "Más expresivas, pero igual de tomables" },
   { id: "d5", emoji: "🌿", text: "IPAs chilenas", detail: "Cítricas, resinosas y con personalidad" },
   { id: "d6", emoji: "🗺️", text: "Barrios para salir", detail: "Zonas donde siempre aparece un buen hallazgo" },
@@ -49,7 +49,7 @@ interface NewsItem {
 const BEER_NEWS: NewsItem[] = [
   { id: "n1", emoji: "🧭", headline: "Cómo elegir tu primera IPA sin perderte en el intento", source: "Guía rápida" },
   { id: "n2", emoji: "🍯", headline: "Qué pedir si prefieres cervezas más suaves y menos amargas", source: "Para empezar" },
-  { id: "n3", emoji: "🏠", headline: "Bares con buena barra, conversación y cerveza craft", source: "Para salir" },
+  { id: "n3", emoji: "🏠", headline: "Bares con buena barra, conversación y cerveza artesanal", source: "Para salir" },
   { id: "n4", emoji: "✨", headline: "Por dónde empezar si quieres explorar nuevos estilos", source: "Explora" },
 ];
 

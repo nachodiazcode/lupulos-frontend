@@ -215,7 +215,7 @@ function LiquidGlassBorder({
 
 const AI_PLACEHOLDER_HINTS = [
   "Dame una IPA chilena que me vuele la cabeza 🔥",
-  "¿Qué cerveza craft va perfecto con un asado de tira?",
+  "¿Qué cerveza artesanal va perfecto con un asado de tira?",
   "Quiero algo cítrico y refrescante para este sábado ☀️",
   "¿Cuál es la mejor Stout con notas de café en Chile? ☕",
   "Sorpréndeme con algo que nunca habría elegido solo...",
@@ -253,20 +253,26 @@ function useTypewriter(phrases: string[], speed = 50, pause = 2200, deleteSpeed 
    ═══════════════════════════════════ */
 
 const suggestions = [
-  { label: "¿Qué es Lúpulos?", icon: "🌿", full: "¿Qué es Lúpulos?" },
-  { label: "Recomiéndame algo", icon: "🍺", full: "Recomiéndame una cerveza artesanal" },
-  { label: "¿Por qué entrar?", icon: "✨", full: "¿Por qué entrar a Lúpulos?" },
-  { label: "Buscar cervezas", icon: "🔍", full: "¿Cómo encuentro cervezas?" },
+  { label: "Recomiéndame algo", icon: "�", full: "Recomiéndame una cerveza artesanal" },
+  { label: "IPA para principiantes", icon: "�", full: "¿Cuál es una buena IPA para empezar?" },
+  { label: "¿Stout o Porter?", icon: "🖤", full: "¿Cuál es la diferencia entre Stout y Porter?" },
+  { label: "Cerveza para el asado", icon: "�", full: "¿Qué cerveza artesanal va bien con un asado?" },
   { label: "Sumar mi bar", icon: "📍", full: "¿Puedo agregar lugares?" },
 ];
 
 const localAnswers: Record<string, string> = {
+  "¿Cuál es una buena IPA para empezar?":
+    "Para tu primera IPA te recomendamos algo suave y cítrico: una Session IPA o una American IPA con notas de pomelo y mango. Evita las dobles o triples — tienen más amargor. En Chile hay excelentes opciones de Kross, Atrevida y Cazador. ¡Anímate y registrate para ver fichas completas con puntuaciones reales! 🌿",
+  "¿Cuál es la diferencia entre Stout y Porter?":
+    "Ambas son cervezas oscuras y tostadas, pero la Stout suele ser más intensa: más cuerpo, más cafeína y notas de café o chocolate amargo. La Porter es más equilibrada y accesible, con dulzor de maltas caramelizadas. Si recién exploras las oscuras, empieza por una Porter. Si quieres algo con carácter, ve a la Stout. 🖤",
+  "¿Qué cerveza artesanal va bien con un asado?":
+    "Clásico chileno. Para asado de tira o costillar, una Amber Ale o una Märzen son perfectas — la malta caramelizada complementa el humo de la parrilla. Si el asado tiene condimentos fuertes, una Pale Ale aguanta bien. Para cerdo o pollo, una Lager artesanal limpia el paladar entre corte y corte. ¡Skål! 🔥",
   "¿Por qué entrar a Lúpulos?":
     "Catálogo honesto, mapa vivo, comunidad real e inteligencia artificial — conectados para que descubras, compartas y vivas la cerveza artesanal como nunca. +1.200 cervezas con fichas completas, 280+ cervecerías verificadas, 42.000+ reseñas honestas y una IA que aprende tu paladar. Todo gratis, sin publicidad. 🍻",
   "¿Qué es Lúpulos?":
     "La comunidad cervecera más grande de Chile. Descubre cervezas artesanales con fichas de cata completas, encuentra taprooms y cervecerías que solo los locales conocen, publica opiniones honestas y conecta con 8.500 personas que viven por el lúpulo. Pensado para Chile, hecho por cerveceros. 🌿",
   "¿Qué beneficios tiene?":
-    "Catálogo craft con filtros inteligentes por estilo, aroma e IBU. Mapa interactivo de cervecerías y taprooms verificados. Rankings 100% democráticos. IA que mejora con cada cerveza que pruebas. Eventos y catas en tu zona. Vitrina para cervecerías artesanales. Todo gratis, sin publicidad ni letra chica. ✨",
+    "Catálogo artesanal con filtros inteligentes por estilo, aroma e IBU. Mapa interactivo de cervecerías y taprooms verificados. Rankings 100% democráticos. IA que mejora con cada cerveza que pruebas. Eventos y catas en tu zona. Vitrina para cervecerías artesanales. Todo gratis, sin publicidad ni letra chica. ✨",
   "¿Cómo encuentro cervezas?":
     "Ve a 'Cervezas' en el menú. Filtra por estilo (IPA, Stout, Lager, Hazy, Sour...), cervecería, puntuación, aroma o IBU. Cada cerveza tiene ficha completa con notas de cata, fotos reales de la comunidad y puntuación honesta. También puedes preguntarme directamente y te recomiendo según tu gusto. 🔍",
   "¿Puedo agregar lugares?":

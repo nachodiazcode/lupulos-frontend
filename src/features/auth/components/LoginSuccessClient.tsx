@@ -48,7 +48,9 @@ export default function LoginSuccessClient() {
     const run = async () => {
       try {
 
-        const { data } = await api.get(`/auth/perfil/${userId}`);
+        const { data } = await api.get(`/auth/perfil/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const usuario = {
           _id: data.user?.id ?? data.user?._id ?? userId,

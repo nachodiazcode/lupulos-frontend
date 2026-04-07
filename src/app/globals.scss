@@ -72,6 +72,22 @@
   100% { background-position: -120% center; }
 }
 
+@keyframes marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  animation: marquee-scroll 40s linear infinite;
+  will-change: transform;
+}
+
+@media (max-width: 640px) {
+  .marquee-track {
+    animation-duration: 28s;
+  }
+}
+
 @keyframes magic-gradient-shift {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }

@@ -119,12 +119,12 @@ export default function CommunitySection() {
             viewport={{ once: true }}
             className="mx-auto w-full max-w-[52rem] text-center"
           >
-            <SectionBadge>Pasa ahora. Pasa aquí. Pasa en Lúpulos</SectionBadge>
+            <SectionBadge>Bienvenido a la tierra del lúpulo</SectionBadge>
 
             <h2 className="text-text-primary mt-3 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
-              Suscríbete a nuestra comunidad
+              La comunidad que vive
               <span className="block">
-                <GradientText>para descubrir los mejores bares de Chile</GradientText>
+                <GradientText>y respira cerveza artesanal</GradientText>
               </span>
             </h2>
 
@@ -132,6 +132,7 @@ export default function CommunitySection() {
               className="mx-auto mt-5 max-w-[44rem] text-base font-semibold leading-relaxed sm:text-lg"
               style={{ color: "color-mix(in srgb, var(--color-text-primary) 78%, var(--color-text-secondary) 22%)" }}
             >
+              El lugar donde la comunidad vikinga escribe sus aventuras y Odín disfruta descubriendo brebajes jamás explorados. ¿Estás listo, guerrero?{" "}
               <span
                 className="font-black"
                 style={{
@@ -145,14 +146,8 @@ export default function CommunitySection() {
                   filter: "drop-shadow(0 0 10px color-mix(in srgb, var(--color-amber-primary) 18%, transparent))",
                 }}
               >
-                Bienvenido a Lúpulos.
+                ¡Skål!
               </span>
-              <br />
-              El lugar donde la comunidad vikinga escribe sus aventuras
-              <br />
-              y Odín disfruta descubriendo brebajes jamás explorados.
-              <br />
-              ¿Estás listo, guerrero? ¡Skål!
             </p>
 
           </motion.div>
@@ -175,22 +170,9 @@ export default function CommunitySection() {
           />
 
           {/* Infinite scrolling track */}
-          <motion.div
-            className="flex gap-3"
-            animate={{
-              x: [0, -1800],
-            }}
-            transition={{
-              x: {
-                repeat: Infinity,
-                repeatType: "loop",
-                duration: 25,
-                ease: "linear",
-              },
-            }}
-          >
-            {/* Render features twice for seamless loop */}
-            {[...FEATURES, ...FEATURES, ...FEATURES].map((feat, i) => (
+          <div className="marquee-track flex gap-3">
+            {/* Render features twice for seamless -50% loop */}
+            {[...FEATURES, ...FEATURES].map((feat, i) => (
               <motion.div
                 key={`${feat.label}-${i}`}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -202,7 +184,7 @@ export default function CommunitySection() {
                   rotateY: 5,
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="glass-card group relative flex min-h-[5.5rem] w-[280px] shrink-0 items-center gap-3 overflow-hidden rounded-2xl border px-5 py-4 sm:w-[320px]"
+                className="glass-card group relative flex min-h-[5rem] w-[220px] shrink-0 items-center gap-3 overflow-hidden rounded-2xl border px-4 py-4 sm:w-[300px] sm:px-5"
                 style={{
                   perspective: "1000px",
                   transformStyle: "preserve-3d",
@@ -242,7 +224,11 @@ export default function CommunitySection() {
                     rotate: [0, -10, 10, -5, 0],
                     boxShadow: "0 0 20px color-mix(in srgb, var(--color-amber-primary) 30%, transparent)"
                   }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  transition={{
+                    scale: { type: "spring", stiffness: 400, damping: 15 },
+                    boxShadow: { type: "spring", stiffness: 400, damping: 15 },
+                    rotate: { duration: 0.4, ease: "easeOut" },
+                  }}
                 >
                   <span className="text-2xl">{feat.icon}</span>
                 </motion.div>
@@ -270,7 +256,7 @@ export default function CommunitySection() {
                 </motion.div>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

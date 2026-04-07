@@ -6,6 +6,7 @@ import Image from "next/image";
 import {
   motion,
   AnimatePresence,
+  Reorder,
   useMotionValue,
   useTransform,
   animate as fmAnimate,
@@ -19,6 +20,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 import BeerFormModal from "@/features/beers/components/BeerFormModal";
+import PairingBanner from "@/components/PairingBanner";
 import { getImageUrl } from "@/lib/constants";
 import { useBeers } from "@/features/beers/hooks/useBeers";
 import type { Beer } from "@/features/beers/model/types";
@@ -520,6 +522,22 @@ function BeerCard({
 }
 
 /* ═══════════════════════════════════
+   Widget registry (sidebar)
+   ═══════════════════════════════════ */
+
+const WIDGET_REGISTRY = [
+  { id: "cerveza-del-dia",  emoji: "☀️", label: "Cerveza del día" },
+  { id: "encuesta",          emoji: "📊", label: "Encuesta" },
+  { id: "explorar-estilo",  emoji: "🍺", label: "Explorar por estilo" },
+  { id: "tips",              emoji: "💡", label: "¿Sabías que...?" },
+  { id: "cerveceros",        emoji: "⭐", label: "Cerveceros destacados" },
+] as const;
+
+type WidgetId = (typeof WIDGET_REGISTRY)[number]["id"];
+const DEFAULT_WIDGETS: WidgetId[] = ["cerveza-del-dia", "encuesta"];
+const SIDEBAR_STORAGE_KEY = "cervezas_sidebar_widgets_v1";
+
+/* ═══════════════════════════════════
    Page
    ═══════════════════════════════════ */
 
@@ -535,7 +553,11 @@ export default function CervezasPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [pollVote, setPollVote] = useState<string | null>(null);
+  const [sidebarDismissed, setSidebarDismissed] = useState(false);
+  const [enabledWidgets, setEnabledWidgets] = useState<WidgetId[]>(DEFAULT_WIDGETS);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
+  const searchRef = useRef<HTMLInputElement>(null);
   const typedPlaceholder = useTypewriter(SOMMELIER_HINTS);
   const { beers: cervezas, isLoading, refreshBeers, onToggleLike } = useBeers(activeQuery);
 
@@ -543,7 +565,136 @@ export default function CervezasPage() {
     setMounted(true);
     const userData = localStorage.getItem("user");
     if (userData) setUser(JSON.parse(userData));
+    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    if (stored) {
+      try { setEnabledWidgets(JSON.parse(stored) as WidgetId[]); } catch {}
+    }
   }, []);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (e.key === "/" && tag !== "INPUT" && tag !== "TEXTAREA") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (e.key === "Escape") {
+        setPickerOpen(false);
+        setModalOpen(false);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPickerOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  const toggleWidget = (id: WidgetId) => {
+    setEnabledWidgets((prev) => {
+      const next = prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id];
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(next));
+      if (next.length === WIDGET_REGISTRY.length) setPickerOpen(false);
+      return next;
+    });
+  };
+
+  const renderWidget = (id: WidgetId): React.ReactNode => {
+    switch (id) {
+      case "cerveza-del-dia": return (
+        <div className="px-5 pt-3 pb-3">
+          <div className="mb-2.5 flex items-center gap-2">
+            <motion.span className="text-sm" animate={{ rotate: [0, 10, -5, 0], y: [0, -2, 0] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 3 }}>☀️</motion.span>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Cerveza del día</span>
+          </div>
+          <p className="text-[12px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>Hoy hace calor — te recomendamos una</p>
+          <div className="mt-2.5 flex items-center gap-2.5 rounded-xl p-2.5" style={{ background: "rgba(251,191,36,0.06)" }}>
+            <span className="text-xl">🍻</span>
+            <div>
+              <p className="text-[12px] font-bold" style={{ color: "var(--color-text-primary)" }}>Lager Refrescante</p>
+              <p className="text-[11px]" style={{ color: "var(--color-text-secondary)" }}>Suave, crisp, perfecta para el verano</p>
+            </div>
+          </div>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => { setSearchQuery("Lager"); setActiveQuery("Lager"); }} className="mt-2.5 w-full rounded-xl py-1.5 text-[11px] font-semibold transition-all" style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}>
+            Buscar Lagers →
+          </motion.button>
+        </div>
+      );
+      case "encuesta": return (
+        <div className="px-5 py-3">
+          <div className="mb-2.5 flex items-center gap-2">
+            <motion.span className="text-sm" animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>📊</motion.span>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Encuesta</span>
+          </div>
+          <p className="mb-2 text-[12px] font-medium" style={{ color: "var(--color-text-secondary)" }}>¿Qué estilo prefieres para el fin de semana?</p>
+          <div className="space-y-1.5">
+            {[{ label: "IPA bien lupulada", emoji: "🌿", pct: 38 }, { label: "Stout cremosa", emoji: "☕", pct: 27 }, { label: "Lager clásica", emoji: "🥂", pct: 22 }, { label: "Sour frutal", emoji: "🍊", pct: 13 }].map((opt) => {
+              const voted = pollVote !== null;
+              const isSelected = pollVote === opt.label;
+              return (
+                <motion.button key={opt.label} whileHover={!voted ? { scale: 1.02 } : {}} whileTap={!voted ? { scale: 0.98 } : {}} onClick={() => !voted && setPollVote(opt.label)} className="relative w-full overflow-hidden rounded-xl border px-2.5 py-2 text-left transition-all" style={{ borderColor: isSelected ? "var(--color-amber-primary)" : "var(--color-border-light)", cursor: voted ? "default" : "pointer" }}>
+                  {voted && <motion.div initial={{ width: 0 }} animate={{ width: `${opt.pct}%` }} transition={{ duration: 0.6, ease: "easeOut" }} className="absolute inset-y-0 left-0 rounded-xl" style={{ background: isSelected ? "rgba(251,191,36,0.15)" : "rgba(251,191,36,0.06)" }} />}
+                  <div className="relative flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-[11px] font-medium" style={{ color: isSelected ? "var(--color-amber-primary)" : "var(--color-text-primary)" }}><span>{opt.emoji}</span>{opt.label}</span>
+                    {voted && <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="text-[11px] font-bold" style={{ color: "var(--color-text-secondary)" }}>{opt.pct}%</motion.span>}
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+          {pollVote && <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-2 text-center text-[11px]" style={{ color: "var(--color-text-secondary)" }}>¡Gracias por votar! 🎉 127 votos totales</motion.p>}
+        </div>
+      );
+      case "explorar-estilo": return (
+        <div className="px-5 py-3">
+          <div className="mb-2.5 flex items-center gap-2">
+            <motion.span className="text-sm" animate={{ y: [0, -3, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}>🍺</motion.span>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Explorar por estilo</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {["IPA", "Stout", "Lager", "Porter", "Wheat", "Pale Ale", "Sour", "Amber"].map((style, i) => (
+              <motion.button key={style} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.92 }} onClick={() => { setSearchQuery(style); setActiveQuery(style); }} className="rounded-full border px-2.5 py-1 text-[11px] font-medium backdrop-blur-sm transition-all" style={{ borderColor: activeQuery === style ? "var(--color-amber-primary)" : "var(--color-border-light)", color: activeQuery === style ? "var(--color-amber-primary)" : "var(--color-text-primary)", background: activeQuery === style ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.04)" }}>
+                {style}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      );
+      case "tips": return (
+        <div className="px-5 py-3">
+          <div className="mb-2.5 flex items-center gap-2">
+            <motion.span className="text-sm" animate={{ rotate: [0, 20, -10, 0], opacity: [0.8, 1, 0.8] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 5 }}>💡</motion.span>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>¿Sabías que...?</span>
+          </div>
+          <p className="text-[12px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>Las IPAs deben su amargor al lúpulo, una planta trepadora que también actúa como conservante natural. ¡Por eso los marineros ingleses las llevaban a la India!</p>
+          <div className="my-2.5 h-px w-full" style={{ background: "var(--color-border-subtle)" }} />
+          <p className="text-[12px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>La temperatura ideal para servir una Stout es entre 10°C y 13°C. Demasiado fría oculta sus notas de chocolate y café. ☕</p>
+        </div>
+      );
+      case "cerveceros": return (
+        <div className="px-5 py-3">
+          <div className="mb-2.5 flex items-center gap-2">
+            <motion.span className="text-sm" animate={{ rotate: [0, 15, -10, 0], scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}>⭐</motion.span>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Cerveceros destacados</span>
+          </div>
+          <div className="space-y-1.5">
+            {["Ragnar", "Lagertha", "Björn", "Floki", "Ivar"].map((name, i) => (
+              <motion.div key={name} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }} whileHover={{ x: 3 }} className="group flex cursor-pointer items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors" style={{ background: "transparent" }} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.06)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold" style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: i === 0 ? "0 0 8px rgba(251,191,36,0.3)" : "none" }}>{name[0]}</div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[12px] font-medium" style={{ color: "var(--color-text-primary)" }}>{name}</p>
+                  <p className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>{[12, 9, 7, 6, 5][i]} cervezas · {[48, 35, 22, 18, 14][i]} 🍻</p>
+                </div>
+                <span className="text-[10px] font-bold" style={{ color: "var(--color-amber-primary)" }}>#{i + 1}{i === 0 ? " 👑" : ""}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      );
+      default: return null;
+    }
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -572,10 +723,11 @@ export default function CervezasPage() {
     <div className="relative flex min-h-screen flex-col" style={{ color: "var(--color-text-primary)" }}>
       <GoldenBackground />
       <Navbar />
+      <PairingBanner beers={cervezas} />
 
-      <main className="relative z-[2] mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-12 sm:px-6">
+      <main className="relative z-[2] mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-12 sm:px-6 xl:pr-[292px]">
         {/* ─── Header ─── */}
-        <motion.div initial="hidden" animate="visible" className="mb-10 flex flex-col items-center text-center">
+        <motion.div initial="hidden" animate="visible" className="mb-6 flex flex-col items-center text-center sm:mb-10">
           <motion.span
             variants={fadeUp}
             custom={0}
@@ -586,7 +738,7 @@ export default function CervezasPage() {
               background: "rgba(251,191,36,0.06)",
             }}
           >
-            Catálogo cervecero
+            Catálogo cervecero · v2.0
           </motion.span>
 
           <motion.h1
@@ -619,6 +771,39 @@ export default function CervezasPage() {
             Descubre, califica y comparte las mejores cervezas artesanales de la comunidad
           </motion.p>
 
+          {/* Stats chips */}
+          {cervezas.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.45 }}
+              className="mt-4 flex flex-wrap justify-center gap-2"
+            >
+              {[
+                { icon: "🍺", value: cervezas.length, label: `cerveza${cervezas.length !== 1 ? "s" : ""}` },
+                { icon: "⭐", value: cervezas.filter((b) => (b.averageRating ?? 0) >= 4).length, label: "top rated" },
+                { icon: "🍻", value: cervezas.reduce((s, b) => s + b.likes.length, 0), label: "brindis" },
+              ].map((stat, i) => (
+                <motion.span
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.55 + i * 0.08, type: "spring", stiffness: 320, damping: 22 }}
+                  className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold backdrop-blur-sm"
+                  style={{
+                    borderColor: "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
+                    background: "rgba(251,191,36,0.05)",
+                    color: "var(--color-text-secondary)",
+                  }}
+                >
+                  <span>{stat.icon}</span>
+                  <span style={{ color: "var(--color-amber-primary)", fontVariantNumeric: "tabular-nums" }}>{stat.value}</span>
+                  <span>{stat.label}</span>
+                </motion.span>
+              ))}
+            </motion.div>
+          )}
+
           {/* AI Sommelier Search */}
           <motion.div variants={fadeUp} custom={3} className="mt-8 w-full max-w-xl">
             <GradientBorder active={searchFocused} radius={28} borderWidth={1.5}>
@@ -630,6 +815,7 @@ export default function CervezasPage() {
                 <MagicSearchIcon active={searchFocused} />
                 <div className="relative flex-1">
                   <input
+                    ref={searchRef}
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -654,7 +840,7 @@ export default function CervezasPage() {
                     </div>
                   )}
                 </div>
-                {searchQuery && (
+                {searchQuery ? (
                   <button
                     type="button"
                     onClick={() => {
@@ -666,6 +852,13 @@ export default function CervezasPage() {
                   >
                     ✕
                   </button>
+                ) : (
+                  <kbd
+                    className="hidden select-none rounded border px-1.5 py-0.5 text-[9px] font-semibold sm:block"
+                    style={{ borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)", color: "var(--color-text-muted)", background: "rgba(255,255,255,0.04)" }}
+                  >
+                    /
+                  </kbd>
                 )}
               </form>
             </GradientBorder>
@@ -675,7 +868,7 @@ export default function CervezasPage() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="mt-3 flex flex-wrap justify-center gap-2"
+              className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0"
             >
               {QUICK_SUGGESTIONS.map((s) => (
                 <motion.button
@@ -686,7 +879,7 @@ export default function CervezasPage() {
                     setSearchQuery(s.query);
                     setActiveQuery(s.query);
                   }}
-                  className="rounded-full border px-3 py-1 text-[11px] font-medium backdrop-blur-sm transition-all"
+                  className="flex-shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium backdrop-blur-sm transition-all"
                   style={{
                     borderColor: "var(--color-border-light)",
                     color: "var(--color-text-secondary)",
@@ -734,10 +927,77 @@ export default function CervezasPage() {
           )}
         </motion.div>
 
-        {/* ─── Content: Grid + Sidebar ─── */}
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Beer grid (2/3) */}
-          <div className="flex-1 min-w-0">
+        {/* ─── Mobile Widgets (xl:hidden) ─── */}
+        <div className="mb-6 xl:hidden">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
+            {WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                onClick={() => setPickerOpen((v) => !v)}
+                className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all"
+                style={{
+                  borderColor: pickerOpen ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
+                  color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
+                  background: pickerOpen ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.03)",
+                }}
+              >
+                <span className="text-sm leading-none">{pickerOpen ? "−" : "+"}</span>
+                Agregar
+              </motion.button>
+            )}
+          </div>
+
+          <AnimatePresence initial={false} mode="popLayout">
+            {enabledWidgets.map((id) => (
+              <motion.div
+                key={id}
+                layout
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ type: "spring", stiffness: 280, damping: 26 }}
+                className="group/widget-m relative mb-2.5 overflow-hidden rounded-[1.5rem]"
+                style={{
+                  background: "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)",
+                  backdropFilter: "blur(18px) saturate(1.15)",
+                  WebkitBackdropFilter: "blur(18px) saturate(1.15)",
+                  border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
+                  boxShadow: "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), var(--shadow-elevated)",
+                }}
+              >
+                <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
+                <motion.button
+                  whileTap={{ scale: 0.88 }}
+                  onClick={() => toggleWidget(id)}
+                  className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] opacity-0 group-hover/widget-m:opacity-100 transition-opacity"
+                  style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)" }}
+                  aria-label="Quitar widget"
+                >
+                  −
+                </motion.button>
+                {renderWidget(id)}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {enabledWidgets.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center"
+              style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}
+            >
+              <span className="text-3xl">🍺</span>
+              <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin widgets activos</p>
+              <p className="mt-0.5 text-[10px]" style={{ color: "var(--color-text-muted)", opacity: 0.6 }}>Toca + Agregar para personalizar</p>
+            </motion.div>
+          )}
+        </div>
+
+        {/* ─── Content: Grid ─── */}
+        <div>
+          {/* Beer grid */}
+          <div className="min-w-0">
             {isLoading ? (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {[...Array(4)].map((_, i) => (
@@ -786,6 +1046,7 @@ export default function CervezasPage() {
             ) : (
               <>
                 <motion.div
+                  key={activeQuery || "__all__"}
                   variants={stagger}
                   initial="hidden"
                   animate="visible"
@@ -822,365 +1083,314 @@ export default function CervezasPage() {
               </>
             )}
           </div>
+        </div>
 
-          {/* ─── Sidebar (1/3) ─── */}
-          <motion.aside
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="hidden w-72 shrink-0 space-y-5 lg:block"
-          >
-            {/* 🌤️ Sugerencia según clima */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="relative overflow-hidden rounded-2xl border backdrop-blur-sm p-5"
-              style={{
-                background: "var(--color-surface-card)",
-                borderColor: "var(--color-border-subtle)",
-                boxShadow: "var(--shadow-card)",
-              }}
+        {/* ─── Fixed Sidebar Widget ─── */}
+        <AnimatePresence>
+          {!sidebarDismissed && (
+            <motion.aside
+              className="fixed z-40 hidden xl:block"
+              style={{ top: 120, right: 16, width: 256 }}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 32, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.3 }}
             >
-              {/* Decorative warm glow */}
-              <div
-                className="absolute -top-6 -left-6 h-20 w-20 rounded-full opacity-15"
-                style={{ background: "var(--color-amber-primary)", filter: "blur(20px)" }}
-              />
-              <h4
-                className="relative mb-3 flex items-center gap-2 text-[15px] font-bold"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                <motion.span
-                  className="text-lg"
-                  animate={{ rotate: [0, 10, -5, 0], y: [0, -2, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  ☀️
-                </motion.span>
-                Cerveza del día
-              </h4>
-              <p className="relative text-[13px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-                Hoy hace calor — te recomendamos una
-              </p>
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="relative mt-3 flex items-center gap-3 rounded-xl p-3"
-                style={{ background: "rgba(251,191,36,0.06)" }}
-              >
-                <span className="text-2xl">🍻</span>
-                <div>
-                  <p className="text-[13px] font-bold" style={{ color: "var(--color-text-primary)" }}>
-                    Lager Refrescante
-                  </p>
-                  <p className="text-[12px]" style={{ color: "var(--color-text-secondary)" }}>
-                    Suave, crisp, perfecta para el verano
-                  </p>
-                </div>
-              </motion.div>
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  setSearchQuery("Lager");
-                  setActiveQuery("Lager");
-                }}
-                className="relative mt-3 w-full rounded-xl py-2 text-[12px] font-semibold transition-all"
-                style={{
-                  background: "var(--gradient-button-primary)",
-                  color: "var(--color-text-dark)",
-                  boxShadow: "var(--shadow-amber-glow)",
-                }}
-              >
-                Buscar Lagers →
-              </motion.button>
-            </motion.div>
+              {/* Widget cards column */}
+              <div className="flex flex-col gap-2.5">
 
-            {/* Cerveceros destacados */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="overflow-hidden rounded-2xl border backdrop-blur-sm p-5"
-              style={{
-                background: "var(--color-surface-card)",
-                borderColor: "var(--color-border-subtle)",
-                boxShadow: "var(--shadow-card)",
-              }}
-            >
-              <h4
-                className="mb-4 flex items-center gap-2 text-[15px] font-bold"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                <motion.span
-                  className="text-lg"
-                  animate={{ rotate: [0, 15, -10, 0], scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}
-                >
-                  ⭐
-                </motion.span>
-                Cerveceros destacados
-              </h4>
-              <div className="space-y-2">
-                {["Ragnar", "Lagertha", "Björn", "Floki", "Ivar"].map((name, i) => (
-                  <motion.div
-                    key={name}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + i * 0.08 }}
-                    whileHover={{ x: 3 }}
-                    className="group flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 transition-colors"
-                    style={{ background: "transparent" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.06)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                {/* Floating header row */}
+                <div className="flex items-center justify-between px-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
+                  <button
+                    type="button"
+                    onClick={() => setSidebarDismissed(true)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all"
+                    style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 75%, white 25%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}
+                    aria-label="Cerrar panel"
                   >
-                    <motion.div
-                      whileHover={{ rotate: 8 }}
-                      className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold"
+                    ×
+                  </button>
+                </div>
+
+                {/* Individual widget cards — drag to reorder */}
+                <Reorder.Group
+                  axis="y"
+                  values={enabledWidgets}
+                  onReorder={(newOrder) => {
+                    setEnabledWidgets(newOrder);
+                    localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(newOrder));
+                  }}
+                  className="flex flex-col gap-2.5 list-none m-0 p-0"
+                >
+                  <AnimatePresence initial={false} mode="popLayout">
+                  {enabledWidgets.map((id) => (
+                    <Reorder.Item
+                      key={id}
+                      value={id}
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      transition={{ type: "spring", stiffness: 280, damping: 26 }}
+                      className="group/widget relative overflow-hidden rounded-[1.5rem] cursor-grab active:cursor-grabbing"
                       style={{
-                        background: "var(--gradient-button-primary)",
-                        color: "var(--color-text-dark)",
-                        boxShadow: i === 0 ? "0 0 10px rgba(251,191,36,0.3)" : "none",
+                        background: "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)",
+                        backdropFilter: "blur(18px) saturate(1.15)",
+                        WebkitBackdropFilter: "blur(18px) saturate(1.15)",
+                        border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
+                        boxShadow: "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 6%, transparent), var(--shadow-elevated)",
+                        listStyle: "none",
                       }}
                     >
-                      {name[0]}
-                    </motion.div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="truncate text-[13px] font-medium transition-colors group-hover:text-amber-primary"
-                        style={{ color: "var(--color-text-primary)" }}
+                      {/* Inner border */}
+                      <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
+                      {/* Bottom rim */}
+                      <div className="pointer-events-none absolute inset-x-5 bottom-[1px] h-px" style={{ background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-light) 40%, transparent), transparent)", opacity: 0.6 }} aria-hidden="true" />
+
+                      {/* Remove button — visible on hover */}
+                      <motion.button
+                        whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }}
+                        onClick={() => toggleWidget(id)}
+                        className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] opacity-0 group-hover/widget:opacity-100 transition-opacity duration-150"
+                        style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)", backdropFilter: "blur(8px)" }}
+                        aria-label="Quitar widget"
                       >
-                        {name}
-                      </p>
-                      <p className="text-[12px]" style={{ color: "var(--color-text-secondary)" }}>
-                        {[12, 9, 7, 6, 5][i]} cervezas · {[48, 35, 22, 18, 14][i]} 🍻
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-[11px] font-bold" style={{ color: "var(--color-amber-primary)" }}>
-                        #{i + 1}
-                      </span>
-                      {i === 0 && (
-                        <motion.span
-                          className="text-[9px]"
-                          animate={{ scale: [1, 1.3, 1] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          👑
-                        </motion.span>
-                      )}
-                    </div>
+                        −
+                      </motion.button>
+
+                      {renderWidget(id)}
+                    </Reorder.Item>
+                  ))}
+                  </AnimatePresence>
+                </Reorder.Group>
+
+                {/* Empty state */}
+                {enabledWidgets.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center"
+                    style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}
+                  >
+                    <span className="text-3xl">🍺</span>
+                    <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin widgets activos</p>
                   </motion.div>
-                ))}
-              </div>
-            </motion.div>
+                )}
 
-            {/* 📊 Encuesta */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="relative overflow-hidden rounded-2xl border backdrop-blur-sm p-5"
-              style={{
-                background: "var(--color-surface-card)",
-                borderColor: "var(--color-border-subtle)",
-                boxShadow: "var(--shadow-card)",
-              }}
-            >
-              <h4
-                className="mb-3 flex items-center gap-2 text-[15px] font-bold"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                <motion.span
-                  className="text-lg"
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  📊
-                </motion.span>
-                Encuesta de la semana
-              </h4>
-              <p className="mb-3 text-[13px] font-medium" style={{ color: "var(--color-text-secondary)" }}>
-                ¿Qué estilo de cerveza prefieres para el fin de semana?
-              </p>
-              <div className="space-y-2">
-                {[
-                  { label: "IPA bien lupulada", emoji: "🌿", pct: 38 },
-                  { label: "Stout cremosa", emoji: "☕", pct: 27 },
-                  { label: "Lager clásica", emoji: "🥂", pct: 22 },
-                  { label: "Sour frutal", emoji: "🍊", pct: 13 },
-                ].map((opt) => {
-                  const voted = pollVote !== null;
-                  const isSelected = pollVote === opt.label;
-                  return (
-                    <motion.button
-                      key={opt.label}
-                      whileHover={!voted ? { scale: 1.02 } : {}}
-                      whileTap={!voted ? { scale: 0.98 } : {}}
-                      onClick={() => !voted && setPollVote(opt.label)}
-                      className="relative w-full overflow-hidden rounded-xl border px-3 py-2.5 text-left transition-all"
-                      style={{
-                        borderColor: isSelected
-                          ? "var(--color-amber-primary)"
-                          : "var(--color-border-light)",
-                        cursor: voted ? "default" : "pointer",
-                      }}
+                {/* Agregar widget button */}
+                {WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => setPickerOpen((v) => !v)}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border py-2.5 text-[11px] font-semibold transition-all"
+                    style={{
+                      borderColor: pickerOpen ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
+                      color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
+                      background: pickerOpen ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.03)",
+                    }}
+                  >
+                    <span className="text-base leading-none">{pickerOpen ? "−" : "+"}</span>
+                    Agregar widget
+                    <kbd
+                      className="ml-auto rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                      style={{ borderColor: "color-mix(in srgb, var(--color-border-amber) 45%, transparent)", color: "var(--color-text-muted)", background: "rgba(255,255,255,0.03)" }}
                     >
-                      {/* Progress bar fill */}
-                      {voted && (
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${opt.pct}%` }}
-                          transition={{ duration: 0.6, ease: "easeOut" }}
-                          className="absolute inset-y-0 left-0 rounded-xl"
-                          style={{
-                            background: isSelected
-                              ? "rgba(251,191,36,0.15)"
-                              : "rgba(251,191,36,0.06)",
-                          }}
-                        />
-                      )}
-                      <div className="relative flex items-center justify-between">
-                        <span
-                          className="flex items-center gap-2 text-[13px] font-medium"
-                          style={{
-                            color: isSelected
-                              ? "var(--color-amber-primary)"
-                              : "var(--color-text-primary)",
-                          }}
+                      ⌘K
+                    </kbd>
+                  </motion.button>
+                )}
+
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
+        {/* ─── Widget Picker Card ─── */}
+        <AnimatePresence>
+          {!sidebarDismissed && pickerOpen && (
+            <motion.div
+              className="fixed z-[60] hidden xl:block"
+              style={{ top: 120, right: 280, width: 248 }}
+              initial={{ opacity: 0, x: -16, scale: 0.96 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -16, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 260, damping: 24 }}
+            >
+              <div
+                className="relative overflow-hidden rounded-[1.75rem]"
+                style={{
+                  background: "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-deepest) 6%)",
+                  backdropFilter: "blur(22px) saturate(1.2)",
+                  WebkitBackdropFilter: "blur(22px) saturate(1.2)",
+                  border: "1px solid color-mix(in srgb, var(--color-border-amber) 38%, var(--color-border-light))",
+                  boxShadow: "inset 0 1px 0 color-mix(in srgb, white 18%, transparent), var(--shadow-elevated), 0 0 0 1px color-mix(in srgb, var(--color-amber-primary) 8%, transparent)",
+                }}
+              >
+                {/* Inner border */}
+                <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
+                    <p className="text-[9px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca para agregar al panel</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPickerOpen(false)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border text-sm"
+                    style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Available widgets */}
+                <div className="p-3 space-y-2">
+                  <AnimatePresence mode="popLayout">
+                    {WIDGET_REGISTRY.filter((w) => !enabledWidgets.includes(w.id)).map((w) => (
+                      <motion.div
+                        key={w.id}
+                        layout
+                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.15 } }}
+                        transition={{ type: "spring", stiffness: 300, damping: 26 }}
+                        className="flex items-center gap-3 rounded-2xl p-3"
+                        style={{
+                          background: "color-mix(in srgb, var(--color-surface-card-alt) 60%, transparent)",
+                          border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+                        }}
+                      >
+                        <span className="text-xl leading-none">{w.emoji}</span>
+                        <span className="min-w-0 flex-1 text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>{w.label}</span>
+                        <motion.button
+                          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+                          onClick={() => { toggleWidget(w.id); }}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold"
+                          style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+                          aria-label={`Agregar ${w.label}`}
                         >
-                          <span>{opt.emoji}</span>
-                          {opt.label}
-                        </span>
-                        {voted && (
-                          <motion.span
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="text-[12px] font-bold"
-                            style={{ color: "var(--color-text-secondary)" }}
-                          >
-                            {opt.pct}%
-                          </motion.span>
-                        )}
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
-              {pollVote && (
-                <motion.p
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-3 text-center text-[12px]"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  ¡Gracias por votar! 🎉 127 votos totales
-                </motion.p>
-              )}
-            </motion.div>
+                          +
+                        </motion.button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
 
-            {/* Explorar por estilo */}
+                  {WIDGET_REGISTRY.every((w) => enabledWidgets.includes(w.id)) && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-4 text-center">
+                      <span className="text-2xl">✨</span>
+                      <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Todos los widgets activos</p>
+                    </motion.div>
+                  )}
+                </div>
+
+                <div className="pb-3 text-center">
+                  <span className="text-[9px]" style={{ color: "var(--color-text-muted)", opacity: 0.45 }}>Los cambios se guardan automáticamente</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </main>
+
+      {/* ─── Mobile Picker Bottom Sheet (xl:hidden) — fuera de main para que fixed funcione ─── */}
+      <AnimatePresence>
+        {pickerOpen && (
+          <motion.div
+            className="fixed inset-0 z-[60] xl:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0"
+              style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)" }}
+              onClick={() => setPickerOpen(false)}
+            />
+            {/* Sheet */}
             <motion.div
-              whileHover={{ scale: 1.01 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="rounded-2xl border backdrop-blur-sm p-5"
+              className="absolute bottom-0 left-0 right-0 overflow-hidden rounded-t-[2rem]"
               style={{
-                background: "var(--color-surface-card)",
-                borderColor: "var(--color-border-subtle)",
-                boxShadow: "var(--shadow-card)",
+                background: "color-mix(in srgb, var(--color-surface-card) 97%, var(--color-surface-deepest) 3%)",
+                backdropFilter: "blur(24px) saturate(1.2)",
+                WebkitBackdropFilter: "blur(24px) saturate(1.2)",
+                border: "1px solid color-mix(in srgb, var(--color-border-amber) 35%, var(--color-border-light))",
+                borderBottom: "none",
+                boxShadow: "0 -8px 40px rgba(0,0,0,0.4), inset 0 1px 0 color-mix(in srgb, white 14%, transparent)",
               }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 32 }}
             >
-              <h4
-                className="mb-3 flex items-center gap-2 text-[15px] font-bold"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                <motion.span
-                  className="text-lg"
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              {/* Handle */}
+              <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pb-3 pt-2" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
+                <div>
+                  <p className="text-[13px] font-bold" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca + para agregar al panel</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border text-base"
+                  style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.05)", color: "var(--color-text-muted)" }}
                 >
-                  🍺
-                </motion.span>
-                Explorar por estilo
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {["IPA", "Stout", "Lager", "Porter", "Wheat", "Pale Ale", "Sour", "Amber"].map(
-                  (style, i) => (
-                    <motion.button
-                      key={style}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.5 + i * 0.05 }}
-                      whileHover={{ scale: 1.1, y: -2 }}
-                      whileTap={{ scale: 0.92 }}
-                      onClick={() => {
-                        setSearchQuery(style);
-                        setActiveQuery(style);
-                      }}
-                      className="rounded-full border px-3 py-1.5 text-[12px] font-medium backdrop-blur-sm transition-all"
+                  ×
+                </button>
+              </div>
+
+              {/* Widget list */}
+              <div className="max-h-[40vh] overflow-y-auto p-4 space-y-2.5">
+                <AnimatePresence mode="popLayout">
+                  {WIDGET_REGISTRY.filter((w) => !enabledWidgets.includes(w.id)).map((w) => (
+                    <motion.div
+                      key={w.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 26 }}
+                      className="flex items-center gap-4 rounded-2xl p-4"
                       style={{
-                        borderColor: activeQuery === style ? "var(--color-amber-primary)" : "var(--color-border-light)",
-                        color: activeQuery === style ? "var(--color-amber-primary)" : "var(--color-text-primary)",
-                        background: activeQuery === style ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.04)",
+                        background: "color-mix(in srgb, var(--color-surface-card-alt) 65%, transparent)",
+                        border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)",
                       }}
                     >
-                      {style}
-                    </motion.button>
-                  ),
+                      <span className="text-2xl leading-none">{w.emoji}</span>
+                      <span className="min-w-0 flex-1 text-[13px] font-medium" style={{ color: "var(--color-text-primary)" }}>{w.label}</span>
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => toggleWidget(w.id)}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg font-bold"
+                        style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+                        aria-label={`Agregar ${w.label}`}
+                      >
+                        +
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {WIDGET_REGISTRY.every((w) => enabledWidgets.includes(w.id)) && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-8 text-center">
+                    <span className="text-3xl">✨</span>
+                    <p className="mt-2 text-[13px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Todos los widgets activos</p>
+                  </motion.div>
                 )}
               </div>
-            </motion.div>
 
-            {/* Tips cerveceros */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="relative overflow-hidden rounded-2xl border backdrop-blur-sm p-5"
-              style={{
-                background: "var(--color-surface-card)",
-                borderColor: "var(--color-border-subtle)",
-                boxShadow: "var(--shadow-card)",
-              }}
-            >
-              {/* Decorative blurred circle */}
-              <div
-                className="absolute -top-4 -right-4 h-16 w-16 rounded-full opacity-20"
-                style={{
-                  background: "var(--color-amber-primary)",
-                  filter: "blur(16px)",
-                }}
-              />
-              <h4
-                className="relative mb-3 flex items-center gap-2 text-[15px] font-bold"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                <motion.span
-                  className="text-lg"
-                  animate={{ rotate: [0, 20, -10, 0], opacity: [0.8, 1, 0.8] }}
-                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 5 }}
-                >
-                  💡
-                </motion.span>
-                ¿Sabías que...?
-              </h4>
-              <p className="relative text-[13px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-                Las IPAs deben su amargor al lúpulo, una planta trepadora que también actúa como
-                conservante natural. ¡Por eso los marineros ingleses las llevaban a la India!
-              </p>
-              <div
-                className="relative mt-3 h-px w-full"
-                style={{ background: "var(--color-border-subtle)" }}
-              />
-              <p
-                className="relative mt-3 text-[13px] leading-relaxed"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                La temperatura ideal para servir una Stout es entre 10°C y 13°C. Demasiado fría
-                oculta sus notas de chocolate y café. ☕
-              </p>
+              <div className="pb-6 pt-2 text-center">
+                <span className="text-[10px]" style={{ color: "var(--color-text-muted)", opacity: 0.5 }}>Los cambios se guardan automáticamente</span>
+              </div>
             </motion.div>
-          </motion.aside>
-        </div>
-      </main>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
 

@@ -3,7 +3,6 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/features/landing/components/HeroSection";
 import BentoFeatures from "@/features/landing/components/BentoFeatures";
 import StatsSection from "@/features/landing/components/StatsSection";
-import StorySection from "@/features/landing/components/StorySection";
 import StepsSection from "@/features/landing/components/StepsSection";
 import CommunitySection from "@/features/landing/components/CommunitySection";
 import CtaSection from "@/features/landing/components/CtaSection";
@@ -17,10 +16,9 @@ export default function HomePage() {
       <GoldenParticles count={25} />
       <Navbar />
       <TrendsSidenav />
-      <CommunitySection />
       <HeroSection />
+      <CommunitySection />
       <BentoFeatures />
-      <StorySection />
       <StepsSection />
       <CtaSection />
       <NewsletterBanner />

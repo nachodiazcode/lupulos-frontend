@@ -336,7 +336,7 @@ const DISCOVERY_MODES: Array<{
   {
     value: "vanguardia",
     label: "Vanguardia Urbana",
-    helper: "Craft moderno con identidad visual fuerte",
+    helper: "Artesanal moderno con identidad visual fuerte",
     icon: "🌆",
   },
   {

@@ -11,7 +11,6 @@ import { GOOGLE_AUTH_URL } from "@/lib/constants";
 import api from "@/lib/api";
 import { persistAuthSession } from "@/lib/auth-storage";
 import { getErrorMessage } from "@/lib/errors";
-import HeroIllustration from "@/components/ui/HeroIllustration";
 
 /* ─── Gradient Border ─── */
 function GradientBorder({
@@ -42,19 +41,36 @@ function GradientBorder({
 
   return (
     <div className="relative" style={{ borderRadius: radius, padding: borderWidth }}>
+      {/* Neon outer halo — wide soft glow */}
       <motion.div
-        className="absolute inset-0"
-        style={{ borderRadius: radius, background, opacity: 0.5, transition: "opacity 0.3s" }}
-      />
-      <motion.div
-        className="absolute inset-0"
+        className="absolute"
         style={{
-          borderRadius: radius,
+          inset: -8,
+          borderRadius: radius + 8,
           background,
-          filter: "blur(14px)",
-          opacity: 0.15,
-          transition: "opacity 0.3s",
+          filter: "blur(28px)",
+          opacity: 0.35,
         }}
+        animate={{ opacity: [0.28, 0.48, 0.28] }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* Neon mid glow — tight crisp halo */}
+      <motion.div
+        className="absolute"
+        style={{
+          inset: -3,
+          borderRadius: radius + 3,
+          background,
+          filter: "blur(8px)",
+          opacity: 0.55,
+        }}
+        animate={{ opacity: [0.45, 0.70, 0.45] }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+      />
+      {/* Crisp rotating border line */}
+      <motion.div
+        className="absolute inset-0"
+        style={{ borderRadius: radius, background, opacity: 0.9 }}
       />
       <div className="relative" style={{ borderRadius: radius - borderWidth }}>
         {children}
@@ -128,7 +144,6 @@ export default function LoginPage() {
         fotoPerfil: data.user?.photo,
       };
       persistAuthSession({ token: data.accessToken, user: usuario });
-      localStorage.setItem("user", JSON.stringify(usuario));
 
       setToken(data.accessToken);
       setUser(usuario);
@@ -186,17 +201,7 @@ export default function LoginPage() {
       )}
 
       {/* Contenido principal — imagen izquierda, form derecha */}
-      <div className="relative z-10 flex w-full max-w-5xl items-center justify-center gap-8 px-4 py-8 lg:justify-between lg:gap-16 lg:px-8">
-        {/* Ilustración animada — solo desktop, lado izquierdo */}
-        <motion.div
-          initial={{ x: -60, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="hidden flex-1 items-center justify-center lg:flex"
-        >
-          <HeroIllustration />
-        </motion.div>
-
+      <div className="relative z-10 flex w-full max-w-md items-center justify-center px-4 py-8">
         {/* Tarjeta de Login — lado derecho */}
         <motion.div
           initial={{ y: 30, opacity: 0 }}

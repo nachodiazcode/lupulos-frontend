@@ -40,13 +40,6 @@ function generateSparkles(count: number): Sparkle[] {
    Data
    ═══════════════════════════════════ */
 
-const avatarNames = ["ragnar", "Lagertha", "bjorn", "Kwenthrith"] as const;
-
-const statChips = [
-  { icon: "🍺", value: "1.200+", label: "cervezas con ficha" },
-  { icon: "📍", value: "280+",   label: "cervecerías activas" },
-  { icon: "💬", value: "42K+",   label: "reseñas reales" },
-];
 
 /* ═══════════════════════════════════
    Word Cycler
@@ -221,61 +214,9 @@ export default function HeroSection() {
 
       {/* ─── Content ─── */}
       <div className="home-content-shell relative z-10 py-8 sm:py-10 lg:py-14">
-        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1fr)] lg:gap-9 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.02fr)] xl:gap-12">
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.84fr)] lg:gap-9 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.84fr)] xl:gap-12">
 
-          {/* ── LEFT: Hero image ── */}
-          <motion.div
-            initial={{ opacity: 0, x: -24, scale: 0.97 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ delay: 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative mx-auto w-full max-w-sm lg:max-w-none lg:mt-12"
-          >
-            <div
-              className="pointer-events-none absolute -inset-4 rounded-[2rem] blur-3xl"
-              style={{
-                background:
-                  "radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--color-amber-primary) 18%, transparent), transparent 70%)",
-                opacity: 0.7,
-              }}
-              aria-hidden="true"
-            />
-
-            <div
-              className="glass-card relative overflow-hidden rounded-[2rem] border p-2"
-              style={{
-                borderColor: "var(--color-border-light)",
-                boxShadow: "var(--shadow-elevated)",
-              }}
-            >
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem]">
-                <Image
-                  src="/assets/vikingos-cerveza.jpg"
-                  alt="Cerveceros disfrutando cerveza artesanal"
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 38vw"
-                />
-                <div
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--color-surface-overlay) 88%, transparent) 100%)",
-                  }}
-                />
-                <div className="absolute right-4 bottom-4 left-4 flex items-end justify-between gap-3">
-                  <span
-                    className="glass-pill rounded-full px-3 py-2 text-[14px] font-semibold leading-snug"
-                    style={{ color: "var(--color-text-primary)" }}
-                  >
-                    Impresionante, así que esta app se llama Lúpulos amigo Knut, es un honor pertenecer aquí y encontrar el brebaje para la fiesta del dios de dioses
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* ── RIGHT: Text + AI ── */}
+          {/* ── LEFT: Text + AI ── */}
           <div className="mx-auto flex w-full max-w-[34rem] flex-col text-center lg:mx-0 lg:max-w-[35rem] lg:text-left xl:max-w-[37rem]">
 
             {/* Badge */}
@@ -290,12 +231,12 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
             >
-              LA NUEVA COMUNIDAD CERVECERA, TE ESPERA!
+              Chile Cervecero · Catálogo · Mapa · IA
             </motion.span>
 
             {/* H1 */}
             <motion.h1
-              className="text-text-primary mt-2 text-[2.45rem] leading-[1.03] font-black tracking-[-0.05em] sm:text-[2.8rem] md:text-[2.95rem] lg:text-[3.05rem] xl:text-[3.35rem] 2xl:text-[3.55rem]"
+              className="text-text-primary mt-2 text-[1.9rem] leading-[1.05] font-black tracking-[-0.04em] sm:text-[2.5rem] sm:leading-[1.03] sm:tracking-[-0.05em] md:text-[2.95rem] lg:text-[3.05rem] xl:text-[3.35rem] 2xl:text-[3.55rem]"
               style={{ textShadow: "0.6px 0.6px 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor" }}
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
@@ -310,7 +251,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.36, duration: 0.6 }}
             >
-              Descubre cervezas de tierras lejanas jamás vistas. Comparte tu brindis memorable, tus sensaciones, tu cerveza favorita. Los dioses estarán complacidos, de tenerte en este lugar.
+              Explora cervezas nuevas, encuentra cervecerías verificadas cerca de ti y deja que la IA afine tu paladar. Todo gratis — hecho en Chile.
             </motion.p>
 
             {/* CTAs */}
@@ -376,7 +317,96 @@ export default function HeroSection() {
                 <AiPromptBar embedded />
               </div>
             </motion.div>
+
+            {/* ── Feature strip (mobile only) ── */}
+            <motion.div
+              className="mt-6 lg:hidden"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.05, duration: 0.55 }}
+            >
+              <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--color-text-muted)" }}>Todo lo que incluye</p>
+              <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-none">
+                {[
+                  { icon: "🍺", title: "Catálogo",    desc: "Busca por estilo, IBU y ABV" },
+                  { icon: "🗺️", title: "Mapa",        desc: "Cervecerías cerca de ti" },
+                  { icon: "✨", title: "IA Sommelier", desc: "Recomendaciones personalizadas" },
+                  { icon: "🏆", title: "Rankings",    desc: "Las más amadas de la comunidad" },
+                ].map((f, i) => (
+                  <motion.div
+                    key={f.title}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 1.08 + i * 0.07, type: "spring", stiffness: 260, damping: 24 }}
+                    className="flex w-[140px] shrink-0 flex-col gap-1.5 rounded-2xl p-3.5"
+                    style={{
+                      background: "color-mix(in srgb, var(--color-surface-card) 80%, transparent)",
+                      backdropFilter: "blur(12px)",
+                      border: "1px solid color-mix(in srgb, var(--color-border-amber) 28%, var(--color-border-light))",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
+                    }}
+                  >
+                    <span className="text-[22px] leading-none">{f.icon}</span>
+                    <p className="text-[13px] font-bold leading-tight" style={{ color: "var(--color-text-primary)" }}>{f.title}</p>
+                    <p className="text-[11px] leading-snug" style={{ color: "var(--color-text-muted)" }}>{f.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
+
+          {/* ── RIGHT: Hero image ── */}
+          <motion.div
+            initial={{ opacity: 0, x: 24, scale: 0.97 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ delay: 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="relative mx-auto hidden w-full max-w-sm lg:block lg:max-w-none lg:mt-12"
+          >
+            <div
+              className="pointer-events-none absolute -inset-4 rounded-[2rem] blur-3xl"
+              style={{
+                background:
+                  "radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--color-amber-primary) 18%, transparent), transparent 70%)",
+                opacity: 0.7,
+              }}
+              aria-hidden="true"
+            />
+
+            <div
+              className="glass-card relative overflow-hidden rounded-[2rem] border p-2"
+              style={{
+                borderColor: "var(--color-border-light)",
+                boxShadow: "var(--shadow-elevated)",
+              }}
+            >
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem]">
+                <Image
+                  src="/assets/vikingos-cerveza.jpg"
+                  alt="Cerveceros disfrutando cerveza artesanal"
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 38vw"
+                />
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--color-surface-overlay) 88%, transparent) 100%)",
+                  }}
+                />
+                <div className="absolute right-4 bottom-4 left-4 flex items-end justify-between gap-3">
+                  <span
+                    className="glass-pill rounded-full px-3 py-2 text-[14px] font-semibold leading-snug"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
+                    Encontré mi cerveza favorita en 5 minutos. Esta comunidad es otro nivel 🍺
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
         </div>
       </div>
     </section>

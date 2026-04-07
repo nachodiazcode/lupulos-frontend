@@ -39,6 +39,7 @@ export default function RootLayout({
       <head>
         {/* Inline script: set data-theme before first paint to prevent FOUC */}
         <script
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var s=localStorage.getItem('lupulos-theme'),v=['lager','ambar','stout'],t=v.indexOf(s)>=0?s:'ambar';document.documentElement.setAttribute('data-theme',t);document.documentElement.style.background=t==='lager'?'#f0e9dc':'#0c0a09';}catch(e){}}())`,
           }}
