@@ -45,8 +45,8 @@ function generateSparkles(count: number): Sparkle[] {
    Word Cycler
    ═══════════════════════════════════ */
 
-const BEER_STYLES = [
-  "Ámbar", "Stout", "Lager", "IPA",
+const ACTION_WORDS = [
+  "descubrir", "compartir", "explorar", "conectar",
 ] as const;
 
 function BeerStyleCycler() {
@@ -55,14 +55,14 @@ function BeerStyleCycler() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const currentWord = BEER_STYLES[wordIdx];
+    const currentWord = ACTION_WORDS[wordIdx];
     let timeout: NodeJS.Timeout;
 
     if (!isDeleting && displayText === currentWord) {
       timeout = setTimeout(() => setIsDeleting(true), 1800);
     } else if (isDeleting && displayText === "") {
       setIsDeleting(false);
-      setWordIdx((i) => (i + 1) % BEER_STYLES.length);
+      setWordIdx((i) => (i + 1) % ACTION_WORDS.length);
     } else if (isDeleting) {
       timeout = setTimeout(() => {
         setDisplayText(currentWord.substring(0, displayText.length - 1));
@@ -77,7 +77,7 @@ function BeerStyleCycler() {
   }, [displayText, isDeleting, wordIdx]);
 
   return (
-    <span className="relative inline-block align-baseline" aria-live="polite" style={{ minWidth: "8ch" }}>
+    <span className="relative inline-block align-baseline" aria-live="polite" style={{ minWidth: "10ch" }}>
       <span
         className="font-black inline-block align-baseline"
         style={{
@@ -231,7 +231,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
             >
-              Chile Cervecero · Catálogo · Mapa · IA
+              🍺 Red social de cerveza artesanal · Chile
             </motion.span>
 
             {/* H1 */}
@@ -242,7 +242,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.22, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
             >
-              ¿Listo para tu primera ronda? <BeerStyleCycler />
+              La app para <BeerStyleCycler /> cerveza artesanal en Chile
             </motion.h1>
             {/* Subtitle */}
             <motion.p
@@ -251,7 +251,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.36, duration: 0.6 }}
             >
-              Explora cervezas nuevas, encuentra cervecerías verificadas cerca de ti y deja que la IA afine tu paladar. Todo gratis — hecho en Chile.
+              Lúpulos es la comunidad chilena de cerveza artesanal. Encuentra cervezas con ficha completa, descubre cervecerías verificadas cerca de ti y conecta con miles de apasionados — todo gratis.
             </motion.p>
 
             {/* CTAs */}
