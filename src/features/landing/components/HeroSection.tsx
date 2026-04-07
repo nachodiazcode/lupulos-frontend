@@ -334,40 +334,130 @@ export default function HeroSection() {
               </div>
             </motion.div>
 
-            {/* ── Feature strip (mobile only) ── */}
+            {/* ── Mobile Hero Image ── */}
             <motion.div
-              className="mt-6 lg:hidden"
+              className="relative mt-6 overflow-hidden rounded-2xl lg:hidden"
+              style={{
+                border: "1px solid color-mix(in srgb, var(--color-border-amber) 40%, var(--color-border-light))",
+                boxShadow: "0 8px 32px rgba(249,115,22,0.15), inset 0 1px 0 rgba(255,255,255,0.1)",
+              }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.95, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="relative aspect-[16/9] overflow-hidden">
+                <Image
+                  src="/assets/vikingos-cerveza.jpg"
+                  alt="Cerveceros disfrutando cerveza artesanal"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background: "linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.55) 100%)",
+                  }}
+                />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
+                  <span
+                    className="rounded-full px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md"
+                    style={{ background: "rgba(249,115,22,0.85)" }}
+                  >
+                    🍺 +1.200 cervezas
+                  </span>
+                  <span
+                    className="rounded-full px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md"
+                    style={{ background: "rgba(0,0,0,0.45)" }}
+                  >
+                    📍 280+ locales
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* ── Principales funciones (mobile only) ── */}
+            <motion.div
+              className="mt-7 lg:hidden"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.05, duration: 0.55 }}
             >
-              <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--color-text-muted)" }}>Todo lo que incluye</p>
-              <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-none">
+              <p className="mb-4 text-center text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--color-text-muted)" }}>
+                Principales funciones
+              </p>
+              <div className="grid grid-cols-2 gap-3">
                 {[
-                  { icon: "🍺", title: "Catálogo",    desc: "Busca por estilo, IBU y ABV" },
-                  { icon: "🗺️", title: "Mapa",        desc: "Cervecerías cerca de ti" },
-                  { icon: "✨", title: "IA Sommelier", desc: "Recomendaciones personalizadas" },
-                  { icon: "🏆", title: "Rankings",    desc: "Las más amadas de la comunidad" },
+                  { icon: "🍺", title: "Catálogo", desc: "Estilo, IBU y ABV", gradient: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,191,36,0.08))", glowColor: "rgba(249,115,22,0.25)" },
+                  { icon: "🗺️", title: "Mapa", desc: "Cervecerías cerca", gradient: "linear-gradient(135deg, rgba(34,197,94,0.12), rgba(16,185,129,0.06))", glowColor: "rgba(34,197,94,0.2)" },
+                  { icon: "✨", title: "IA Sommelier", desc: "Tu sommelier personal", gradient: "linear-gradient(135deg, rgba(168,85,247,0.14), rgba(139,92,246,0.07))", glowColor: "rgba(168,85,247,0.22)" },
+                  { icon: "🏆", title: "Rankings", desc: "Top de la comunidad", gradient: "linear-gradient(135deg, rgba(234,179,8,0.15), rgba(251,191,36,0.08))", glowColor: "rgba(234,179,8,0.22)" },
                 ].map((f, i) => (
                   <motion.div
                     key={f.title}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 1.08 + i * 0.07, type: "spring", stiffness: 260, damping: 24 }}
-                    className="flex w-[140px] shrink-0 flex-col gap-1.5 rounded-2xl p-3.5"
+                    initial={{ opacity: 0, scale: 0.85, y: 16 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: 1.1 + i * 0.1, type: "spring", stiffness: 300, damping: 22 }}
+                    className="group relative flex flex-col items-center gap-2 rounded-2xl px-3 py-5 text-center"
                     style={{
-                      background: "color-mix(in srgb, var(--color-surface-card) 80%, transparent)",
-                      backdropFilter: "blur(12px)",
-                      border: "1px solid color-mix(in srgb, var(--color-border-amber) 28%, var(--color-border-light))",
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
+                      background: f.gradient,
+                      backdropFilter: "blur(16px)",
+                      border: "1px solid color-mix(in srgb, var(--color-border-amber) 22%, var(--color-border-light))",
+                      boxShadow: `0 4px 20px ${f.glowColor}, inset 0 1px 0 rgba(255,255,255,0.12)`,
                     }}
                   >
-                    <span className="text-[22px] leading-none">{f.icon}</span>
-                    <p className="text-[13px] font-bold leading-tight" style={{ color: "var(--color-text-primary)" }}>{f.title}</p>
-                    <p className="text-[11px] leading-snug" style={{ color: "var(--color-text-muted)" }}>{f.desc}</p>
+                    <motion.span
+                      className="flex h-11 w-11 items-center justify-center rounded-xl text-[22px] leading-none"
+                      style={{
+                        background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)",
+                        boxShadow: `0 2px 12px ${f.glowColor}`,
+                      }}
+                      animate={{ scale: [1, 1.08, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, delay: i * 0.5, ease: "easeInOut" }}
+                    >
+                      {f.icon}
+                    </motion.span>
+                    <p className="text-[13px] font-extrabold leading-tight" style={{ color: "var(--color-text-primary)" }}>{f.title}</p>
+                    <p className="text-[10px] leading-snug" style={{ color: "var(--color-text-muted)" }}>{f.desc}</p>
                   </motion.div>
                 ))}
               </div>
+
+              {/* Scroll down indicator with pulse glow */}
+              <motion.div className="mt-7 flex justify-center">
+                <motion.button
+                  onClick={() => {
+                    const next = document.querySelector('[aria-label="Comunidad"]');
+                    if (!next) {
+                      const sections = document.querySelectorAll("section");
+                      if (sections[1]) sections[1].scrollIntoView({ behavior: "smooth" });
+                    } else {
+                      next.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
+                  className="relative flex h-12 w-12 items-center justify-center rounded-full"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,191,36,0.1))",
+                    border: "1.5px solid var(--color-border-amber)",
+                    color: "var(--color-amber-primary)",
+                    backdropFilter: "blur(12px)",
+                  }}
+                  animate={{ y: [0, 8, 0] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  aria-label="Ver más"
+                >
+                  {/* Pulse ring */}
+                  <motion.span
+                    className="absolute inset-0 rounded-full"
+                    style={{ border: "1.5px solid var(--color-amber-primary)" }}
+                    animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                  />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7 13l5 5 5-5M7 6l5 5 5-5" />
+                  </svg>
+                </motion.button>
+              </motion.div>
             </motion.div>
           </div>
 

@@ -117,7 +117,18 @@ export default function Navbar() {
             {/* Hamburger — mobile & always available */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-white/60 transition-all hover:bg-white/5 hover:text-white lg:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-lg transition-all lg:hidden"
+              style={{
+                color: "var(--color-text-muted)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "var(--color-text-primary)";
+                e.currentTarget.style.background = "var(--color-border-subtle)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "var(--color-text-muted)";
+                e.currentTarget.style.background = "transparent";
+              }}
             >
               <svg
                 width="20"
@@ -137,23 +148,7 @@ export default function Navbar() {
               href="/"
               className="flex items-center gap-2.5"
             >
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: -8 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              >
-                <Image
-                  src="/assets/logo.gif"
-                  alt="Lúpulos"
-                  width={32}
-                  height={32}
-                  className="rounded-lg"
-                  style={{
-                    filter: "drop-shadow(0 0 6px var(--color-border-amber))",
-                  }}
-                />
-              </motion.div>
-              <span className="text-text-primary text-sm font-bold tracking-tight">
+              <span className="text-text-primary text-base font-extrabold tracking-tight">
                 Lúpulos
                 <span className="text-amber-primary/80 ml-1">App</span>
               </span>
@@ -226,9 +221,10 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right: Theme switcher + Avatar or Login */}
-          <div className="flex items-center gap-3">
+          {/* Right: Theme switcher + Notifications + Avatar or Login */}
+          <div className="flex items-center gap-2">
             <ThemeSwitcher />
+
             {usuario ? (
               <>
                 <Tooltip title={usuario.username ?? "Usuario"}>
@@ -294,18 +290,18 @@ export default function Navbar() {
                     </ListItemIcon>
                     Mi perfil
                   </MenuItem>
-                  <Divider sx={{ borderColor: "rgba(255,255,255,0.05)" }} />
+                  <Divider sx={{ borderColor: "var(--color-border-subtle)" }} />
                   <MenuItem
                     onClick={handleLogout}
                     sx={{
-                      color: "rgba(255,255,255,0.5)",
+                      color: "var(--color-text-muted)",
                       fontSize: "0.85rem",
                       py: 1.2,
                       "&:hover": { backgroundColor: "rgba(239,68,68,0.06)", color: "#ef4444" },
                     }}
                   >
                     <ListItemIcon>
-                      <LogoutIcon sx={{ color: "rgba(255,255,255,0.3)", fontSize: 20 }} />
+                      <LogoutIcon sx={{ color: "var(--color-text-subtle)", fontSize: 20 }} />
                     </ListItemIcon>
                     Cerrar sesión
                   </MenuItem>
@@ -429,7 +425,7 @@ export default function Navbar() {
                   onClick={() => setFooterMenuOpen(!footerMenuOpen)}
                   sx={{
                     borderRadius: "10px",
-                    "&:hover": { backgroundColor: "rgba(255,255,255,0.03)" },
+                    "&:hover": { backgroundColor: "var(--color-border-subtle)" },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 36 }}>
@@ -448,12 +444,12 @@ export default function Navbar() {
                   </ListItemIcon>
                   <ListItemText
                     primary={usuario.username ?? "Usuario"}
-                    primaryTypographyProps={{ fontSize: "0.85rem", color: "white" }}
+                    primaryTypographyProps={{ fontSize: "0.85rem", color: "var(--color-text-primary)" }}
                   />
                   {footerMenuOpen ? (
-                    <ExpandLess sx={{ color: "rgba(255,255,255,0.3)", fontSize: 20 }} />
+                    <ExpandLess sx={{ color: "var(--color-text-muted)", fontSize: 20 }} />
                   ) : (
-                    <ExpandMore sx={{ color: "rgba(255,255,255,0.3)", fontSize: 20 }} />
+                    <ExpandMore sx={{ color: "var(--color-text-muted)", fontSize: 20 }} />
                   )}
                 </ListItemButton>
 
@@ -463,21 +459,21 @@ export default function Navbar() {
                       sx={{
                         pl: 4,
                         borderRadius: "10px",
-                        "&:hover": { backgroundColor: "rgba(255,255,255,0.03)" },
+                        "&:hover": { backgroundColor: "var(--color-border-subtle)" },
                       }}
                       onClick={() => {
                         setDrawerOpen(false);
                         router.push("/auth/perfil");
                       }}
                     >
-                      <ListItemIcon sx={{ color: "rgba(255,255,255,0.3)", minWidth: 36 }}>
+                      <ListItemIcon sx={{ color: "var(--color-text-subtle)", minWidth: 36 }}>
                         <AccountCircleIcon fontSize="small" />
                       </ListItemIcon>
                       <ListItemText
                         primary="Mi perfil"
                         primaryTypographyProps={{
                           fontSize: "0.85rem",
-                          color: "rgba(255,255,255,0.6)",
+                          color: "var(--color-text-secondary)",
                         }}
                       />
                     </ListItemButton>
@@ -485,18 +481,18 @@ export default function Navbar() {
                       sx={{
                         pl: 4,
                         borderRadius: "10px",
-                        "&:hover": { backgroundColor: "rgba(239,68,68,0.05)" },
+                        "&:hover": { backgroundColor: "rgba(239,68,68,0.06)" },
                       }}
                       onClick={handleLogout}
                     >
-                      <ListItemIcon sx={{ color: "rgba(255,255,255,0.3)", minWidth: 36 }}>
+                      <ListItemIcon sx={{ color: "var(--color-text-subtle)", minWidth: 36 }}>
                         <LogoutIcon fontSize="small" />
                       </ListItemIcon>
                       <ListItemText
                         primary="Cerrar sesión"
                         primaryTypographyProps={{
                           fontSize: "0.85rem",
-                          color: "rgba(255,255,255,0.4)",
+                          color: "var(--color-text-muted)",
                         }}
                       />
                     </ListItemButton>
