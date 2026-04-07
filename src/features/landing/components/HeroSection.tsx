@@ -251,7 +251,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.36, duration: 0.6 }}
             >
-              Lúpulos es la comunidad chilena de cerveza artesanal. Encuentra cervezas con ficha completa, descubre cervecerías verificadas cerca de ti y conecta con miles de apasionados — todo gratis.
+              Lúpulos es un directorio de gente que ama la cerveza, produce, emprende y siempre busca nuevos sabores.
             </motion.p>
 
             {/* CTAs */}
