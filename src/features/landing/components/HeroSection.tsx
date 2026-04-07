@@ -242,7 +242,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.22, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
             >
-              La app para <BeerStyleCycler /> cerveza artesanal en Chile
+              Una nueva app para <BeerStyleCycler /> cerveza artesanal en Chile
             </motion.h1>
             {/* Subtitle */}
             <motion.p
