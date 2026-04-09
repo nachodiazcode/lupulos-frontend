@@ -18,8 +18,6 @@ export default function HomePage() {
       <TrendsSidenav />
       <HeroSection />
       <CommunitySection />
-      <BentoFeatures />
-      <StepsSection />
       <CtaSection />
       <NewsletterBanner />
       <Footer />

@@ -46,6 +46,115 @@ function FloatingHops() {
 }
 
 /* ═══════════════════════════════════
+   Desktop: Infinite Marquee
+   ═══════════════════════════════════ */
+
+const MARQUEE_COLORS = [
+  { accent: "var(--color-amber-primary)", glow: "rgba(249,115,22,0.08)" },
+  { accent: "var(--color-orange-cta)",    glow: "rgba(239,68,68,0.06)" },
+  { accent: "var(--color-emerald)",       glow: "rgba(52,211,153,0.08)" },
+  { accent: "#8b5cf6",                    glow: "rgba(139,92,246,0.08)" },
+  { accent: "#fbbf24",                    glow: "rgba(251,191,36,0.08)" },
+  { accent: "#0ea5e9",                    glow: "rgba(14,165,233,0.08)" },
+];
+
+function MarqueeRow({ items, reverse = false }: { items: typeof FEATURES; reverse?: boolean }) {
+  const doubled = [...items, ...items];
+  return (
+    <div
+      className="group flex w-max gap-4"
+      style={{
+        animation: `${reverse ? "marquee-reverse" : "marquee"} ${items.length * 8}s linear infinite`,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.animationPlayState = "paused")}
+      onMouseLeave={(e) => (e.currentTarget.style.animationPlayState = "running")}
+    >
+      {doubled.map((feat, i) => {
+        const color = MARQUEE_COLORS[i % MARQUEE_COLORS.length];
+        return (
+          <motion.div
+            key={`${feat.label}-${i}`}
+            className="group/card relative flex w-[260px] shrink-0 items-start gap-3 rounded-2xl px-4 py-4"
+            style={{
+              background: "color-mix(in srgb, var(--color-surface-card) 70%, transparent)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid var(--color-border-subtle)",
+            }}
+            whileHover={{
+              y: -4,
+              scale: 1.03,
+              borderColor: color.accent,
+              boxShadow: `0 8px 30px ${color.glow}`,
+            }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
+            {/* Icon */}
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[22px]"
+              style={{
+                background: color.glow,
+                boxShadow: `0 2px 8px ${color.glow}`,
+              }}
+            >
+              {feat.icon}
+            </span>
+
+            {/* Text */}
+            <p
+              className="flex-1 pt-0.5 text-[0.85rem] font-semibold leading-snug"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              {feat.label}
+            </p>
+
+            {/* Hover glow */}
+            <div
+              className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover/card:opacity-100"
+              style={{
+                background: `radial-gradient(circle at 30% 50%, ${color.glow}, transparent 70%)`,
+              }}
+            />
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DesktopMarquee() {
+  return (
+    <div className="relative mx-auto mt-10 hidden w-full max-w-5xl overflow-hidden lg:block">
+      {/* Fade edges */}
+      <div
+        className="pointer-events-none absolute left-0 top-0 z-10 h-full w-20"
+        style={{ background: "linear-gradient(90deg, var(--color-surface-deepest) 0%, transparent 100%)" }}
+      />
+      <div
+        className="pointer-events-none absolute right-0 top-0 z-10 h-full w-20"
+        style={{ background: "linear-gradient(270deg, var(--color-surface-deepest) 0%, transparent 100%)" }}
+      />
+
+      {/* Single row marquee */}
+      <div className="py-2">
+        <MarqueeRow items={[...FEATURES]} />
+      </div>
+
+      {/* Keyframes injected via style tag */}
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @keyframes marquee-reverse {
+          0% { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════
    Main Component
    ═══════════════════════════════════ */
 
@@ -153,108 +262,12 @@ export default function CommunitySection() {
           </motion.div>
         </div>
 
-        {/* ═══ Desktop: Infinite Carousel ═══ */}
-        <div className="relative mx-auto mt-6 hidden w-full max-w-6xl overflow-hidden sm:mt-8 sm:block lg:mt-8">
-          {/* Gradient fade edges */}
-          <div
-            className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32"
-            style={{
-              background: "linear-gradient(90deg, var(--color-surface-deepest) 0%, transparent 100%)",
-            }}
-          />
-          <div
-            className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32"
-            style={{
-              background: "linear-gradient(270deg, var(--color-surface-deepest) 0%, transparent 100%)",
-            }}
-          />
-
-          {/* Infinite scrolling track */}
-          <div className="marquee-track flex gap-3">
-            {[...FEATURES, ...FEATURES].map((feat, i) => (
-              <motion.div
-                key={`${feat.label}-${i}`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                whileHover={{
-                  y: -8,
-                  scale: 1.05,
-                  rotateY: 5,
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="glass-card group relative flex min-h-[5rem] w-[300px] shrink-0 items-center gap-3 overflow-hidden rounded-2xl border px-5 py-4"
-                style={{
-                  perspective: "1000px",
-                  transformStyle: "preserve-3d",
-                }}
-              >
-                <motion.div
-                  className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  style={{
-                    background:
-                      "conic-gradient(from 0deg at 50% 50%, var(--color-amber-primary), var(--color-orange-cta), var(--color-emerald), var(--color-amber-primary))",
-                    padding: "1px",
-                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                    WebkitMaskComposite: "xor",
-                    maskComposite: "exclude",
-                  }}
-                />
-                <motion.div
-                  className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  style={{
-                    background:
-                      "radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--color-amber-primary) 12%, transparent), transparent 70%)",
-                  }}
-                />
-
-                <motion.div
-                  className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-xl"
-                  style={{
-                    background: "color-mix(in srgb, var(--color-amber-primary) 8%, var(--color-surface-card))",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
-                  }}
-                  whileHover={{
-                    scale: 1.15,
-                    rotate: [0, -10, 10, -5, 0],
-                    boxShadow: "0 0 20px color-mix(in srgb, var(--color-amber-primary) 30%, transparent)"
-                  }}
-                  transition={{
-                    scale: { type: "spring", stiffness: 400, damping: 15 },
-                    boxShadow: { type: "spring", stiffness: 400, damping: 15 },
-                    rotate: { duration: 0.4, ease: "easeOut" },
-                  }}
-                >
-                  <span className="text-2xl">{feat.icon}</span>
-                </motion.div>
-
-                <div className="relative z-10 flex-1 min-w-0">
-                  <span className="text-text-secondary group-hover:text-text-primary block text-[1rem] leading-snug font-bold transition-colors duration-200">
-                    {feat.label}
-                  </span>
-                </div>
-
-                <motion.div
-                  className="pointer-events-none absolute right-3 top-3 text-xs opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  animate={{
-                    rotate: [0, 360],
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-                    scale: { duration: 1.5, repeat: Infinity, ease: "easeInOut" },
-                  }}
-                >
-                  ✨
-                </motion.div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+        {/* ═══ Desktop: Infinite Marquee ═══ */}
+        <DesktopMarquee />
 
         {/* ═══ Mobile: Vertical feature list ═══ */}
         <motion.div
-          className="mt-8 flex flex-col gap-3 px-1 sm:hidden"
+          className="mt-8 flex flex-col gap-3 px-1 lg:hidden"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
