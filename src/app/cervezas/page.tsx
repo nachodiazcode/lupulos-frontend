@@ -1091,15 +1091,15 @@ export default function CervezasPage() {
         <AnimatePresence>
           {!sidebarDismissed && (
             <motion.aside
-              className="fixed z-40 hidden xl:block"
-              style={{ top: 120, right: 16, width: 256 }}
+              className="fixed z-40 hidden xl:flex flex-col"
+              style={{ top: 120, right: 16, width: 256, bottom: 16 }}
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 32, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.3 }}
             >
               {/* Widget cards column */}
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden flex-1 pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(251,191,36,0.2) transparent" }}>
 
                 {/* Floating header row */}
                 <div className="flex items-center justify-between px-1.5">

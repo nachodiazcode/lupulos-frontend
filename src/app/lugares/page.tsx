@@ -1055,33 +1055,124 @@ export default function LugaresPage() {
           </div>
         );
 
-      case "mapa":
+      case "mapa": {
+        const mapCoverage = filteredStats.total > 0 ? Math.round((filteredStats.withCoords / filteredStats.total) * 100) : 0;
         return (
-          <div className="p-3">
-            {widgetHeader}
-            <div className="mb-3 flex items-start justify-between gap-3 px-1">
-              <div>
-                <p className="mt-1 text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
-                  {filteredStats.withCoords} lugares listos para ubicarse
-                </p>
+          <div className="p-0">
+            {/* ── Map container with overlay controls ── */}
+            <div className="relative overflow-hidden rounded-t-[inherit]" style={{ height: 240 }}>
+              <MapView places={lugaresFiltrados} selectedId={selectedId} onSelectPlace={handleSelectPlace} />
+
+              {/* Top gradient overlay */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-16" style={{ background: "linear-gradient(180deg, rgba(12,10,9,0.7) 0%, transparent 100%)" }} />
+
+              {/* Live badge — top left */}
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-2.5 py-1" style={{ background: "rgba(12,10,9,0.65)", backdropFilter: "blur(8px)" }}>
+                <motion.div
+                  className="h-2 w-2 rounded-full"
+                  style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }}
+                  animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <span className="text-[10px] font-bold text-white">EN VIVO</span>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <p className="text-right text-[11px]" style={{ color: "var(--color-text-muted)" }}>{activeCity.shortLabel}</p>
-                <div className="rounded-full border px-2.5 py-1 text-[10px] font-semibold" style={{ borderColor: "var(--color-border-light)", background: "rgba(251,191,36,0.08)", color: "var(--color-amber-primary)" }}>
-                  {activeMode.label}
+
+              {/* City + mode badge — top right */}
+              <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                <div className="rounded-full px-2.5 py-1 text-[10px] font-semibold" style={{ background: "rgba(12,10,9,0.65)", backdropFilter: "blur(8px)", color: "var(--color-amber-primary)" }}>
+                  {activeCity.shortLabel}
+                </div>
+              </div>
+
+              {/* Bottom gradient overlay */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20" style={{ background: "linear-gradient(0deg, rgba(12,10,9,0.85) 0%, transparent 100%)" }} />
+
+              {/* Bottom stats row */}
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between px-3 pb-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-white/50">Mapa vivo</p>
+                  <p className="text-lg font-extrabold text-white">{filteredStats.withCoords} <span className="text-[11px] font-medium text-white/60">en el mapa</span></p>
+                </div>
+                <div className="flex gap-1.5">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleSurpriseMe}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-sm"
+                    style={{ background: "rgba(251,191,36,0.2)", backdropFilter: "blur(8px)", color: "var(--color-amber-primary)" }}
+                    title="Sorpréndeme"
+                  >
+                    🎲
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={resetDiscovery}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-sm"
+                    style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "white" }}
+                    title="Resetear filtros"
+                  >
+                    ↺
+                  </motion.button>
                 </div>
               </div>
             </div>
-            <div className="overflow-hidden rounded-2xl border" style={{ height: 220, borderColor: "var(--color-border-subtle)" }}>
-              <MapView places={lugaresFiltrados} selectedId={selectedId} onSelectPlace={handleSelectPlace} />
+
+            {/* ── Stats bar ── */}
+            <div className="px-3.5 pt-3">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Lugares", value: filteredStats.total, icon: "📍" },
+                  { label: "Con foto", value: filteredStats.withPhotos, icon: "📸" },
+                  { label: "Cobertura", value: `${mapCoverage}%`, icon: "🗺️" },
+                ].map((stat) => (
+                  <div key={stat.label} className="flex flex-col items-center rounded-xl py-2" style={{ background: "rgba(251,191,36,0.04)" }}>
+                    <span className="text-[11px]">{stat.icon}</span>
+                    <motion.span
+                      className="text-sm font-extrabold"
+                      style={{ color: "var(--color-text-primary)" }}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      key={String(stat.value)}
+                    >
+                      {stat.value}
+                    </motion.span>
+                    <span className="text-[9px] font-medium" style={{ color: "var(--color-text-muted)" }}>{stat.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="mt-3 px-1 text-[12px] leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
-              {cityPulse
-                ? `${cityPulse.city} está especialmente activa ahora mismo con ${cityPulse.count} hallazgo${cityPulse.count === 1 ? "" : "s"} en tu radar.`
-                : `Explora ${filteredStats.total} lugares y usa el mapa como copiloto para decidir más rápido.`}
-            </p>
+
+            {/* ── City pulse ── */}
+            <div className="px-3.5 pt-2.5 pb-3">
+              {cityPulse ? (
+                <motion.div
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-2 rounded-xl px-3 py-2"
+                  style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}
+                >
+                  <motion.span
+                    className="text-sm"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    ⚡
+                  </motion.span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold" style={{ color: "#4ade80" }}>{cityPulse.city} activa</p>
+                    <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{cityPulse.count} hallazgo{cityPulse.count === 1 ? "" : "s"} en tu radar</p>
+                  </div>
+                </motion.div>
+              ) : (
+                <p className="text-center text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+                  Activa un filtro y el pulso de la ciudad aparece aquí
+                </p>
+              )}
+            </div>
           </div>
         );
+      }
 
       case "spotlight":
         if (!spotlightPlace) {
@@ -1744,14 +1835,14 @@ export default function LugaresPage() {
       <AnimatePresence>
         {!sidebarDismissed && (
           <motion.aside
-            className="fixed z-40 hidden xl:block"
-            style={{ top: 120, right: 16, width: 280 }}
+            className="fixed z-40 hidden xl:flex flex-col"
+            style={{ top: 120, right: 16, width: 280, bottom: 16 }}
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 32, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.3 }}
           >
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden flex-1 pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(251,191,36,0.2) transparent" }}>
               {/* Header */}
               <div className="flex items-center justify-between px-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
