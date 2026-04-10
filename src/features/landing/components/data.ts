@@ -1,5 +1,5 @@
 export const STATS = [
-  { value: "1.2K+", label: "Cervezas craft catalogadas", icon: "🍺" },
+  { value: "1.2K+", label: "Cervezas artesanales catalogadas", icon: "🍺" },
   { value: "280+", label: "Cervecerías y taprooms en Chile", icon: "🏭" },
   { value: "8.5K+", label: "Cerveceros compartiendo pasión", icon: "💛" },
   { value: "42K+", label: "Reseñas honestas de la comunidad", icon: "🍻" },
@@ -32,7 +32,7 @@ export const STORY = [
     chapter: "Capítulo III",
     title: "Donde la birra se convierte en conversación",
     narrative:
-      "Maestros cerveceros que comparten sus recetas sin guardarse nada. Fans que ponen en el mapa a productores invisibles. Debates eternos sobre si la Hazy merece llamarse IPA. Fotos de tiradas que te hacen buscar las llaves del auto. Acá la cerveza craft se vive en primera persona y en buena compañía.",
+      "Maestros cerveceros que comparten sus recetas sin guardarse nada. Fans que ponen en el mapa a productores invisibles. Debates eternos sobre si la Hazy merece llamarse IPA. Fotos de tiradas que te hacen buscar las llaves del auto. Acá la cerveza artesanal se vive en primera persona y en buena compañía.",
     illustration: "comunidad" as const,
     accent: "#10b981",
     href: "/posts",
@@ -57,20 +57,20 @@ export type StoryItem = (typeof STORY)[number];
 export const STEPS = [
   {
     number: "01",
-    title: "Tu perfil cervecero en un parpadeo",
-    desc: "Gratis y sin letra chica. Cuéntanos si vienes a descubrir cerveza artesanal, a mostrar la que fabricas, o ambas — te armamos la experiencia a tu medida.",
+    title: "Crea tu perfil",
+    desc: "Gratis, cool, tan fácil de usar como Instagram o YouTube!",
     icon: "user" as const,
   },
   {
     number: "02",
-    title: "Encuentra la cerveza que no sabías que buscabas",
-    desc: "+1.200 cervezas artesanales de Chile con notas de cata, opiniones reales y filtros por estilo — IPA, Stout, Lager, Sour y más. Tu próxima favorita está a un scroll.",
+    title: "Encuentra tu próxima cerveza",
+    desc: "La primera comunidad de cerveceros que incluye IA.",
     icon: "search" as const,
   },
   {
     number: "03",
-    title: "Publica, recomienda y hazte notar",
-    desc: "Deja reseñas, sube fotos de tus hallazgos y recomienda cervecerías. Si brasceas, acá tu craft beer tiene la vitrina y el público que merece.",
+    title: "Comparte tu brindis",
+    desc: "Escribe tu historia, sube tu cerveza y comparte.",
     icon: "chat" as const,
   },
 ] as const;
@@ -78,17 +78,17 @@ export const STEPS = [
 export type StepIconName = (typeof STEPS)[number]["icon"];
 
 export const FEATURES = [
-  { icon: "🧠", label: "IA que afina tus gustos y anticipa tu próxima favorita" },
+  { icon: "🧠", label: "Inteligencia artificial que le gusta tanto la cerveza como a Bender 🍻" },
   { icon: "🏭", label: "Perfil propio para cada cervecería artesanal de Chile" },
-  { icon: "🏆", label: "Rankings reales votados por miles, cero algoritmos turbios" },
+  { icon: "🏆", label: "Tendencias virales, las personas votan, gana puntos" },
   { icon: "🍻", label: "Catas, festivales y encuentros que no te puedes perder" },
-  { icon: "🗺️", label: "Mapa vivo de taprooms, brewpubs y cervecerías en todo Chile" },
-  { icon: "⚡", label: "Puente directo entre quien bebe craft beer y quien la crea" },
+  { icon: "🗺️", label: "El primer mapa IA para encontrar las mejores ofertas y panoramas!" },
+  { icon: "⚡", label: "Emprendedores y usuarios reunidos para brindar!" },
 ] as const;
 
 export const QUOTES = [
   "La mejor cerveza artesanal del mundo es la que todavía no probaste — y alguien en Chile la está fermentando ahora mismo.",
-  "Cada pinta craft lleva adentro las manos de alguien que eligió crear algo propio en vez de repetir lo de siempre.",
+  "Cada pinta artesanal lleva adentro las manos de alguien que eligió crear algo propio en vez de repetir lo de siempre.",
   "La malta abraza, el lúpulo despierta y la comunidad brinda: así nace todo lo que vale la pena.",
   "No existe la cerveza perfecta — pero existe la perfecta para esta noche, esta mesa y esta compañía.",
   "Donde alguien descubre una IPA que le vuela la cabeza y alguien más la creó en su garage, ahí empieza algo grande.",

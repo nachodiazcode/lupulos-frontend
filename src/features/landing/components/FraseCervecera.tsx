@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 const quotes = [
   "🍺 «El lúpulo no pide permiso. Llega, conquista y te cambia el paladar para siempre.»",
   "👑 «La cerveza artesanal no se toma — se vive, se debate y se defiende con el vaso en alto.»",
-  "🔥 «Detrás de cada cerveza craft hay alguien que apostó todo por un sabor que nadie había probado.»",
+  "🔥 «Detrás de cada cerveza artesanal hay alguien que apostó todo por un sabor que nadie había probado.»",
   "🛡️ «Una cerveza honesta vale más que cien etiquetas bonitas. Y la comunidad siempre lo sabe.»",
   "🍻 «Por los que piden la carta de cervezas antes que la de comida. Este lugar es para ustedes.»",
 ];

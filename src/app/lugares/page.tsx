@@ -336,7 +336,7 @@ const DISCOVERY_MODES: Array<{
   {
     value: "vanguardia",
     label: "Vanguardia Urbana",
-    helper: "Craft moderno con identidad visual fuerte",
+    helper: "Artesanal moderno con identidad visual fuerte",
     icon: "🌆",
   },
   {
@@ -903,6 +903,7 @@ export default function LugaresPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [usuario, setUsuario] = useState<{ _id: string; username: string } | null>(null);
+  const [showAllWidgets, setShowAllWidgets] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -1322,20 +1323,7 @@ export default function LugaresPage() {
 
           <aside className="order-1 min-w-0 lg:order-2">
             <div className="flex flex-col gap-4 lg:sticky lg:top-24">
-              <motion.div
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.45, delay: 0.04 }}
-              >
-                <OwnerLeadCard
-                  onOpen={() => setModalOpen(true)}
-                  totalPlaces={globalStats.total}
-                  cityCount={globalStats.cities}
-                  avgRating={globalStats.avgRating}
-                  liveSignal={ownerLiveSignal}
-                />
-              </motion.div>
-
+              {/* ── Widget 1: Search & Filters (always visible) ── */}
               <motion.div
                 initial={{ opacity: 0, x: 18 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -1501,6 +1489,7 @@ export default function LugaresPage() {
                 </div>
               </motion.div>
 
+              {/* ── Widget 2: Map (always visible) ── */}
               <motion.div
                 initial={{ opacity: 0, x: 18 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -1736,6 +1725,72 @@ export default function LugaresPage() {
                 </motion.div>
               )}
 
+              {/* ── Toggle: Ver más / menos widgets ── */}
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                onClick={() => setShowAllWidgets(!showAllWidgets)}
+                className="group flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all hover:border-amber-500/40"
+                style={{
+                  borderColor: "var(--color-border-light)",
+                  background: "rgba(251,191,36,0.04)",
+                  color: "var(--color-text-primary)",
+                }}
+              >
+                <motion.svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  animate={{ rotate: showAllWidgets ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ color: "var(--color-amber-primary)" }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </motion.svg>
+                <span>{showAllWidgets ? "Menos widgets" : "Más widgets"}</span>
+                {!showAllWidgets && (
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                    style={{ background: "rgba(251,191,36,0.15)", color: "var(--color-amber-primary)" }}
+                  >
+                    +4
+                  </span>
+                )}
+              </motion.button>
+
+              {/* ── Hidden widgets (expandable) ── */}
+              <AnimatePresence>
+                {showAllWidgets && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    className="flex flex-col gap-4 overflow-hidden"
+                  >
+
+              {/* Widget 4: Owner Lead Card */}
+              <motion.div
+                initial={{ opacity: 0, x: 18 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.45, delay: 0.04 }}
+              >
+                <OwnerLeadCard
+                  onOpen={() => setModalOpen(true)}
+                  totalPlaces={globalStats.total}
+                  cityCount={globalStats.cities}
+                  avgRating={globalStats.avgRating}
+                  liveSignal={ownerLiveSignal}
+                />
+              </motion.div>
+
+              {/* Widget 5: Concierge */}
               {plannedStops.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, x: 18 }}
@@ -1957,6 +2012,10 @@ export default function LugaresPage() {
                   {usuario ? "Agregar un nuevo lugar" : "Nominar un local"}
                 </button>
               </motion.div>
+
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </aside>
         </div>

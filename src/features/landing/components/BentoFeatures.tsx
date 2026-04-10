@@ -1,251 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { TiltCard, SectionBadge, GradientText, fadeUp } from "./shared";
+import { SectionBadge, GradientText, fadeUp, staggerContainer } from "./shared";
 
 /* ═══════════════════════════════════
    Data
    ═══════════════════════════════════ */
 
-interface BentoFeature {
-  id: string;
-  emoji: string;
-  title: string;
-  description: string;
-  href: string;
-  cta: string;
-  accentBg: string;
-  glowColor: string;
-  gridClass: string;
-  image?: string;
-  decoration?: "avatars" | "ai-pulse";
-}
-
-const features: BentoFeature[] = [
+const ITEMS = [
   {
-    id: "catalog",
-    emoji: "🍺",
-    title: "La cerveza aquí, nunca falla!",
-    description:
-      "Tu colección de cervezas la tendrás justo aquí, sorpréndete con el buscador IA y con la columna de información en tiempo real.",
+    icon: "🍺",
+    title: "Catálogo",
+    tagline: "Cervezas artesanales chilenas",
     href: "/cervezas",
-    cta: "Abrir el catálogo",
-    accentBg: "radial-gradient(ellipse at 88% 88%, rgba(251,191,36,0.12), transparent 65%)",
-    glowColor: "rgba(251,191,36,0.12)",
-    gridClass: "col-span-12 md:col-span-6",
-    image: "/assets/personajes-landing/explorar-cervezas.png",
+    bg: "radial-gradient(circle, rgba(251,191,36,0.22) 0%, transparent 70%)",
+    ring: "rgba(251,191,36,0.45)",
+    glow: "rgba(251,191,36,0.18)",
+    mobileBg: "linear-gradient(135deg, rgba(251,191,36,0.12), rgba(249,115,22,0.06))",
+    mobileAccent: "#f59e0b",
   },
   {
-    id: "map",
-    emoji: "📌",
-    title: "El mapa cervecero que faltaba",
-    description:
-      "Encuentra bares, eventos y cervecerías para invitar a tus vikingos preferidos.",
+    icon: "📍",
+    title: "Mapa cervecero",
+    tagline: "Taprooms y cervecerías verificados",
     href: "/lugares",
-    cta: "Explorar el mapa",
-    accentBg: "radial-gradient(ellipse at 88% 88%, rgba(239,68,68,0.1), transparent 65%)",
-    glowColor: "rgba(239,68,68,0.1)",
-    gridClass: "col-span-12 md:col-span-6",
-    image: "/assets/personajes-landing/encuentra-bares.png",
+    bg: "radial-gradient(circle, rgba(239,68,68,0.2) 0%, transparent 70%)",
+    ring: "rgba(239,68,68,0.45)",
+    glow: "rgba(239,68,68,0.15)",
+    mobileBg: "linear-gradient(135deg, rgba(239,68,68,0.10), rgba(249,115,22,0.05))",
+    mobileAccent: "#ef4444",
   },
   {
-    id: "community",
-    emoji: "💬",
-    title: "Comparte tus historias, tus hallazgos",
-    description:
-      "8.500 cerveceros que comparten hallazgos, debaten estilos y ponen en el mapa a productores que nadie conocía. Aquí no manda un algoritmo — manda la pasión.",
+    icon: "💬",
+    title: "Comunidad",
+    tagline: "Comparte, opina y descubre",
     href: "/posts",
-    cta: "Tomar asiento",
-    accentBg: "radial-gradient(ellipse at 88% 88%, rgba(52,211,153,0.1), transparent 65%)",
-    glowColor: "rgba(52,211,153,0.1)",
-    gridClass: "col-span-12 md:col-span-5",
-    decoration: "avatars",
+    bg: "radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 70%)",
+    ring: "rgba(52,211,153,0.45)",
+    glow: "rgba(52,211,153,0.15)",
+    mobileBg: "linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,185,129,0.05))",
+    mobileAccent: "#34d399",
   },
   {
-    id: "ai",
-    emoji: "🧠",
-    title: "Una IA que entiende tu paladar",
-    description:
-      "No es un filtro random. Aprende de cada reseña, cada estrella, cada cerveza que guardas. Te sugiere lo que no sabías que necesitabas — y cada vez acierta más.",
+    icon: "🧠",
+    title: "Lupu-AI",
+    tagline: "IA especializada en cerveza artesanal",
     href: "/auth/register",
-    cta: "Probar la IA",
-    accentBg: "radial-gradient(ellipse at 88% 88%, rgba(139,92,246,0.12), transparent 65%)",
-    glowColor: "rgba(139,92,246,0.12)",
-    gridClass: "col-span-12 md:col-span-7",
-    decoration: "ai-pulse",
+    bg: "radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)",
+    ring: "rgba(139,92,246,0.45)",
+    glow: "rgba(139,92,246,0.15)",
+    mobileBg: "linear-gradient(135deg, rgba(139,92,246,0.12), rgba(168,85,247,0.05))",
+    mobileAccent: "#8b5cf6",
   },
-];
-
-const avatarSrcs = [
-  "/assets/avatars/ragnar.png",
-  "/assets/avatars/Lagertha.png",
-  "/assets/avatars/bjorn.png",
-];
-
-/* ═══════════════════════════════════
-   AI Pulse Decoration
-   ═══════════════════════════════════ */
-
-function AiPulse() {
-  return (
-    <div
-      className="pointer-events-none absolute right-7 bottom-7 z-[5] flex items-center justify-center"
-      style={{ width: 80, height: 80 }}
-      aria-hidden="true"
-    >
-      {/* Expanding rings */}
-      {[0, 1, 2].map((i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full border"
-          style={{
-            width: 52 + i * 34,
-            height: 52 + i * 34,
-            borderColor: "rgba(139,92,246,0.35)",
-          }}
-          animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0.08, 0.5] }}
-          transition={{
-            duration: 2.5 + i * 0.6,
-            repeat: Infinity,
-            delay: i * 0.65,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-      {/* Center circle */}
-      <div
-        className="relative z-10 flex h-[52px] w-[52px] items-center justify-center rounded-full"
-        style={{
-          background: "var(--gradient-button-primary)",
-          boxShadow: "0 0 28px rgba(139,92,246,0.35)",
-        }}
-      >
-        <span className="text-xl" role="img" aria-label="IA">🧠</span>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════
-   Card
-   ═══════════════════════════════════ */
-
-function BentoCard({ feature, index }: { feature: BentoFeature; index: number }) {
-  const hasImage = Boolean(feature.image);
-  const isLarge = feature.gridClass.includes("col-span-7");
-
-  return (
-    <motion.div
-      className={`${feature.gridClass} flex`}
-      variants={fadeUp}
-      custom={index + 1}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-40px" }}
-    >
-      <TiltCard
-        className="glass-card group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-3xl p-5 sm:p-7"
-        style={{
-          minHeight: isLarge ? 280 : 250,
-        }}
-        tiltDeg={6}
-        glowColor={feature.glowColor}
-      >
-        {/* Accent radial gradient */}
-        <div
-          className="pointer-events-none absolute inset-0 transition-opacity duration-500"
-          style={{ background: feature.accentBg }}
-          aria-hidden="true"
-        />
-
-        {/* Content — constrained width when image is present */}
-        <div
-          className={`relative z-10 flex-1 ${hasImage ? "max-w-full sm:max-w-[60%]" : "max-w-full"}`}
-        >
-          <span className="text-4xl" role="img" aria-label={feature.title}>
-            {feature.emoji}
-          </span>
-          <h3 className="text-text-primary mt-3 text-lg font-black leading-snug tracking-tight sm:text-xl">
-            {feature.title}
-          </h3>
-          <p className="text-text-secondary mt-4 text-xs font-semibold leading-relaxed sm:text-sm">
-            {feature.description}
-          </p>
-        </div>
-
-        {/* CTA link */}
-        <div className="relative z-10 mt-6">
-          <Link
-            href={feature.href}
-            className="text-amber-primary inline-flex items-center gap-1.5 text-sm font-semibold transition-all hover:gap-3"
-          >
-            {feature.cta}
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-transform group-hover:translate-x-1"
-            >
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-
-        {/* Decoration: character image */}
-        {feature.image && (
-          <div
-            className="pointer-events-none absolute top-0 right-[4%] bottom-0 z-[5] w-[30%] sm:w-[38%]"
-            aria-hidden="true"
-          >
-            <Image
-              src={feature.image}
-              alt=""
-              fill
-              unoptimized
-              className="object-contain object-right-center drop-shadow-xl"
-              sizes="200px"
-            />
-          </div>
-        )}
-
-        {/* Decoration: community avatars */}
-        {feature.decoration === "avatars" && (
-          <div className="absolute right-5 bottom-6 z-[5] flex -space-x-3">
-            {avatarSrcs.map((src, idx) => (
-              <motion.div
-                key={src}
-                initial={{ opacity: 0, x: 14 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.12 + 0.25, type: "spring", stiffness: 300, damping: 20 }}
-              >
-                <Image
-                  src={src}
-                  alt=""
-                  width={46}
-                  height={46}
-                  className="rounded-full border-2 drop-shadow-md"
-                  style={{ borderColor: "var(--color-border-amber)", objectFit: "cover" }}
-                  aria-hidden="true"
-                />
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        {/* Decoration: AI pulse */}
-        {feature.decoration === "ai-pulse" && <AiPulse />}
-      </TiltCard>
-    </motion.div>
-  );
-}
+] as const;
 
 /* ═══════════════════════════════════
    Section
@@ -258,7 +66,7 @@ export default function BentoFeatures() {
       style={{ background: "var(--color-surface-deepest)" }}
       aria-label="Características principales"
     >
-      {/* Top separator line */}
+      {/* Top separator */}
       <div
         className="pointer-events-none absolute top-0 left-1/2 h-px w-2/3 -translate-x-1/2"
         style={{
@@ -269,33 +77,149 @@ export default function BentoFeatures() {
       />
 
       <div className="home-content-shell">
-        {/* Section header */}
         <motion.div
-          className="mb-12 text-center"
+          className="glass-card overflow-hidden rounded-3xl border px-5 py-8 sm:px-12 sm:py-12"
+          style={{ borderColor: "var(--color-border-subtle)" }}
           variants={fadeUp}
           custom={0}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
         >
-          <SectionBadge>Todo lo que necesitas</SectionBadge>
-          <h2 className="text-text-primary mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            <GradientText>¿Por qué Lúpulos?</GradientText>
-          </h2>
-          <p className="text-text-muted mx-auto mt-3 max-w-xl text-sm leading-relaxed">
-            Porque valoramos la calidad de la cerveza, puedes votar tú mismo y ver las mejores chelas rankeadas por la comunidad vikinga!
-          </p>
-        </motion.div>
+          {/* Section header */}
+          <div className="mb-8 text-center sm:mb-10">
+            <SectionBadge>Todo en un lugar</SectionBadge>
+            <h2 className="text-text-primary mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <GradientText>Descubre Lúpulos</GradientText>
+            </h2>
+          </div>
 
-        {/* Bento grid — Row 1: 7+5 | Row 2: 5+7 */}
-        <div className="grid grid-cols-12 gap-4 md:gap-5">
-          {features.map((feature, i) => (
-            <BentoCard key={feature.id} feature={feature} index={i} />
-          ))}
-        </div>
+          {/* ── Desktop: Icon circles grid (sm+) ── */}
+          <motion.div
+            className="hidden grid-cols-4 gap-6 sm:grid"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-40px" }}
+          >
+            {ITEMS.map((item, i) => (
+              <motion.div
+                key={item.title}
+                variants={fadeUp}
+                custom={i + 1}
+                className="flex flex-col items-center text-center"
+              >
+                <Link href={item.href} className="group flex flex-col items-center gap-4">
+                  {/* Circle */}
+                  <motion.div
+                    className="relative flex h-24 w-24 items-center justify-center rounded-full"
+                    style={{
+                      background: item.bg,
+                      boxShadow: `0 0 0 1.5px ${item.ring}, 0 8px 32px ${item.glow}`,
+                    }}
+                    whileHover={{ scale: 1.12 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 18 }}
+                  >
+                    <motion.div
+                      className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100"
+                      style={{ boxShadow: `0 0 0 6px ${item.ring}` }}
+                      animate={{ scale: [1, 1.15, 1], opacity: [0, 0.5, 0] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                      aria-hidden="true"
+                    />
+                    <span className="text-4xl" role="img">{item.icon}</span>
+                  </motion.div>
+
+                  <div>
+                    <p className="text-text-primary text-lg font-black leading-tight">
+                      {item.title}
+                    </p>
+                    <p
+                      className="mt-1.5 max-w-[140px] text-sm leading-snug"
+                      style={{ color: "color-mix(in srgb, var(--color-text-secondary) 80%, transparent)" }}
+                    >
+                      {item.tagline}
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* ── Mobile: Horizontal feature cards ── */}
+          <motion.div
+            className="flex flex-col gap-3 sm:hidden"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-40px" }}
+          >
+            {ITEMS.map((item, i) => (
+              <motion.div
+                key={item.title}
+                variants={fadeUp}
+                custom={i + 1}
+              >
+                <Link
+                  href={item.href}
+                  className="group flex items-center gap-4 rounded-2xl px-4 py-4 transition-all duration-200 active:scale-[0.98]"
+                  style={{
+                    background: item.mobileBg,
+                    border: `1px solid color-mix(in srgb, ${item.mobileAccent} 18%, var(--color-border-light))`,
+                    boxShadow: `0 2px 12px color-mix(in srgb, ${item.mobileAccent} 10%, transparent)`,
+                  }}
+                >
+                  {/* Icon container */}
+                  <motion.span
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-[24px]"
+                    style={{
+                      background: "color-mix(in srgb, var(--color-surface-card) 92%, transparent)",
+                      boxShadow: `0 2px 10px color-mix(in srgb, ${item.mobileAccent} 16%, transparent)`,
+                    }}
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                  >
+                    {item.icon}
+                  </motion.span>
+
+                  {/* Text */}
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="text-[14px] font-extrabold leading-tight"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      {item.title}
+                    </p>
+                    <p
+                      className="mt-0.5 text-[12px] leading-snug"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      {item.tagline}
+                    </p>
+                  </div>
+
+                  {/* Arrow */}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-text-subtle)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                  >
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* Bottom separator line */}
+      {/* Bottom separator */}
       <div
         className="pointer-events-none absolute bottom-0 left-1/2 h-px w-2/3 -translate-x-1/2"
         style={{

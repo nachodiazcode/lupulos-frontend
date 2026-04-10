@@ -7,7 +7,7 @@ import { STEPS } from "./data";
 export default function StepsSection() {
   return (
     <section
-      className="border-border-subtle relative overflow-hidden border-y py-24 sm:py-28"
+      className="border-border-subtle relative overflow-hidden border-y py-16 sm:py-28"
       style={{ background: "var(--gradient-section-darker)" }}
       aria-label="Cómo funciona"
     >
@@ -25,14 +25,14 @@ export default function StepsSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="mb-16 flex flex-col items-center text-center"
+          className="mb-10 flex flex-col items-center text-center sm:mb-16"
         >
           <SectionBadge>Simple como abrir una chela</SectionBadge>
           <h2 className="text-text-primary mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">
-            De curioso a cervecero en <GradientText>tres pasos</GradientText>
+            Tres rondas. <GradientText>Bienvenido a la tribu.</GradientText>
           </h2>
           <p className="text-text-muted mt-3 max-w-md text-sm leading-relaxed">
-            Ya sea que vengas a descubrir tu próxima cerveza favorita o a mostrar lo que fabricas — en menos de un minuto estás dentro.
+            En menos de 5 minutos ya eres parte de esta nueva comunidad!
           </p>
         </motion.div>
 

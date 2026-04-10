@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* ─── Prevent horizontal scroll on all viewports ─── */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 /* ═══════════════════════════════════════════════════════════
    🎨 Lúpulos App — Design Tokens (Multi-theme)
    ═══════════════════════════════════════════════════════════
@@ -72,10 +78,32 @@
   100% { background-position: -120% center; }
 }
 
+@keyframes marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  animation: marquee-scroll 40s linear infinite;
+  will-change: transform;
+}
+
+@media (max-width: 640px) {
+  .marquee-track {
+    animation-duration: 28s;
+  }
+}
+
 @keyframes magic-gradient-shift {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes hero-shimmer {
+  0%   { background-position: 120% center; }
+  40%  { background-position: -20% center; }
+  100% { background-position: -20% center; }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -502,12 +530,12 @@ html:not([data-theme]) .glass-card {
   --shadow-emerald-glow: 0 0 24px rgba(58, 140, 92, 0.22);
   --shadow-emerald-glow-sm: 0 0 16px rgba(58, 140, 92, 0.16);
 
-  /* Navbar — frosted meadow with blur */
-  --navbar-bg: rgba(234, 245, 239, 0.82);
-  --navbar-bg-scrolled: rgba(234, 245, 239, 0.96);
-  --navbar-border: rgba(30, 90, 55, 0.08);
-  --navbar-border-scrolled: rgba(58, 140, 92, 0.24);
-  --navbar-shadow: 0 4px 24px rgba(30, 90, 55, 0.12), 0 0 20px rgba(82, 183, 136, 0.08);
+  /* Navbar — frosted mint glass, premium feel */
+  --navbar-bg: rgba(240, 252, 245, 0.72);
+  --navbar-bg-scrolled: rgba(240, 252, 245, 0.95);
+  --navbar-border: rgba(58, 140, 92, 0.10);
+  --navbar-border-scrolled: rgba(58, 140, 92, 0.22);
+  --navbar-shadow: 0 4px 20px rgba(30, 90, 55, 0.10), 0 1px 4px rgba(58, 140, 92, 0.06);
 }
 
 /* ═══════════════════════════════════════════════════════════

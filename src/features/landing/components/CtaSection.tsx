@@ -72,10 +72,10 @@ export default function CtaSection() {
             />
 
             <h2 className="text-text-primary mt-10 text-3xl font-extrabold tracking-tight sm:text-4xl">
-              8.500 cerveceros. 1.200 cervezas. 280 cervecerías.<br /><GradientText>Solo falta tu nombre en la mesa</GradientText>
+              <GradientText>Solo falta tu nombre en la mesa</GradientText>
             </h2>
             <p className="text-text-muted mt-3 text-base">
-              Da igual si destapas o si fabricas — acá tu pasión por la cerveza craft tiene nombre, comunidad y un lugar que la honra.
+              Da igual si destapas o si fabricas — acá tu pasión por la cerveza artesanal tiene nombre, comunidad y un lugar que la honra.
             </p>
 
             <div className="mt-10 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center">
