@@ -725,7 +725,7 @@ export default function CervezasPage() {
       <Navbar />
       <PairingBanner beers={cervezas} />
 
-      <main className="relative z-[2] mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-12 sm:px-6 xl:pr-[292px]">
+      <main className="relative z-[2] mx-auto w-full max-w-4xl flex-1 px-4 pt-6 pb-12 sm:px-6">
         {/* ─── Header ─── */}
         <motion.div initial="hidden" animate="visible" className="mb-6 flex flex-col items-center text-center sm:mb-10">
           <motion.span
@@ -1085,6 +1085,8 @@ export default function CervezasPage() {
           </div>
         </div>
 
+      </main>
+
         {/* ─── Fixed Sidebar Widget ─── */}
         <AnimatePresence>
           {!sidebarDismissed && (
@@ -1291,8 +1293,6 @@ export default function CervezasPage() {
             </motion.div>
           )}
         </AnimatePresence>
-
-      </main>
 
       {/* ─── Mobile Picker Bottom Sheet (xl:hidden) — fuera de main para que fixed funcione ─── */}
       <AnimatePresence>

@@ -5,6 +5,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import {
   motion,
   AnimatePresence,
+  Reorder,
   useMotionValue,
   useTransform,
   animate as fmAnimate,
@@ -888,6 +889,23 @@ function OwnerLeadCard({
   );
 }
 
+/* ═══════════════════════════════════
+   Widget registry (sidebar)
+   ═══════════════════════════════════ */
+
+const LUGARES_WIDGET_REGISTRY = [
+  { id: "busqueda",    emoji: "🔍", label: "Búsqueda y filtros" },
+  { id: "mapa",        emoji: "🗺️", label: "Mapa vivo" },
+  { id: "spotlight",   emoji: "⭐", label: "Lugar destacado" },
+  { id: "concierge",   emoji: "🧭", label: "Concierge" },
+  { id: "insights",    emoji: "📊", label: "Insights" },
+  { id: "nominar",     emoji: "📝", label: "Nominar lugar" },
+] as const;
+
+type LugarWidgetId = (typeof LUGARES_WIDGET_REGISTRY)[number]["id"];
+const DEFAULT_LUGAR_WIDGETS: LugarWidgetId[] = ["busqueda", "mapa", "spotlight"];
+const LUGARES_SIDEBAR_KEY = "lugares_sidebar_widgets_v1";
+
 export default function LugaresPage() {
   const [lugares, setLugares] = useState<Place[]>([]);
   const [favoritos, setFavoritos] = useState<string[]>([]);
@@ -903,7 +921,9 @@ export default function LugaresPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [usuario, setUsuario] = useState<{ _id: string; username: string } | null>(null);
-  const [showAllWidgets, setShowAllWidgets] = useState(false);
+  const [sidebarDismissed, setSidebarDismissed] = useState(false);
+  const [enabledWidgets, setEnabledWidgets] = useState<LugarWidgetId[]>(DEFAULT_LUGAR_WIDGETS);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -912,7 +932,404 @@ export default function LugaresPage() {
     const user = localStorage.getItem("user");
     if (user) setUsuario(JSON.parse(user));
     fetchLugares();
+    const stored = localStorage.getItem(LUGARES_SIDEBAR_KEY);
+    if (stored) {
+      try { setEnabledWidgets(JSON.parse(stored) as LugarWidgetId[]); } catch {}
+    }
   }, []);
+
+  const toggleWidget = (id: LugarWidgetId) => {
+    setEnabledWidgets((prev) => {
+      const next = prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id];
+      localStorage.setItem(LUGARES_SIDEBAR_KEY, JSON.stringify(next));
+      if (next.length === LUGARES_WIDGET_REGISTRY.length) setPickerOpen(false);
+      return next;
+    });
+  };
+
+  const renderLugarWidget = (id: LugarWidgetId): React.ReactNode => {
+    const meta = LUGARES_WIDGET_REGISTRY.find((w) => w.id === id)!;
+    const widgetHeader = (
+      <div className="mb-2.5 flex items-center gap-2">
+        <motion.span className="text-sm" animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>{meta.emoji}</motion.span>
+        <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>{meta.label}</span>
+      </div>
+    );
+
+    switch (id) {
+      case "busqueda":
+        return (
+          <div className="px-4 py-3">
+            {widgetHeader}
+            <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+              Busca por barrio, ambiente o tipo de lugar. El mapa te lleva directo a los rincones que valen la pena.
+            </p>
+            <div className="mt-3">
+              <GradientBorder active={searchFocused} radius={24} borderWidth={1.5}>
+                <div className="flex items-center gap-3 rounded-[22.5px] px-4 py-3" style={{ background: "var(--color-surface-card)" }}>
+                  <MagicMapIcon active={searchFocused} />
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => setSearchFocused(true)}
+                      onBlur={() => setSearchFocused(false)}
+                      className="w-full bg-transparent text-sm outline-none"
+                      style={{ color: "var(--color-text-primary)" }}
+                    />
+                    {!searchQuery && (
+                      <div className="pointer-events-none absolute inset-0 flex items-center text-sm" style={{ color: "var(--color-text-muted)" }}>
+                        <span>{typedPlaceholder}</span>
+                        <motion.span
+                          animate={{ opacity: [1, 0] }}
+                          transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse" }}
+                          className="ml-px inline-block h-4 w-[2px] rounded-full"
+                          style={{ background: "var(--color-amber-primary)" }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery("")} className="text-xs transition-colors" style={{ color: "var(--color-text-muted)" }}>
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </GradientBorder>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {DISCOVERY_MODES.map((mode) => (
+                <button
+                  key={mode.value}
+                  onClick={() => setDiscoveryMode(mode.value)}
+                  className="rounded-2xl border p-3 text-left transition-all"
+                  style={{
+                    borderColor: discoveryMode === mode.value ? "var(--color-amber-primary)" : "var(--color-border-light)",
+                    background: discoveryMode === mode.value ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.04)",
+                    boxShadow: discoveryMode === mode.value ? "var(--shadow-amber-glow)" : "none",
+                  }}
+                >
+                  <p className="text-xs font-bold" style={{ color: discoveryMode === mode.value ? "var(--color-amber-primary)" : "var(--color-text-primary)" }}>
+                    {mode.icon} {mode.label}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+                    {mode.helper}
+                  </p>
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {CITY_CHIPS.map((chip) => (
+                <button
+                  key={chip.value}
+                  onClick={() => setCityFilter(chip.value)}
+                  className="rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all"
+                  style={{
+                    borderColor: cityFilter === chip.value ? "var(--color-amber-primary)" : "var(--color-border-light)",
+                    color: cityFilter === chip.value ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
+                    background: cityFilter === chip.value ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.04)",
+                  }}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={handleSurpriseMe}
+                className="flex-1 rounded-full px-4 py-2 text-sm font-bold transition-all"
+                style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+              >
+                🎲 Sorpréndeme
+              </button>
+              <button
+                onClick={resetDiscovery}
+                disabled={!hasActiveFilters}
+                className="rounded-full border px-4 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-45"
+                style={{ borderColor: "var(--color-border-light)", color: "var(--color-text-primary)" }}
+              >
+                Limpiar
+              </button>
+            </div>
+          </div>
+        );
+
+      case "mapa":
+        return (
+          <div className="p-3">
+            {widgetHeader}
+            <div className="mb-3 flex items-start justify-between gap-3 px-1">
+              <div>
+                <p className="mt-1 text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
+                  {filteredStats.withCoords} lugares listos para ubicarse
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <p className="text-right text-[11px]" style={{ color: "var(--color-text-muted)" }}>{activeCity.shortLabel}</p>
+                <div className="rounded-full border px-2.5 py-1 text-[10px] font-semibold" style={{ borderColor: "var(--color-border-light)", background: "rgba(251,191,36,0.08)", color: "var(--color-amber-primary)" }}>
+                  {activeMode.label}
+                </div>
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-2xl border" style={{ height: 220, borderColor: "var(--color-border-subtle)" }}>
+              <MapView places={lugaresFiltrados} selectedId={selectedId} onSelectPlace={handleSelectPlace} />
+            </div>
+            <p className="mt-3 px-1 text-[12px] leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+              {cityPulse
+                ? `${cityPulse.city} está especialmente activa ahora mismo con ${cityPulse.count} hallazgo${cityPulse.count === 1 ? "" : "s"} en tu radar.`
+                : `Explora ${filteredStats.total} lugares y usa el mapa como copiloto para decidir más rápido.`}
+            </p>
+          </div>
+        );
+
+      case "spotlight":
+        if (!spotlightPlace) {
+          return (
+            <div className="px-4 py-3">
+              {widgetHeader}
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <span className="text-3xl">⭐</span>
+                <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin lugar destacado aún</p>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div className="p-0">
+            <div className="relative h-48 overflow-hidden rounded-t-[inherit]">
+              {spotlightPlace.coverImage ? (
+                <Image
+                  src={getImageUrl(spotlightPlace.coverImage)}
+                  alt={spotlightPlace.name}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 400px"
+                  className="object-cover"
+                />
+              ) : (
+                <div
+                  className="flex h-full w-full items-center justify-center text-5xl"
+                  style={{ background: "radial-gradient(circle at top, rgba(251,191,36,0.28), rgba(14,14,14,0.08) 42%), linear-gradient(135deg, rgba(120,53,15,0.85), rgba(41,24,16,0.96))" }}
+                >
+                  🍻
+                </div>
+              )}
+              <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(12,10,9,0.10) 0%, rgba(12,10,9,0.18) 35%, rgba(12,10,9,0.88) 100%)" }} />
+              <div className="absolute top-4 left-4">
+                <div className="rounded-full border px-3 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase" style={{ borderColor: "rgba(255,255,255,0.16)", background: "rgba(17,24,39,0.34)", color: "white" }}>
+                  {selectedPlace ? "Selección activa" : "Favorito de la comunidad"}
+                </div>
+              </div>
+              <div className="absolute top-4 right-4">
+                <div className="rounded-full border px-3 py-1 text-[10px] font-semibold" style={{ borderColor: "rgba(255,255,255,0.16)", background: "rgba(17,24,39,0.34)", color: "white" }}>
+                  {spotlightSaved ? "💛 Guardado" : "✨ Recomendado"}
+                </div>
+              </div>
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-white/70 uppercase">
+                  {spotlightPlace.address.city}, {spotlightPlace.address.country}
+                </p>
+                <h3 className="mt-1 text-2xl font-extrabold text-white">{spotlightPlace.name}</h3>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>{getPlaceSnippet(spotlightPlace)}</p>
+              <p className="mt-3 text-[13px] leading-relaxed" style={{ color: "var(--color-text-primary)" }}>{spotlightEmotionalLine}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <div className="rounded-full border px-3 py-1 text-[11px] font-semibold" style={{ borderColor: "var(--color-border-light)", background: "rgba(251,191,36,0.08)", color: "var(--color-text-primary)" }}>
+                  ⭐ {spotlightAverageRating.toFixed(1)} de rating
+                </div>
+                <div className="rounded-full border px-3 py-1 text-[11px] font-semibold" style={{ borderColor: "var(--color-border-light)", background: "rgba(251,191,36,0.08)", color: "var(--color-text-primary)" }}>
+                  💬 {spotlightReviewCount} reseña{spotlightReviewCount === 1 ? "" : "s"}
+                </div>
+                <div className="rounded-full border px-3 py-1 text-[11px] font-semibold" style={{ borderColor: "var(--color-border-light)", background: "rgba(251,191,36,0.08)", color: "var(--color-text-primary)" }}>
+                  {hasCoordinates(spotlightPlace) ? "📍 Listo para ir" : "📝 Falta ubicar"}
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <Rating
+                  value={spotlightAverageRating}
+                  precision={0.5}
+                  readOnly
+                  size="small"
+                  sx={{
+                    "& .MuiRating-iconFilled": { color: "var(--color-amber-primary)" },
+                    "& .MuiRating-iconEmpty": { color: "var(--color-border-medium)" },
+                  }}
+                />
+                <p className="text-[11px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+                  {spotlightAverageRating.toFixed(1)} · {spotlightReviewCount} reseña{spotlightReviewCount === 1 ? "" : "s"}
+                </p>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={() => handleNavigateToPlace(spotlightPlace._id)}
+                  className="flex-1 rounded-full px-4 py-2 text-sm font-bold transition-all"
+                  style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+                >
+                  Abrir lugar
+                </button>
+                <button
+                  onClick={() => handleSelectPlace(spotlightPlace._id)}
+                  className="rounded-full border px-4 py-2 text-sm font-semibold transition-all"
+                  style={{ borderColor: "var(--color-border-light)", color: "var(--color-text-primary)" }}
+                >
+                  Centrar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "concierge":
+        if (plannedStops.length === 0) {
+          return (
+            <div className="px-4 py-3">
+              {widgetHeader}
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <span className="text-3xl">🧭</span>
+                <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin paradas planificadas</p>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div className="px-4 py-3">
+            {widgetHeader}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {OCCASION_MODES.map((preset) => (
+                <button
+                  key={preset.value}
+                  onClick={() => setOccasionMode(preset.value)}
+                  className="rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all"
+                  style={{
+                    borderColor: occasionMode === preset.value ? "var(--color-amber-primary)" : "var(--color-border-light)",
+                    background: occasionMode === preset.value ? "rgba(251,191,36,0.14)" : "rgba(251,191,36,0.04)",
+                    color: occasionMode === preset.value ? "var(--color-amber-primary)" : "var(--color-text-primary)",
+                    boxShadow: occasionMode === preset.value ? "var(--shadow-amber-glow)" : "none",
+                  }}
+                >
+                  {preset.icon} {preset.label}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 space-y-2">
+              {plannedStops.map((stop) => {
+                const averageRating = getAverageRating(stop.place);
+                const reviewCount = getReviewCount(stop.place);
+                return (
+                  <button
+                    key={`${stop.kind}-${stop.place._id}`}
+                    onClick={() => handleSelectPlace(stop.place._id)}
+                    className="w-full rounded-2xl border p-3 text-left transition-all"
+                    style={{
+                      borderColor: selectedId === stop.place._id ? "var(--color-amber-primary)" : "var(--color-border-light)",
+                      background: selectedId === stop.place._id ? "rgba(251,191,36,0.10)" : "rgba(251,191,36,0.04)",
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold tracking-[0.14em] uppercase" style={{ color: "var(--color-amber-primary)" }}>{stop.eyebrow}</p>
+                        <p className="mt-1 truncate text-sm font-extrabold" style={{ color: "var(--color-text-primary)" }}>{stop.title}</p>
+                        <p className="mt-1 text-[12px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>{stop.reason}</p>
+                      </div>
+                      <div className="rounded-full border px-2.5 py-1 text-[10px] font-semibold" style={{ borderColor: "var(--color-border-light)", background: "rgba(251,191,36,0.08)", color: "var(--color-text-primary)" }}>
+                        ⭐ {averageRating.toFixed(1)} · {reviewCount}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <h4 className="mt-2 text-lg font-extrabold" style={{ color: "var(--color-text-primary)" }}>
+              {getOccasionTitle(occasionMode, activeCity.shortLabel)}
+            </h4>
+            <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+              {getOccasionHelper(occasionMode)} Cambia la ocasión y el concierge reordena el plan sin pedirle nada extra al backend.
+            </p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={handleCopyPlan}
+                className="flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition-all"
+                style={{ borderColor: "var(--color-border-light)", color: "var(--color-text-primary)" }}
+              >
+                Copiar plan
+              </button>
+              <button
+                onClick={() => handleNavigateToPlace(plannedStops[0].place._id)}
+                className="flex-1 rounded-full px-4 py-2 text-sm font-bold transition-all"
+                style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+              >
+                Abrir principal
+              </button>
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
+              Ruta sugerida para{" "}
+              <strong style={{ color: "var(--color-text-primary)" }}>{occasionPreset.label}</strong>{" "}
+              con {plannedStops.length} parada{plannedStops.length === 1 ? "" : "s"} priorizada{plannedStops.length === 1 ? "" : "s"}.
+            </p>
+          </div>
+        );
+
+      case "insights":
+        return (
+          <div className="px-4 py-3">
+            {widgetHeader}
+            <div className="grid grid-cols-1 gap-3">
+              <InsightPill icon="🧭" label="Radar" value={activeMode.helper} />
+              <InsightPill
+                icon="🌆"
+                label="Pulso"
+                value={
+                  cityPulse
+                    ? `${cityPulse.city} lidera con ${cityPulse.count} lugar${cityPulse.count === 1 ? "" : "es"}`
+                    : "Activa un filtro y el pulso de la ciudad aparece aquí"
+                }
+              />
+              <InsightPill
+                icon="📸"
+                label="Visuales"
+                value={`${filteredStats.withPhotos} con foto para abrir el apetito cervecero`}
+              />
+              <InsightPill
+                icon="💛"
+                label="Guardados"
+                value={
+                  savedInView
+                    ? `${savedInView} guardado${savedInView === 1 ? "" : "s"} dentro de esta exploración`
+                    : favoritos.length
+                      ? `${favoritos.length} spot${favoritos.length === 1 ? "" : "s"} en tu colección personal`
+                      : "Guarda tus hallazgos y arma tu próxima ruta"
+                }
+              />
+            </div>
+          </div>
+        );
+
+      case "nominar":
+        return (
+          <div className="px-4 py-3">
+            {widgetHeader}
+            <p className="text-[10px] font-semibold tracking-[0.14em] uppercase" style={{ color: "var(--color-text-muted)" }}>
+              ¿Hay un lugar con historia que falta en el mapa?
+            </p>
+            <p className="mt-2 text-sm leading-snug font-bold" style={{ color: "var(--color-text-primary)" }}>
+              Si conoces una casona, taproom o bar de barrio que merece estar aquí, nóminalo. La comunidad decide.
+            </p>
+            <button
+              onClick={() => setModalOpen(true)}
+              className="mt-3 w-full rounded-full border px-4 py-2 text-sm font-semibold transition-all"
+              style={{ borderColor: "var(--color-border-light)", color: "var(--color-text-primary)", background: "rgba(251,191,36,0.04)" }}
+            >
+              {usuario ? "Agregar un nuevo lugar" : "Nominar un local"}
+            </button>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   const fetchLugares = async () => {
     try {
@@ -1145,7 +1562,7 @@ export default function LugaresPage() {
       <GoldenBackground />
       <Navbar />
 
-      <main className="relative z-[2] mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-12 sm:px-6">
+      <main className="relative z-[2] mx-auto w-full max-w-4xl flex-1 px-4 pt-6 pb-12 sm:px-6">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -1170,7 +1587,7 @@ export default function LugaresPage() {
             className="mt-4 max-w-4xl text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
             style={{ color: "var(--color-text-primary)" }}
           >
-            La nueva cartografía{" "}
+            Descubre{" "}
             <span
               style={{
                 background:
@@ -1182,7 +1599,7 @@ export default function LugaresPage() {
                 animation: "magic-gradient-shift 4s ease-in-out infinite",
               }}
             >
-              de la cultura en Chile.
+              Nuevos Lugares!
             </span>
           </motion.h1>
 
@@ -1207,8 +1624,8 @@ export default function LugaresPage() {
           </motion.p>
         </motion.div>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_380px] xl:grid-cols-[minmax(0,1.35fr)_400px]">
-          <section className="order-2 min-w-0 lg:order-1">
+        <div>
+          <section className="min-w-0">
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1320,706 +1737,98 @@ export default function LugaresPage() {
               </p>
             </motion.div>
           </section>
-
-          <aside className="order-1 min-w-0 lg:order-2">
-            <div className="flex flex-col gap-4 lg:sticky lg:top-24">
-              {/* ── Widget 1: Search & Filters (always visible) ── */}
-              <motion.div
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.45 }}
-                className="rounded-[28px] border p-4 backdrop-blur-md"
-                style={{
-                  background: "rgba(26, 14, 8, 0.75)",
-                  borderColor: "var(--color-border-subtle)",
-                }}
-              >
-                <p
-                  className="text-[11px] font-semibold tracking-[0.18em] uppercase"
-                  style={{ color: "var(--color-amber-primary)" }}
-                >
-                  Tu próxima salida
-                </p>
-                <p
-                  className="mt-2 text-sm leading-relaxed"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  Busca por barrio, ambiente o tipo de lugar. El mapa te lleva directo a los
-                  rincones que valen la pena.
-                </p>
-
-                <div className="mt-3">
-                  <GradientBorder active={searchFocused} radius={24} borderWidth={1.5}>
-                    <div
-                      className="flex items-center gap-3 rounded-[22.5px] px-4 py-3"
-                      style={{ background: "var(--color-surface-card)" }}
-                    >
-                      <MagicMapIcon active={searchFocused} />
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onFocus={() => setSearchFocused(true)}
-                          onBlur={() => setSearchFocused(false)}
-                          className="w-full bg-transparent text-sm outline-none"
-                          style={{ color: "var(--color-text-primary)" }}
-                        />
-                        {!searchQuery && (
-                          <div
-                            className="pointer-events-none absolute inset-0 flex items-center text-sm"
-                            style={{ color: "var(--color-text-muted)" }}
-                          >
-                            <span>{typedPlaceholder}</span>
-                            <motion.span
-                              animate={{ opacity: [1, 0] }}
-                              transition={{
-                                duration: 0.6,
-                                repeat: Infinity,
-                                repeatType: "reverse",
-                              }}
-                              className="ml-px inline-block h-4 w-[2px] rounded-full"
-                              style={{ background: "var(--color-amber-primary)" }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      {searchQuery && (
-                        <button
-                          onClick={() => setSearchQuery("")}
-                          className="text-xs transition-colors"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </div>
-                  </GradientBorder>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {DISCOVERY_MODES.map((mode) => (
-                    <button
-                      key={mode.value}
-                      onClick={() => setDiscoveryMode(mode.value)}
-                      className="rounded-2xl border p-3 text-left transition-all"
-                      style={{
-                        borderColor:
-                          discoveryMode === mode.value
-                            ? "var(--color-amber-primary)"
-                            : "var(--color-border-light)",
-                        background:
-                          discoveryMode === mode.value
-                            ? "rgba(251,191,36,0.12)"
-                            : "rgba(251,191,36,0.04)",
-                        boxShadow:
-                          discoveryMode === mode.value ? "var(--shadow-amber-glow)" : "none",
-                      }}
-                    >
-                      <p
-                        className="text-xs font-bold"
-                        style={{
-                          color:
-                            discoveryMode === mode.value
-                              ? "var(--color-amber-primary)"
-                              : "var(--color-text-primary)",
-                        }}
-                      >
-                        {mode.icon} {mode.label}
-                      </p>
-                      <p
-                        className="mt-1 text-[11px] leading-relaxed"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
-                        {mode.helper}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {CITY_CHIPS.map((chip) => (
-                    <button
-                      key={chip.value}
-                      onClick={() => setCityFilter(chip.value)}
-                      className="rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all"
-                      style={{
-                        borderColor:
-                          cityFilter === chip.value
-                            ? "var(--color-amber-primary)"
-                            : "var(--color-border-light)",
-                        color:
-                          cityFilter === chip.value
-                            ? "var(--color-amber-primary)"
-                            : "var(--color-text-secondary)",
-                        background:
-                          cityFilter === chip.value
-                            ? "rgba(251,191,36,0.12)"
-                            : "rgba(251,191,36,0.04)",
-                      }}
-                    >
-                      {chip.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={handleSurpriseMe}
-                    className="flex-1 rounded-full px-4 py-2 text-sm font-bold transition-all"
-                    style={{
-                      background: "var(--gradient-button-primary)",
-                      color: "var(--color-text-dark)",
-                      boxShadow: "var(--shadow-amber-glow)",
-                    }}
-                  >
-                    🎲 Sorpréndeme
-                  </button>
-                  <button
-                    onClick={resetDiscovery}
-                    disabled={!hasActiveFilters}
-                    className="rounded-full border px-4 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-45"
-                    style={{
-                      borderColor: "var(--color-border-light)",
-                      color: "var(--color-text-primary)",
-                    }}
-                  >
-                    Limpiar
-                  </button>
-                </div>
-              </motion.div>
-
-              {/* ── Widget 2: Map (always visible) ── */}
-              <motion.div
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.45, delay: 0.08 }}
-                className="rounded-[28px] border p-3 backdrop-blur-sm"
-                style={{
-                  background: "var(--color-surface-card)",
-                  borderColor: "var(--color-border-subtle)",
-                }}
-              >
-                <div className="mb-3 flex items-start justify-between gap-3 px-1">
-                  <div>
-                    <p
-                      className="text-[11px] font-semibold tracking-[0.18em] uppercase"
-                      style={{ color: "var(--color-amber-primary)" }}
-                    >
-                      Mapa vivo
-                    </p>
-                    <p
-                      className="mt-1 text-sm font-bold"
-                      style={{ color: "var(--color-text-primary)" }}
-                    >
-                      {filteredStats.withCoords} lugares listos para ubicarse
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <p
-                      className="text-right text-[11px]"
-                      style={{ color: "var(--color-text-muted)" }}
-                    >
-                      {activeCity.shortLabel}
-                    </p>
-                    <div
-                      className="rounded-full border px-2.5 py-1 text-[10px] font-semibold"
-                      style={{
-                        borderColor: "var(--color-border-light)",
-                        background: "rgba(251,191,36,0.08)",
-                        color: "var(--color-amber-primary)",
-                      }}
-                    >
-                      {activeMode.label}
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className="overflow-hidden rounded-2xl border"
-                  style={{ height: 300, borderColor: "var(--color-border-subtle)" }}
-                >
-                  <MapView
-                    places={lugaresFiltrados}
-                    selectedId={selectedId}
-                    onSelectPlace={handleSelectPlace}
-                  />
-                </div>
-                <p
-                  className="mt-3 px-1 text-[12px] leading-relaxed"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  {cityPulse
-                    ? `${cityPulse.city} está especialmente activa ahora mismo con ${cityPulse.count} hallazgo${cityPulse.count === 1 ? "" : "s"} en tu radar.`
-                    : `Explora ${filteredStats.total} lugares y usa el mapa como copiloto para decidir más rápido.`}
-                </p>
-              </motion.div>
-
-              {spotlightPlace && (
-                <motion.div
-                  initial={{ opacity: 0, x: 18 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.45, delay: 0.14 }}
-                  className="overflow-hidden rounded-[28px] border"
-                  style={{
-                    background: "var(--color-surface-card)",
-                    borderColor: "var(--color-border-subtle)",
-                  }}
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    {spotlightPlace.coverImage ? (
-                      <Image
-                        src={getImageUrl(spotlightPlace.coverImage)}
-                        alt={spotlightPlace.name}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 400px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="flex h-full w-full items-center justify-center text-5xl"
-                        style={{
-                          background:
-                            "radial-gradient(circle at top, rgba(251,191,36,0.28), rgba(14,14,14,0.08) 42%), linear-gradient(135deg, rgba(120,53,15,0.85), rgba(41,24,16,0.96))",
-                        }}
-                      >
-                        🍻
-                      </div>
-                    )}
-
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, rgba(12,10,9,0.10) 0%, rgba(12,10,9,0.18) 35%, rgba(12,10,9,0.88) 100%)",
-                      }}
-                    />
-
-                    <div className="absolute top-4 left-4">
-                      <div
-                        className="rounded-full border px-3 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase"
-                        style={{
-                          borderColor: "rgba(255,255,255,0.16)",
-                          background: "rgba(17,24,39,0.34)",
-                          color: "white",
-                        }}
-                      >
-                        {selectedPlace ? "Selección activa" : "Favorito de la comunidad"}
-                      </div>
-                    </div>
-
-                    <div className="absolute top-4 right-4">
-                      <div
-                        className="rounded-full border px-3 py-1 text-[10px] font-semibold"
-                        style={{
-                          borderColor: "rgba(255,255,255,0.16)",
-                          background: "rgba(17,24,39,0.34)",
-                          color: "white",
-                        }}
-                      >
-                        {spotlightSaved ? "💛 Guardado" : "✨ Recomendado"}
-                      </div>
-                    </div>
-
-                    <div className="absolute inset-x-0 bottom-0 p-4">
-                      <p className="text-[11px] font-semibold tracking-[0.16em] text-white/70 uppercase">
-                        {spotlightPlace.address.city}, {spotlightPlace.address.country}
-                      </p>
-                      <h3 className="mt-1 text-2xl font-extrabold text-white">
-                        {spotlightPlace.name}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    <p
-                      className="text-sm leading-relaxed"
-                      style={{ color: "var(--color-text-secondary)" }}
-                    >
-                      {getPlaceSnippet(spotlightPlace)}
-                    </p>
-                    <p
-                      className="mt-3 text-[13px] leading-relaxed"
-                      style={{ color: "var(--color-text-primary)" }}
-                    >
-                      {spotlightEmotionalLine}
-                    </p>
-
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <div
-                        className="rounded-full border px-3 py-1 text-[11px] font-semibold"
-                        style={{
-                          borderColor: "var(--color-border-light)",
-                          background: "rgba(251,191,36,0.08)",
-                          color: "var(--color-text-primary)",
-                        }}
-                      >
-                        ⭐ {spotlightAverageRating.toFixed(1)} de rating
-                      </div>
-                      <div
-                        className="rounded-full border px-3 py-1 text-[11px] font-semibold"
-                        style={{
-                          borderColor: "var(--color-border-light)",
-                          background: "rgba(251,191,36,0.08)",
-                          color: "var(--color-text-primary)",
-                        }}
-                      >
-                        💬 {spotlightReviewCount} reseña{spotlightReviewCount === 1 ? "" : "s"}
-                      </div>
-                      <div
-                        className="rounded-full border px-3 py-1 text-[11px] font-semibold"
-                        style={{
-                          borderColor: "var(--color-border-light)",
-                          background: "rgba(251,191,36,0.08)",
-                          color: "var(--color-text-primary)",
-                        }}
-                      >
-                        {hasCoordinates(spotlightPlace) ? "📍 Listo para ir" : "📝 Falta ubicar"}
-                      </div>
-                    </div>
-
-                    <div className="mt-3 flex items-center justify-between gap-2">
-                      <Rating
-                        value={spotlightAverageRating}
-                        precision={0.5}
-                        readOnly
-                        size="small"
-                        sx={{
-                          "& .MuiRating-iconFilled": { color: "var(--color-amber-primary)" },
-                          "& .MuiRating-iconEmpty": { color: "var(--color-border-medium)" },
-                        }}
-                      />
-                      <p
-                        className="text-[11px] font-medium"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
-                        {spotlightAverageRating.toFixed(1)} · {spotlightReviewCount} reseña
-                        {spotlightReviewCount === 1 ? "" : "s"}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 flex gap-2">
-                      <button
-                        onClick={() => handleNavigateToPlace(spotlightPlace._id)}
-                        className="flex-1 rounded-full px-4 py-2 text-sm font-bold transition-all"
-                        style={{
-                          background: "var(--gradient-button-primary)",
-                          color: "var(--color-text-dark)",
-                          boxShadow: "var(--shadow-amber-glow)",
-                        }}
-                      >
-                        Abrir lugar
-                      </button>
-                      <button
-                        onClick={() => handleSelectPlace(spotlightPlace._id)}
-                        className="rounded-full border px-4 py-2 text-sm font-semibold transition-all"
-                        style={{
-                          borderColor: "var(--color-border-light)",
-                          color: "var(--color-text-primary)",
-                        }}
-                      >
-                        Centrar
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* ── Toggle: Ver más / menos widgets ── */}
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                onClick={() => setShowAllWidgets(!showAllWidgets)}
-                className="group flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all hover:border-amber-500/40"
-                style={{
-                  borderColor: "var(--color-border-light)",
-                  background: "rgba(251,191,36,0.04)",
-                  color: "var(--color-text-primary)",
-                }}
-              >
-                <motion.svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  animate={{ rotate: showAllWidgets ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ color: "var(--color-amber-primary)" }}
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </motion.svg>
-                <span>{showAllWidgets ? "Menos widgets" : "Más widgets"}</span>
-                {!showAllWidgets && (
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-                    style={{ background: "rgba(251,191,36,0.15)", color: "var(--color-amber-primary)" }}
-                  >
-                    +4
-                  </span>
-                )}
-              </motion.button>
-
-              {/* ── Hidden widgets (expandable) ── */}
-              <AnimatePresence>
-                {showAllWidgets && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="flex flex-col gap-4 overflow-hidden"
-                  >
-
-              {/* Widget 4: Owner Lead Card */}
-              <motion.div
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.45, delay: 0.04 }}
-              >
-                <OwnerLeadCard
-                  onOpen={() => setModalOpen(true)}
-                  totalPlaces={globalStats.total}
-                  cityCount={globalStats.cities}
-                  avgRating={globalStats.avgRating}
-                  liveSignal={ownerLiveSignal}
-                />
-              </motion.div>
-
-              {/* Widget 5: Concierge */}
-              {plannedStops.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 18 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.45, delay: 0.18 }}
-                  className="rounded-[28px] border p-4 backdrop-blur-sm"
-                  style={{
-                    background: "var(--color-surface-card)",
-                    borderColor: "var(--color-border-subtle)",
-                  }}
-                >
-                  <p
-                    className="text-[11px] font-semibold tracking-[0.18em] uppercase"
-                    style={{ color: "var(--color-amber-primary)" }}
-                  >
-                    Concierge beta
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {OCCASION_MODES.map((preset) => (
-                      <button
-                        key={preset.value}
-                        onClick={() => setOccasionMode(preset.value)}
-                        className="rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all"
-                        style={{
-                          borderColor:
-                            occasionMode === preset.value
-                              ? "var(--color-amber-primary)"
-                              : "var(--color-border-light)",
-                          background:
-                            occasionMode === preset.value
-                              ? "rgba(251,191,36,0.14)"
-                              : "rgba(251,191,36,0.04)",
-                          color:
-                            occasionMode === preset.value
-                              ? "var(--color-amber-primary)"
-                              : "var(--color-text-primary)",
-                          boxShadow:
-                            occasionMode === preset.value ? "var(--shadow-amber-glow)" : "none",
-                        }}
-                      >
-                        {preset.icon} {preset.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    {plannedStops.map((stop) => {
-                      const averageRating = getAverageRating(stop.place);
-                      const reviewCount = getReviewCount(stop.place);
-
-                      return (
-                        <button
-                          key={`${stop.kind}-${stop.place._id}`}
-                          onClick={() => handleSelectPlace(stop.place._id)}
-                          className="w-full rounded-2xl border p-3 text-left transition-all"
-                          style={{
-                            borderColor:
-                              selectedId === stop.place._id
-                                ? "var(--color-amber-primary)"
-                                : "var(--color-border-light)",
-                            background:
-                              selectedId === stop.place._id
-                                ? "rgba(251,191,36,0.10)"
-                                : "rgba(251,191,36,0.04)",
-                          }}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p
-                                className="text-[10px] font-semibold tracking-[0.14em] uppercase"
-                                style={{ color: "var(--color-amber-primary)" }}
-                              >
-                                {stop.eyebrow}
-                              </p>
-                              <p
-                                className="mt-1 truncate text-sm font-extrabold"
-                                style={{ color: "var(--color-text-primary)" }}
-                              >
-                                {stop.title}
-                              </p>
-                              <p
-                                className="mt-1 text-[12px] leading-relaxed"
-                                style={{ color: "var(--color-text-secondary)" }}
-                              >
-                                {stop.reason}
-                              </p>
-                            </div>
-                            <div
-                              className="rounded-full border px-2.5 py-1 text-[10px] font-semibold"
-                              style={{
-                                borderColor: "var(--color-border-light)",
-                                background: "rgba(251,191,36,0.08)",
-                                color: "var(--color-text-primary)",
-                              }}
-                            >
-                              ⭐ {averageRating.toFixed(1)} · {reviewCount}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <h4
-                    className="mt-2 text-lg font-extrabold"
-                    style={{ color: "var(--color-text-primary)" }}
-                  >
-                    {getOccasionTitle(occasionMode, activeCity.shortLabel)}
-                  </h4>
-                  <p
-                    className="mt-2 text-sm leading-relaxed"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    {getOccasionHelper(occasionMode)} Cambia la ocasión y el concierge reordena el
-                    plan sin pedirle nada extra al backend.
-                  </p>
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={handleCopyPlan}
-                      className="flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition-all"
-                      style={{
-                        borderColor: "var(--color-border-light)",
-                        color: "var(--color-text-primary)",
-                      }}
-                    >
-                      Copiar plan
-                    </button>
-                    <button
-                      onClick={() => handleNavigateToPlace(plannedStops[0].place._id)}
-                      className="flex-1 rounded-full px-4 py-2 text-sm font-bold transition-all"
-                      style={{
-                        background: "var(--gradient-button-primary)",
-                        color: "var(--color-text-dark)",
-                        boxShadow: "var(--shadow-amber-glow)",
-                      }}
-                    >
-                      Abrir principal
-                    </button>
-                  </div>
-                  <p
-                    className="mt-3 text-[11px] leading-relaxed"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    Ruta sugerida para{" "}
-                    <strong style={{ color: "var(--color-text-primary)" }}>
-                      {occasionPreset.label}
-                    </strong>{" "}
-                    con {plannedStops.length} parada{plannedStops.length === 1 ? "" : "s"}{" "}
-                    priorizada
-                    {plannedStops.length === 1 ? "" : "s"}.
-                  </p>
-                </motion.div>
-              )}
-
-              <motion.div
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.45, delay: 0.2 }}
-                className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
-              >
-                <InsightPill icon="🧭" label="Radar" value={activeMode.helper} />
-                <InsightPill
-                  icon="🌆"
-                  label="Pulso"
-                  value={
-                    cityPulse
-                      ? `${cityPulse.city} lidera con ${cityPulse.count} lugar${cityPulse.count === 1 ? "" : "es"}`
-                      : "Activa un filtro y el pulso de la ciudad aparece aquí"
-                  }
-                />
-                <InsightPill
-                  icon="📸"
-                  label="Visuales"
-                  value={`${filteredStats.withPhotos} con foto para abrir el apetito cervecero`}
-                />
-                <InsightPill
-                  icon="💛"
-                  label="Guardados"
-                  value={
-                    savedInView
-                      ? `${savedInView} guardado${savedInView === 1 ? "" : "s"} dentro de esta exploración`
-                      : favoritos.length
-                        ? `${favoritos.length} spot${favoritos.length === 1 ? "" : "s"} en tu colección personal`
-                        : "Guarda tus hallazgos y arma tu próxima ruta"
-                  }
-                />
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.45, delay: 0.26 }}
-                className="rounded-[24px] border p-4 backdrop-blur-sm"
-                style={{
-                  background: "var(--color-surface-card)",
-                  borderColor: "var(--color-border-subtle)",
-                }}
-              >
-                <p
-                  className="text-[10px] font-semibold tracking-[0.14em] uppercase"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  ¿Hay un lugar con historia que falta en el mapa?
-                </p>
-                <p
-                  className="mt-2 text-sm leading-snug font-bold"
-                  style={{ color: "var(--color-text-primary)" }}
-                >
-                  Si conoces una casona, taproom o bar de barrio que merece estar aquí, nóminalo. La
-                  comunidad decide.
-                </p>
-                <button
-                  onClick={() => setModalOpen(true)}
-                  className="mt-3 w-full rounded-full border px-4 py-2 text-sm font-semibold transition-all"
-                  style={{
-                    borderColor: "var(--color-border-light)",
-                    color: "var(--color-text-primary)",
-                    background: "rgba(251,191,36,0.04)",
-                  }}
-                >
-                  {usuario ? "Agregar un nuevo lugar" : "Nominar un local"}
-                </button>
-              </motion.div>
-
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </aside>
         </div>
       </main>
+
+      {/* ─── Fixed Sidebar Widgets ─── */}
+      <AnimatePresence>
+        {!sidebarDismissed && (
+          <motion.aside
+            className="fixed z-40 hidden xl:block"
+            style={{ top: 120, right: 16, width: 280 }}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 32, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.3 }}
+          >
+            <div className="flex flex-col gap-2.5">
+              {/* Header */}
+              <div className="flex items-center justify-between px-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
+                <button type="button" onClick={() => setSidebarDismissed(true)} className="flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all" style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 75%, white 25%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }} aria-label="Cerrar panel">×</button>
+              </div>
+
+              {/* Reorderable widget cards */}
+              <Reorder.Group axis="y" values={enabledWidgets} onReorder={(newOrder) => { setEnabledWidgets(newOrder); localStorage.setItem(LUGARES_SIDEBAR_KEY, JSON.stringify(newOrder)); }} className="flex flex-col gap-2.5 list-none m-0 p-0">
+                <AnimatePresence initial={false} mode="popLayout">
+                  {enabledWidgets.map((id) => (
+                    <Reorder.Item key={id} value={id} initial={{ opacity: 0, scale: 0.95, y: -10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -10 }} transition={{ type: "spring", stiffness: 280, damping: 26 }} className="group/widget relative overflow-hidden rounded-[1.5rem] cursor-grab active:cursor-grabbing" style={{ background: "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)", backdropFilter: "blur(18px) saturate(1.15)", WebkitBackdropFilter: "blur(18px) saturate(1.15)", border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)", boxShadow: "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 6%, transparent), var(--shadow-elevated)", listStyle: "none" }}>
+                      <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
+                      <div className="pointer-events-none absolute inset-x-5 bottom-[1px] h-px" style={{ background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-light) 40%, transparent), transparent)", opacity: 0.6 }} aria-hidden="true" />
+                      <motion.button whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }} onClick={() => toggleWidget(id)} className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] opacity-0 group-hover/widget:opacity-100 transition-opacity duration-150" style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)", backdropFilter: "blur(8px)" }} aria-label="Quitar widget">{"\u2212"}</motion.button>
+                      {renderLugarWidget(id)}
+                    </Reorder.Item>
+                  ))}
+                </AnimatePresence>
+              </Reorder.Group>
+
+              {/* Empty state */}
+              {enabledWidgets.length === 0 && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center" style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}>
+                  <span className="text-3xl">📍</span>
+                  <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin widgets activos</p>
+                </motion.div>
+              )}
+
+              {/* Agregar widget button */}
+              {LUGARES_WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
+                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => setPickerOpen((v) => !v)} className="flex w-full items-center justify-center gap-2 rounded-2xl border py-2.5 text-[11px] font-semibold transition-all" style={{ borderColor: pickerOpen ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)", color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)", background: pickerOpen ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.03)" }}>
+                  <span className="text-base leading-none">{pickerOpen ? "\u2212" : "+"}</span>
+                  Agregar widget
+                </motion.button>
+              )}
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Widget Picker Card ─── */}
+      <AnimatePresence>
+        {!sidebarDismissed && pickerOpen && (
+          <motion.div className="fixed z-[60] hidden xl:block" style={{ top: 120, right: 304, width: 248 }} initial={{ opacity: 0, x: -16, scale: 0.96 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: -16, scale: 0.96 }} transition={{ type: "spring", stiffness: 260, damping: 24 }}>
+            <div className="relative overflow-hidden rounded-[1.75rem]" style={{ background: "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-deepest) 6%)", backdropFilter: "blur(22px) saturate(1.2)", WebkitBackdropFilter: "blur(22px) saturate(1.2)", border: "1px solid color-mix(in srgb, var(--color-border-amber) 38%, var(--color-border-light))", boxShadow: "inset 0 1px 0 color-mix(in srgb, white 18%, transparent), var(--shadow-elevated), 0 0 0 1px color-mix(in srgb, var(--color-amber-primary) 8%, transparent)" }}>
+              <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
+                  <p className="text-[9px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca para agregar al panel</p>
+                </div>
+                <button type="button" onClick={() => setPickerOpen(false)} className="flex h-7 w-7 items-center justify-center rounded-full border text-sm" style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}>×</button>
+              </div>
+              <div className="p-3 space-y-2">
+                <AnimatePresence mode="popLayout">
+                  {LUGARES_WIDGET_REGISTRY.filter((w) => !enabledWidgets.includes(w.id)).map((w) => (
+                    <motion.div key={w.id} layout initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.15 } }} transition={{ type: "spring", stiffness: 300, damping: 26 }} className="flex items-center gap-3 rounded-2xl p-3" style={{ background: "color-mix(in srgb, var(--color-surface-card-alt) 60%, transparent)", border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)" }}>
+                      <span className="text-xl leading-none">{w.emoji}</span>
+                      <span className="min-w-0 flex-1 text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>{w.label}</span>
+                      <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }} onClick={() => toggleWidget(w.id)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold" style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }} aria-label={`Agregar ${w.label}`}>+</motion.button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                {LUGARES_WIDGET_REGISTRY.every((w) => enabledWidgets.includes(w.id)) && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-4 text-center">
+                    <span className="text-2xl">✨</span>
+                    <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Todos los widgets activos</p>
+                  </motion.div>
+                )}
+              </div>
+              <div className="pb-3 text-center">
+                <span className="text-[9px]" style={{ color: "var(--color-text-muted)", opacity: 0.45 }}>Los cambios se guardan automáticamente</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
 

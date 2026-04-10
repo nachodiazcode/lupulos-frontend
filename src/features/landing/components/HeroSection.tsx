@@ -321,20 +321,6 @@ export default function HeroSection() {
                 </Link>
               </motion.div>
 
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-                <Link
-                  href="/cervezas"
-                  prefetch
-                  className="block w-full rounded-full border px-7 py-3 text-center text-sm font-medium transition-all duration-300 sm:inline-block sm:w-auto sm:px-8 sm:text-[15px]"
-                  style={{
-                    borderColor: "var(--color-border-amber)",
-                    background: "rgba(249,115,22,0.07)",
-                    color: "var(--color-amber-primary)",
-                  }}
-                >
-                  Explorar cervezas →
-                </Link>
-              </motion.div>
             </motion.div>
 
             {/* ── Divider + AI Prompt Bar ── */}
