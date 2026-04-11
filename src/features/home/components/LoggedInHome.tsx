@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate as fmAnimate } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -779,6 +779,364 @@ function SidePanel({
   );
 }
 
+/* ═══════════════════════════════════════════════
+   Magic Composer — Liquid-glass post creator
+   ═══════════════════════════════════════════════ */
+
+const PLACEHOLDER_LINES = [
+  "¿Qué estás tomando...?",
+  "Comparte tu último descubrimiento 🍺",
+  "¿Probaste algo nuevo hoy?",
+  "Cuenta tu historia cervecera...",
+  "¿Cuál fue la chela del fin de semana?",
+];
+
+function MagicComposer({
+  onPostCreated,
+}: {
+  onPostCreated: () => void;
+}) {
+  const { user } = useAuth();
+  const [focused, setFocused] = useState(false);
+  const [titulo, setTitulo] = useState("");
+  const [contenido, setContenido] = useState("");
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Neon border rotation
+  const rotation = useMotionValue(0);
+  useEffect(() => {
+    const ctrl = fmAnimate(rotation, 360, { duration: 4, repeat: Infinity, ease: "linear" });
+    return () => ctrl.stop();
+  }, [rotation]);
+
+  const neonBg = useTransform(
+    rotation,
+    (r) => `conic-gradient(from ${r}deg, #f59e0b, #ef4444, #f59e0b, #34d399, #f59e0b)`,
+  );
+
+  // Rotate placeholder
+  useEffect(() => {
+    if (focused) return;
+    const timer = setInterval(() => {
+      setPlaceholderIdx((i) => (i + 1) % PLACEHOLDER_LINES.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [focused]);
+
+  // Manage file previews
+  useEffect(() => {
+    const urls = mediaFiles.map((f) => URL.createObjectURL(f));
+    setMediaPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [mediaFiles]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setMediaFiles((prev) => [...prev, ...files].slice(0, 4));
+    e.target.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setMediaFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    if (!contenido.trim() && mediaFiles.length === 0) return;
+    setIsSubmitting(true);
+
+    try {
+      const uploadedPaths: string[] = [];
+      for (const file of mediaFiles) {
+        const formData = new FormData();
+        formData.append("imagen", file);
+        const res = await api.post(`/post/upload`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        if (res.data?.path) uploadedPaths.push(res.data.path);
+      }
+
+      await api.post(`/post`, {
+        titulo: titulo.trim() || undefined,
+        contenido: contenido.trim(),
+        imagenes: uploadedPaths,
+      });
+
+      setTitulo("");
+      setContenido("");
+      setMediaFiles([]);
+      setFocused(false);
+      onPostCreated();
+    } catch (err) {
+      console.error("❌ Error al publicar:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const hasContent = titulo.trim() || contenido.trim() || mediaFiles.length > 0;
+  const displayName = getDisplayName(user);
+
+  return (
+    <div className="relative mb-6" style={{ borderRadius: 24, padding: 1.5 }}>
+      {/* ── Neon border — blurred glow ── */}
+      <motion.div
+        className="absolute -inset-[3px]"
+        style={{
+          borderRadius: 26,
+          background: neonBg,
+          filter: "blur(14px)",
+          opacity: focused ? 0.35 : 0.12,
+          transition: "opacity 0.4s ease",
+        }}
+      />
+      {/* ── Neon border — crisp line ── */}
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          borderRadius: 24,
+          background: neonBg,
+          opacity: focused ? 0.7 : 0.3,
+          transition: "opacity 0.4s ease",
+        }}
+      />
+
+      {/* ── Card body — liquid glass ── */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          borderRadius: 22.5,
+          background:
+            "linear-gradient(135deg, color-mix(in srgb, var(--color-surface-card) 88%, transparent) 0%, color-mix(in srgb, var(--color-surface-card-alt) 82%, transparent) 100%)",
+          backdropFilter: "blur(24px) saturate(1.3)",
+          WebkitBackdropFilter: "blur(24px) saturate(1.3)",
+          boxShadow: focused
+            ? "0 0 40px rgba(251,191,36,0.08), inset 0 1px 0 rgba(255,255,255,0.12)"
+            : "inset 0 1px 0 rgba(255,255,255,0.08)",
+          transition: "box-shadow 0.4s ease",
+        }}
+      >
+        {/* Subtle inner glass reflection */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style={{
+            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
+          }}
+        />
+
+        <div className="px-5 py-4">
+          {/* ── Top row: avatar + placeholder/textarea ── */}
+          <div className="flex gap-3">
+            {/* Avatar */}
+            <div
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-black"
+              style={{
+                background: "linear-gradient(135deg, #f59e0b, #ef4444)",
+                color: "#fff",
+              }}
+            >
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+
+            {/* Input area */}
+            <div className="min-w-0 flex-1">
+              <AnimatePresence mode="wait">
+                {!focused ? (
+                  <motion.button
+                    key="placeholder"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => {
+                      setFocused(true);
+                      setTimeout(() => textareaRef.current?.focus(), 50);
+                    }}
+                    className="w-full cursor-text rounded-2xl border px-4 py-3 text-left text-sm transition-all"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--color-border-light) 55%, transparent)",
+                      background: "rgba(255,255,255,0.03)",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    <motion.span
+                      key={placeholderIdx}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.3 }}
+                      className="block"
+                    >
+                      {PLACEHOLDER_LINES[placeholderIdx]}
+                    </motion.span>
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    key="editor"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    className="space-y-2.5"
+                  >
+                    <input
+                      type="text"
+                      value={titulo}
+                      onChange={(e) => setTitulo(e.target.value)}
+                      placeholder="Dale un título (opcional)"
+                      className="w-full bg-transparent text-sm font-bold outline-none placeholder:text-white/25"
+                      style={{ color: "var(--color-text-primary)" }}
+                    />
+                    <textarea
+                      ref={textareaRef}
+                      value={contenido}
+                      onChange={(e) => setContenido(e.target.value)}
+                      onFocus={() => setFocused(true)}
+                      placeholder="¿Qué estás tomando...?"
+                      rows={3}
+                      className="w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-white/25"
+                      style={{ color: "var(--color-text-primary)" }}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* ── Media previews ── */}
+          <AnimatePresence>
+            {mediaPreviews.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 flex gap-2 overflow-x-auto"
+              >
+                {mediaPreviews.map((src, i) => (
+                  <motion.div
+                    key={src}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-xl"
+                    style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                  >
+                    {mediaFiles[i]?.type.startsWith("video/") ? (
+                      <video src={src} className="h-full w-full object-cover" muted />
+                    ) : (
+                      <Image src={src} alt="" fill className="object-cover" />
+                    )}
+                    <button
+                      onClick={() => removeFile(i)}
+                      className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      ✕
+                    </button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Action bar ── */}
+          <AnimatePresence>
+            {focused && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2 }}
+                className="mt-3 flex items-center justify-between border-t pt-3"
+                style={{ borderColor: "rgba(255,255,255,0.06)" }}
+              >
+                <div className="flex gap-1">
+                  {/* Photo */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                    style={{ color: "var(--color-text-secondary)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.08)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <span>📷</span> Foto
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => {
+                      if (fileInputRef.current) {
+                        fileInputRef.current.accept = "video/*";
+                        fileInputRef.current.click();
+                        fileInputRef.current.accept = "image/*,video/*";
+                      }
+                    }}
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                    style={{ color: "var(--color-text-secondary)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.08)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <span>🎬</span> Video
+                  </motion.button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setFocused(false);
+                      setTitulo("");
+                      setContenido("");
+                      setMediaFiles([]);
+                    }}
+                    className="rounded-full px-3 py-1.5 text-[12px] font-medium"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    Cancelar
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={handleSubmit}
+                    disabled={!hasContent || isSubmitting}
+                    className="relative overflow-hidden rounded-full px-5 py-1.5 text-[12px] font-bold transition-all disabled:opacity-40"
+                    style={{
+                      background: hasContent ? "var(--gradient-button-primary)" : "rgba(255,255,255,0.06)",
+                      color: hasContent ? "var(--color-text-dark)" : "var(--color-text-muted)",
+                      boxShadow: hasContent ? "var(--shadow-amber-glow)" : "none",
+                    }}
+                  >
+                    {isSubmitting ? "Publicando..." : "Publicar 🍻"}
+                    {hasContent && (
+                      <span
+                        className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-700 hover:translate-x-full"
+                        style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)" }}
+                      />
+                    )}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LoggedInHome() {
   const { user } = useAuth();
 
@@ -788,26 +1146,20 @@ export default function LoggedInHome() {
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const extendLockRef = useRef(0);
 
+  const fetchPosts = async () => {
+    try {
+      const res = await api.get("/post");
+      const data = Array.isArray(res.data?.data) ? res.data.data : res.data?.posts || [];
+      setPosts(data);
+    } catch (error) {
+      console.error("❌ Error al cargar feed para home:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let active = true;
-
-    const loadPosts = async () => {
-      try {
-        const res = await api.get("/post");
-        const data = Array.isArray(res.data?.data) ? res.data.data : res.data?.posts || [];
-        if (active) {
-          setPosts(data);
-        }
-      } catch (error) {
-        console.error("❌ Error al cargar feed para home:", error);
-      } finally {
-        if (active) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadPosts();
+    fetchPosts();
 
     return () => {
       active = false;
@@ -1058,6 +1410,8 @@ export default function LoggedInHome() {
             </aside>
 
             <section className="min-w-0">
+              {/* ── Magic Composer ── */}
+              {user && <MagicComposer onPostCreated={fetchPosts} />}
 
               {isLoading ? (
                 <div className="flex flex-col gap-4 py-8">
