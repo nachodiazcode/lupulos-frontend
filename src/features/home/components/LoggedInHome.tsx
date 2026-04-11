@@ -981,16 +981,7 @@ function MagicComposer({
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="space-y-2.5"
                   >
-                    <input
-                      type="text"
-                      value={titulo}
-                      onChange={(e) => setTitulo(e.target.value)}
-                      placeholder="Dale un título (opcional)"
-                      className="w-full bg-transparent text-sm font-bold outline-none placeholder:text-white/25"
-                      style={{ color: "var(--color-text-primary)" }}
-                    />
                     <textarea
                       ref={textareaRef}
                       value={contenido}
