@@ -5,9 +5,25 @@ const JUST_LOGGED_IN_KEY = "justLoggedIn";
 export interface StoredAuthUser {
   _id: string;
   username?: string;
+  name?: string;
+  nombre?: string;
   email?: string;
   fotoPerfil?: string;
+  photo?: string;
+  profilePicture?: string;
   [key: string]: unknown;
+}
+
+/** Devuelve el mejor nombre de usuario disponible desde el objeto guardado */
+export function getDisplayName(user: StoredAuthUser | null): string {
+  if (!user) return "cervecero";
+  return (
+    user.username ||
+    user.name ||
+    user.nombre ||
+    (user.email ? user.email.split("@")[0] : "") ||
+    "cervecero"
+  );
 }
 
 const isBrowser = (): boolean => typeof window !== "undefined";

@@ -11,6 +11,7 @@ import GoldenParticles from "@/features/landing/components/GoldenParticles";
 import useAuth from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { getImageUrl } from "@/lib/constants";
+import { getDisplayName } from "@/lib/auth-storage";
 
 interface Usuario {
   _id?: string;
@@ -282,7 +283,7 @@ function FeedCard({
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentsLoaded, setCommentsLoaded] = useState(false);
   const [comments, setComments] = useState<FeedComment[]>(() => buildSeedComments(item, index));
-  const currentUsername = user?.username || "tu.cuenta";
+  const currentUsername = getDisplayName(user);
   const commentCount = comments.length + comments.reduce((sum, comment) => sum + comment.replies.length, 0);
 
   useEffect(() => {
@@ -919,7 +920,7 @@ export default function LoggedInHome() {
               </motion.span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
-                  {user?.username ? `¡Hola de nuevo, @${user.username}!` : "¡Hola!"} — Da likes, publica y sube de nivel en la comunidad cervecera
+                  ¡Hola de nuevo, @{getDisplayName(user)}! — Da likes, publica y sube de nivel en la comunidad cervecera
                 </p>
                 <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
                   Cada interacción suma XP y construye tu reputación 🏅
@@ -986,7 +987,7 @@ export default function LoggedInHome() {
                       animation: "magic-gradient-shift 4s ease-in-out infinite",
                     }}
                   >
-                    @{user?.username ?? "cervecero"}
+                    @{getDisplayName(user)}
                   </span>
                   {" "}— Encuentra tu cerveza favorita o publica tu bar o botillería.
                 </h1>

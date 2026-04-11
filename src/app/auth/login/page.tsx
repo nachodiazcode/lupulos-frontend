@@ -432,9 +432,10 @@ export default function LoginPage() {
 
       const usuario = {
         _id: data.user?.id ?? data.user?._id,
-        username: data.user?.username,
+        username: data.user?.username ?? data.user?.name ?? data.user?.nombre,
+        name: data.user?.name ?? data.user?.nombre,
         email: data.user?.email,
-        fotoPerfil: data.user?.photo,
+        fotoPerfil: data.user?.fotoPerfil ?? data.user?.photo ?? data.user?.profilePicture,
       };
       persistAuthSession({ token: data.accessToken, user: usuario });
       localStorage.setItem("user", JSON.stringify(usuario));
