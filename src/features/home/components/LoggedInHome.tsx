@@ -816,19 +816,18 @@ export default function LoggedInHome() {
 
   const feedPool = useMemo(() => {
     const normalized = mapPostsToFeed(posts);
-    const basePool = normalized.length > 0 ? normalized : FALLBACK_FEED;
 
     if (mode === "trending") {
-      return [...basePool].sort((a, b) => b.likes - a.likes);
+      return [...normalized].sort((a, b) => b.likes - a.likes);
     }
 
     if (mode === "nuevos") {
-      return [...basePool].sort(
+      return [...normalized].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
     }
 
-    return [...basePool].sort((a, b) => {
+    return [...normalized].sort((a, b) => {
       const scoreA = a.likes * 4 + new Date(a.createdAt).getTime() / 1_000_000;
       const scoreB = b.likes * 4 + new Date(b.createdAt).getTime() / 1_000_000;
       return scoreB - scoreA;
@@ -836,18 +835,11 @@ export default function LoggedInHome() {
   }, [mode, posts]);
 
   const visibleFeed = useMemo(() => {
-    const safePool = feedPool.length > 0 ? feedPool : FALLBACK_FEED;
-
-    return Array.from({ length: visibleCount }, (_, index) => {
-      const base = safePool[index % safePool.length];
-      const lap = Math.floor(index / safePool.length);
-
-      return {
-        ...base,
-        renderId: `${base.id}-${index}`,
-        lap,
-      };
-    });
+    return feedPool.slice(0, visibleCount).map((base, index) => ({
+      ...base,
+      renderId: `${base.id}-${index}`,
+      lap: 0,
+    }));
   }, [feedPool, visibleCount]);
 
   const totalLikes = useMemo(
@@ -1075,24 +1067,36 @@ export default function LoggedInHome() {
                 </h2>
               </div>
 
-              <div className="flex flex-col gap-8 snap-y snap-proximity">
-                {visibleFeed.map((item, index) => (
-                  <FeedCard key={item.renderId} item={item} index={index} />
-                ))}
-              </div>
-
-              <div className="mt-6 flex justify-center">
-                <div
-                  className="rounded-full border px-4 py-2 text-sm font-semibold"
-                  style={{
-                    borderColor: "color-mix(in srgb, var(--color-border-light) 62%, transparent)",
-                    color: "var(--color-text-muted)",
-                    background: "rgba(255,255,255,0.03)",
-                  }}
-                >
-                  {isLoading ? "Cargando historias..." : "El muro sigue sirviendo más historias..."}
+              {isLoading ? (
+                <div className="flex flex-col gap-4 py-8">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-40 animate-pulse rounded-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
+                  ))}
                 </div>
-              </div>
+              ) : visibleFeed.length === 0 ? (
+                <div className="flex flex-col items-center py-16 text-center">
+                  <span className="text-5xl">🍺</span>
+                  <h3 className="mt-4 text-lg font-bold" style={{ color: "var(--color-text-primary)" }}>
+                    El muro está esperando tu primera historia
+                  </h3>
+                  <p className="mt-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
+                    Publica lo que estás tomando y súmate a la comunidad.
+                  </p>
+                  <Link
+                    href="/posts"
+                    className="mt-5 rounded-full px-6 py-2.5 text-sm font-bold"
+                    style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+                  >
+                    Publicar ahora
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-8 snap-y snap-proximity">
+                  {visibleFeed.map((item, index) => (
+                    <FeedCard key={item.renderId} item={item} index={index} />
+                  ))}
+                </div>
+              )}
             </section>
 
             <aside className="flex flex-col gap-4 xl:sticky xl:top-24 xl:self-start">
