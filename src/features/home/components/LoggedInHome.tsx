@@ -1014,30 +1014,6 @@ export default function LoggedInHome() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-2">
-                {[
-                  { value: `${feedPool.length}+`, label: "publicaciones" },
-                  { value: `${totalLikes}+`, label: "brindis dados" },
-                  { value: `${projectedComments}+`, label: "comentarios" },
-                  { value: `${projectedPlans}+`, label: "rutas armadas" },
-                ].map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="rounded-[1.25rem] border px-4 py-3"
-                    style={{
-                      borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
-                      background: "rgba(255,255,255,0.04)",
-                    }}
-                  >
-                    <p className="text-xl font-black sm:text-2xl" style={{ color: "var(--color-text-primary)" }}>
-                      {stat.value}
-                    </p>
-                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--color-text-muted)" }}>
-                      {stat.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
