@@ -887,7 +887,7 @@ export default function LoggedInHome() {
       <GoldenParticles count={22} />
       <Navbar />
 
-      <main className="relative overflow-hidden pb-24 pt-6 sm:pt-8">
+      <main className="relative overflow-hidden pb-24 pt-2">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
