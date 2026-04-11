@@ -738,7 +738,7 @@ export default function CervezasPage() {
               background: "rgba(251,191,36,0.06)",
             }}
           >
-            Catálogo cervecero · v2.0
+            🍺 Catálogo Lúpulos
           </motion.span>
 
           <motion.h1

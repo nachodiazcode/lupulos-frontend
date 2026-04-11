@@ -32,7 +32,7 @@ import {
 } from "@mui/icons-material";
 import { getImageUrl } from "@/lib/constants";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import { clearAuthSession, getStoredUser } from "@/lib/auth-storage";
+import useAuth from "@/hooks/useAuth";
 
 /* ═══════════════════════════════════
    Config
@@ -64,22 +64,16 @@ const navItems: NavItem[] = [
    ═══════════════════════════════════ */
 
 export default function Navbar() {
+  const { user, isAuthReady, logout } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [footerMenuOpen, setFooterMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const usuario = (user as Usuario | null) ?? null;
 
   const getInitial = (u: Usuario | null) => (u?.username?.[0] ?? "U").toUpperCase();
-
-  useEffect(() => {
-    const syncUser = () => setUsuario(getStoredUser() as Usuario | null);
-    syncUser();
-    window.addEventListener("storage", syncUser);
-    return () => window.removeEventListener("storage", syncUser);
-  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -88,8 +82,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    clearAuthSession();
-    setUsuario(null);
+    logout();
     setAnchorEl(null);
     router.push("/auth/login");
   };
@@ -307,7 +300,7 @@ export default function Navbar() {
                   </MenuItem>
                 </Menu>
               </>
-            ) : (
+            ) : isAuthReady ? (
               <Link
                 href="/auth/login"
                 prefetch
@@ -324,7 +317,7 @@ export default function Navbar() {
                   style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)" }}
                 />
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
       </nav>

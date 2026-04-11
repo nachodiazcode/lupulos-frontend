@@ -711,7 +711,7 @@ export default function PostPage() {
               background: "rgba(251,191,36,0.06)",
             }}
           >
-            Comunidad
+            🍺 Lo que está tomando la comunidad
           </motion.span>
 
           <motion.h1
@@ -719,7 +719,7 @@ export default function PostPage() {
             custom={1}
             className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
           >
-            Historias{" "}
+            El feed de la{" "}
             <span
               style={{
                 background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 20%, var(--color-amber-hover) 40%, var(--color-amber-primary) 60%, var(--color-amber-light) 80%, var(--color-amber-primary) 100%)",
@@ -730,7 +730,7 @@ export default function PostPage() {
                 animation: "magic-gradient-shift 4s ease-in-out infinite",
               }}
             >
-              cerveceras
+              escena craft
             </span>
           </motion.h1>
 
@@ -740,7 +740,7 @@ export default function PostPage() {
             className="mt-3 max-w-lg text-sm sm:text-base"
             style={{ color: "var(--color-text-secondary)" }}
           >
-            Comparte experiencias, descubrimientos y momentos con la comunidad
+            Publica lo que estás tomando, da likes, comenta y conecta con quienes viven la cerveza tan en serio como tú.
           </motion.p>
 
           {/* Search (visible below xl, hidden when filtros widget handles it on xl) */}
@@ -885,9 +885,9 @@ export default function PostPage() {
             <motion.span className="text-7xl" animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
               📝
             </motion.span>
-            <h3 className="mt-6 text-xl font-bold">Aún no hay publicaciones</h3>
+            <h3 className="mt-6 text-xl font-bold">El feed está esperando tu chela</h3>
             <p className="mt-2 max-w-sm text-sm" style={{ color: "var(--color-text-muted)" }}>
-              ¡Sé el primero en compartir tu historia cervecera con la comunidad!
+              Nadie ha publicado aún. Sé quien rompe el hielo — la comunidad te lo va a agradecer.
             </p>
             {user && (
               <motion.button
@@ -901,7 +901,7 @@ export default function PostPage() {
                   boxShadow: "var(--shadow-amber-glow)",
                 }}
               >
-                Crear la primera publicación 🚀
+                Publicar ahora 🍺
               </motion.button>
             )}
           </motion.div>

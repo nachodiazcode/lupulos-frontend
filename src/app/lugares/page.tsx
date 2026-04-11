@@ -1669,7 +1669,7 @@ export default function LugaresPage() {
               background: "rgba(251,191,36,0.06)",
             }}
           >
-            La ruta nacional · Chile
+            📍 Lugares con alma, seleccionados por la comunidad
           </motion.span>
 
           <motion.h1
@@ -1678,7 +1678,7 @@ export default function LugaresPage() {
             className="mt-4 max-w-4xl text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
             style={{ color: "var(--color-text-primary)" }}
           >
-            Descubre{" "}
+            Tu próxima salida empieza{" "}
             <span
               style={{
                 background:
@@ -1690,7 +1690,7 @@ export default function LugaresPage() {
                 animation: "magic-gradient-shift 4s ease-in-out infinite",
               }}
             >
-              Nuevos Lugares!
+              aquí.
             </span>
           </motion.h1>
 
@@ -1700,8 +1700,7 @@ export default function LugaresPage() {
             className="mt-3 max-w-2xl text-sm sm:text-base"
             style={{ color: "var(--color-text-secondary)" }}
           >
-            Desde los Tesoros de Barrio hasta los íconos de cada ciudad. La ruta que conecta a
-            quienes buscan lo excepcional con los locales que lo son.
+            Bares, taprooms y cervecerías curados por la comunidad. Arma tu ruta, descubre nuevos spots y ponle cara a la escena artesanal de tu ciudad.
           </motion.p>
 
           <motion.p

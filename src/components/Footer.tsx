@@ -3,22 +3,29 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-
-const footerLinks = {
-  Explorar: [
-    { label: "Cervezas", href: "/cervezas" },
-    { label: "Lugares", href: "/lugares" },
-    { label: "Comunidad", href: "/posts" },
-    { label: "Usuarios", href: "/usuarios" },
-  ],
-  Cuenta: [
-    { label: "Iniciar sesión", href: "/auth/login" },
-    { label: "Registrarse", href: "/auth/register" },
-    { label: "Mi perfil", href: "/auth/perfil" },
-  ],
-};
+import useAuth from "@/hooks/useAuth";
 
 export default function Footer() {
+  const { user, isAuthReady } = useAuth();
+  const isLoggedIn = Boolean(user);
+
+  const footerLinks = {
+    Explorar: [
+      { label: "Cervezas", href: "/cervezas" },
+      { label: "Lugares", href: "/lugares" },
+      { label: "Comunidad", href: "/posts" },
+      { label: "Usuarios", href: "/usuarios" },
+    ],
+    Cuenta: isLoggedIn
+      ? [{ label: "Mi perfil", href: "/auth/perfil" }]
+      : isAuthReady
+        ? [
+            { label: "Iniciar sesión", href: "/auth/login" },
+            { label: "Registrarse", href: "/auth/register" },
+          ]
+        : [],
+  };
+
   return (
     <footer
       className="border-border-subtle border-t"

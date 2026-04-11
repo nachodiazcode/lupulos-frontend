@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import useAuth from "@/hooks/useAuth";
 import AiPromptBar from "./AiPromptBar";
 
 /* ═══════════════════════════════════
@@ -121,8 +122,10 @@ function BeerStyleCycler() {
    ═══════════════════════════════════ */
 
 export default function HeroSection() {
+  const { user, isAuthReady } = useAuth();
   const sparkles = useMemo(() => generateSparkles(22), []);
   const [mounted, setMounted] = useState(false);
+  const isLoggedIn = Boolean(user);
 
   useEffect(() => {
     setMounted(true);
@@ -258,7 +261,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.22, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
             >
-              Bienvenido a Lúpulos, la nueva red social para amantes de la cerveza
+              La comunidad que los amantes de la cerveza estaban esperando
             </motion.h1>
             {/* Subtitle */}
             <motion.p
@@ -267,7 +270,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.36, duration: 0.6 }}
             >
-              Conecta con otros usuarios que les guste compartir experiencias o tal vez crear una nueva cerveza, Lúpulos es el rincón vikingo!
+              Descubre cervezas artesanales, comparte lo que estás tomando y conecta con personas que, como tú, viven la cerveza en serio.
             </motion.p>
 
             {/* CTAs */}
@@ -277,49 +280,51 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.48, duration: 0.55 }}
             >
-              {/* Lúpulos Plus */}
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-                <Link
-                  href="/auth/login?plan=plus"
-                  prefetch
-                  className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-full border px-7 py-3 text-center text-sm font-bold shadow-xl transition-all duration-300 sm:inline-flex sm:w-auto sm:px-8 sm:text-[15px]"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.08))",
-                    borderColor: "rgba(251,191,36,0.5)",
-                    color: "#fbbf24",
-                    boxShadow: "0 4px 24px rgba(251,191,36,0.2)",
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="relative z-10 shrink-0">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                  </svg>
-                  <span className="relative z-10">Iniciar con Lúpulos Plus</span>
-                  <span
-                    className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-[600ms] group-hover:translate-x-full"
-                    style={{ background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.15), transparent)" }}
-                  />
-                </Link>
-              </motion.div>
+              {!isLoggedIn && isAuthReady && (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                  <Link
+                    href="/auth/login?plan=plus"
+                    prefetch
+                    className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-full border px-7 py-3 text-center text-sm font-bold shadow-xl transition-all duration-300 sm:inline-flex sm:w-auto sm:px-8 sm:text-[15px]"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.08))",
+                      borderColor: "rgba(251,191,36,0.5)",
+                      color: "#fbbf24",
+                      boxShadow: "0 4px 24px rgba(251,191,36,0.2)",
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="relative z-10 shrink-0">
+                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                    </svg>
+                    <span className="relative z-10">Iniciar con Lúpulos Plus</span>
+                    <span
+                      className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-[600ms] group-hover:translate-x-full"
+                      style={{ background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.15), transparent)" }}
+                    />
+                  </Link>
+                </motion.div>
+              )}
 
-              {/* Unirme gratis */}
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-                <Link
-                  href="/auth/register"
-                  prefetch
-                  className="group relative block w-full overflow-hidden rounded-full px-7 py-3 text-center text-sm font-bold shadow-xl transition-all duration-300 sm:inline-block sm:w-auto sm:px-8 sm:text-[15px]"
-                  style={{
-                    background: "linear-gradient(135deg, #f97316, #ea580c)",
-                    color: "#ffffff",
-                    boxShadow: "0 4px 24px rgba(249,115,22,0.45)",
-                  }}
-                >
-                  <span className="relative z-10">Unirme gratis</span>
-                  <span
-                    className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-[600ms] group-hover:translate-x-full"
-                    style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
-                  />
-                </Link>
-              </motion.div>
+              {!isLoggedIn && isAuthReady && (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                  <Link
+                    href="/auth/register"
+                    prefetch
+                    className="group relative block w-full overflow-hidden rounded-full px-7 py-3 text-center text-sm font-bold shadow-xl transition-all duration-300 sm:inline-block sm:w-auto sm:px-8 sm:text-[15px]"
+                    style={{
+                      background: "linear-gradient(135deg, #f97316, #ea580c)",
+                      color: "#ffffff",
+                      boxShadow: "0 4px 24px rgba(249,115,22,0.45)",
+                    }}
+                  >
+                    <span className="relative z-10">Unirme gratis</span>
+                    <span
+                      className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-[600ms] group-hover:translate-x-full"
+                      style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
+                    />
+                  </Link>
+                </motion.div>
+              )}
 
             </motion.div>
 

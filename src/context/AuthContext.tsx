@@ -12,6 +12,7 @@ import {
 interface AuthContextValue {
   user: StoredAuthUser | null;
   token: string | null;
+  isAuthReady: boolean;
   setUser: (user: StoredAuthUser | null) => void;
   setToken: (token: string | null) => void;
   logout: () => void;
@@ -20,6 +21,7 @@ interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue>({
   user: null,
   token: null,
+  isAuthReady: false,
   setUser: () => {},
   setToken: () => {},
   logout: () => {},
@@ -28,20 +30,30 @@ export const AuthContext = createContext<AuthContextValue>({
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<StoredAuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    setUser(getStoredUser());
-    setToken(getStoredToken());
+    const syncAuthState = () => {
+      setUser(getStoredUser());
+      setToken(getStoredToken());
+      setIsAuthReady(true);
+    };
+
+    syncAuthState();
+    window.addEventListener("storage", syncAuthState);
+
+    return () => window.removeEventListener("storage", syncAuthState);
   }, []);
 
   const logout = () => {
     clearAuthSession();
     setUser(null);
     setToken(null);
+    setIsAuthReady(true);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, setUser, setToken, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthReady, setUser, setToken, logout }}>
       {children}
     </AuthContext.Provider>
   );
