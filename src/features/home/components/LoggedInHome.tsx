@@ -781,6 +781,14 @@ function SidePanel({
 
 export default function LoggedInHome() {
   const { user } = useAuth();
+
+  // Debug: ver qué campos tiene el usuario guardado
+  useEffect(() => {
+    const raw = localStorage.getItem("user");
+    console.log("[LoggedInHome] user from context:", user);
+    console.log("[LoggedInHome] raw localStorage user:", raw);
+  }, [user]);
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mode, setMode] = useState<FeedMode>("para-ti");
