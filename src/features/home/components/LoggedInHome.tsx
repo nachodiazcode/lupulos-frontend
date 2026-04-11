@@ -974,7 +974,7 @@ export default function LoggedInHome() {
                 >
                   ✨ Tu espacio cervecero
                 </span>
-                <h1 className="mt-3 max-w-4xl text-3xl leading-[0.94] sm:text-[3.2rem] xl:text-[3.8rem]">
+                <h1 className="mt-3 max-w-3xl text-2xl leading-snug sm:text-[1.75rem] xl:text-[2rem] font-extrabold">
                   Bienvenido,{" "}
                   <span
                     style={{
