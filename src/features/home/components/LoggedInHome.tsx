@@ -903,7 +903,7 @@ export default function LoggedInHome() {
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="mb-4 flex items-center justify-between gap-3 overflow-hidden rounded-2xl border px-4 py-3"
+            className="mb-2 flex items-center justify-between gap-3 overflow-hidden rounded-2xl border px-4 py-3"
             style={{
               background: "linear-gradient(135deg, rgba(251,191,36,0.07) 0%, rgba(249,115,22,0.05) 100%)",
               borderColor: "color-mix(in srgb, var(--color-border-amber) 45%, transparent)",
@@ -1018,7 +1018,7 @@ export default function LoggedInHome() {
 
           </section>
 
-          <div className="mt-6 grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+          <div className="mt-2 grid gap-2 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
             <aside className="flex flex-col gap-4 xl:sticky xl:top-24 xl:self-start">
               <SidePanel title="Entradas rápidas" subtitle="Abre algo bueno en menos de diez segundos">
                 <div className="grid gap-2.5">
