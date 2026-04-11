@@ -992,9 +992,7 @@ export default function LoggedInHome() {
                   </span>
                   {" "}— publica tu boti, tu pub, tu cerveza favorita y súmate a esta nueva comunidad.
                 </h1>
-                <p className="mt-3 max-w-2xl text-[0.98rem] leading-relaxed sm:text-[1.05rem]" style={{ color: "var(--color-text-secondary)" }}>
-                  Publica lo que estás tomando, descubre lo que está haciendo ruido en la comunidad y arma tu próxima salida cervecera en segundos.
-                </p>
+
                 <div className="mt-4 flex flex-wrap gap-2">
                   {[
                     "🍺 publica tu chela ahora",
