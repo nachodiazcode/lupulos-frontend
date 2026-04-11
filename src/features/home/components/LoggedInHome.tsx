@@ -1066,25 +1066,13 @@ export default function LoggedInHome() {
             </aside>
 
             <section className="min-w-0">
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.24em]" style={{ color: "var(--color-amber-primary)" }}>
-                    Muro vikingo
-                  </p>
-                  <h2 className="mt-1 text-2xl font-black" style={{ color: "var(--color-text-primary)" }}>
-                    Historias que dan ganas de comentar, guardar y pasarle a alguien más
-                  </h2>
-                </div>
-                <Link
-                  href="/posts"
-                  className="rounded-full border px-4 py-2 text-sm font-semibold"
-                  style={{
-                    borderColor: "color-mix(in srgb, var(--color-border-light) 68%, transparent)",
-                    color: "var(--color-text-secondary)",
-                  }}
-                >
-                  Ver todo el ruido
-                </Link>
+              <div className="mb-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em]" style={{ color: "var(--color-amber-primary)" }}>
+                  Muro vikingo
+                </p>
+                <h2 className="mt-1 text-2xl font-black" style={{ color: "var(--color-text-primary)" }}>
+                  Historias que dan ganas de comentar, guardar y pasarle a alguien más
+                </h2>
               </div>
 
               <div className="flex flex-col gap-8 snap-y snap-proximity">
