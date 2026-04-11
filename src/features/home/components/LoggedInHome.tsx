@@ -782,13 +782,6 @@ function SidePanel({
 export default function LoggedInHome() {
   const { user } = useAuth();
 
-  // Debug: ver qué campos tiene el usuario guardado
-  useEffect(() => {
-    const raw = localStorage.getItem("user");
-    console.log("[LoggedInHome] user from context:", user);
-    console.log("[LoggedInHome] raw localStorage user:", raw);
-  }, [user]);
-
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mode, setMode] = useState<FeedMode>("para-ti");
@@ -984,7 +977,7 @@ export default function LoggedInHome() {
                   ✨ Tu espacio cervecero
                 </span>
                 <h1 className="mt-3 max-w-3xl text-2xl leading-snug sm:text-[1.75rem] xl:text-[2rem] font-extrabold">
-                  Bienvenido,{" "}
+                  Bienvenido a{" "}
                   <span
                     style={{
                       background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 40%, #f97316 100%)",
@@ -995,9 +988,9 @@ export default function LoggedInHome() {
                       animation: "magic-gradient-shift 4s ease-in-out infinite",
                     }}
                   >
-                    @{getDisplayName(user)}
+                    Lúpulos
                   </span>
-                  {" "}— Encuentra tu cerveza favorita o publica tu bar o botillería.
+                  {" "}— publica tu boti, tu pub, tu cerveza favorita y súmate a esta nueva comunidad.
                 </h1>
                 <p className="mt-3 max-w-2xl text-[0.98rem] leading-relaxed sm:text-[1.05rem]" style={{ color: "var(--color-text-secondary)" }}>
                   Publica lo que estás tomando, descubre lo que está haciendo ruido en la comunidad y arma tu próxima salida cervecera en segundos.
