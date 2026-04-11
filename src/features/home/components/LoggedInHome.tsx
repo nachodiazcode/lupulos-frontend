@@ -1016,30 +1016,6 @@ export default function LoggedInHome() {
 
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              {FEED_MODES.map((item) => {
-                const active = item.id === mode;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setMode(item.id)}
-                    className="rounded-full border px-4 py-2 text-left transition-all"
-                    style={{
-                      borderColor: active
-                        ? "color-mix(in srgb, var(--color-border-amber) 92%, transparent)"
-                        : "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
-                      background: active ? "rgba(251,191,36,0.12)" : "rgba(255,255,255,0.03)",
-                      color: active ? "var(--color-text-primary)" : "var(--color-text-secondary)",
-                      boxShadow: active ? "var(--shadow-amber-glow)" : "none",
-                    }}
-                  >
-                    <span className="block text-sm font-bold">{item.label}</span>
-                    <span className="mt-0.5 block text-[12px] font-medium opacity-75">{item.hint}</span>
-                  </button>
-                );
-              })}
-            </div>
           </section>
 
           <div className="mt-6 grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
