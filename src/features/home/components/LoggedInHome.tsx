@@ -975,7 +975,7 @@ export default function LoggedInHome() {
                   ✨ Tu espacio cervecero
                 </span>
                 <h1 className="mt-3 max-w-4xl text-3xl leading-[0.94] sm:text-[3.2rem] xl:text-[3.8rem]">
-                  Tu próxima chela favorita{" "}
+                  Bienvenido,{" "}
                   <span
                     style={{
                       background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 40%, #f97316 100%)",
@@ -986,8 +986,9 @@ export default function LoggedInHome() {
                       animation: "magic-gradient-shift 4s ease-in-out infinite",
                     }}
                   >
-                    te está esperando.
+                    @{user?.username ?? "cervecero"}
                   </span>
+                  {" "}— Encuentra tu cerveza favorita o publica tu bar o botillería.
                 </h1>
                 <p className="mt-3 max-w-2xl text-[0.98rem] leading-relaxed sm:text-[1.05rem]" style={{ color: "var(--color-text-secondary)" }}>
                   Publica lo que estás tomando, descubre lo que está haciendo ruido en la comunidad y arma tu próxima salida cervecera en segundos.
