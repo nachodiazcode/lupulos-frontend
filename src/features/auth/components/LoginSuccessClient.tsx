@@ -47,19 +47,24 @@ export default function LoginSuccessClient() {
 
     const run = async () => {
       try {
-
         const { data } = await api.get(`/auth/perfil/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        // Guardar el objeto completo tal como viene del perfil
+        const perfilData = data.user ?? data;
         const usuario = {
-          _id: data.user?.id ?? data.user?._id ?? userId,
-          username: data.user?.username ?? data.user?.name ?? data.user?.nombre,
-          name: data.user?.name ?? data.user?.nombre,
-          email: data.user?.email,
-          fotoPerfil: data.user?.fotoPerfil ?? data.user?.photo ?? data.user?.profilePicture,
+          _id: perfilData?.id ?? perfilData?._id ?? userId,
+          username: perfilData?.username ?? perfilData?.name ?? perfilData?.nombre,
+          name: perfilData?.name ?? perfilData?.nombre,
+          email: perfilData?.email,
+          fotoPerfil: perfilData?.fotoPerfil ?? perfilData?.photo ?? perfilData?.profilePicture,
+          // Guardar también el objeto completo por si tiene más campos útiles
+          ...perfilData,
         };
+
         persistAuthSession({ token, user: usuario, justLoggedIn: true });
+        localStorage.setItem("user", JSON.stringify(usuario));
 
         router.push("/cervezas");
       } catch {

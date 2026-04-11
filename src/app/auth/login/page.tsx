@@ -430,17 +430,34 @@ export default function LoginPage() {
     try {
       const { data } = await api.post("/auth/login", { email, password });
 
+      const token = data.accessToken ?? data.token;
+      const userId = data.user?.id ?? data.user?._id;
+
+      // Traer perfil completo para garantizar que tenemos todos los campos
+      let perfilData = data.user;
+      if (userId && token) {
+        try {
+          const perfilRes = await api.get(`/auth/perfil/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          perfilData = perfilRes.data?.user ?? perfilRes.data ?? data.user;
+        } catch {
+          // Si falla, usamos lo que trajo el login
+        }
+      }
+
       const usuario = {
-        _id: data.user?.id ?? data.user?._id,
-        username: data.user?.username ?? data.user?.name ?? data.user?.nombre,
-        name: data.user?.name ?? data.user?.nombre,
-        email: data.user?.email,
-        fotoPerfil: data.user?.fotoPerfil ?? data.user?.photo ?? data.user?.profilePicture,
+        _id: userId,
+        username: perfilData?.username ?? perfilData?.name ?? perfilData?.nombre,
+        name: perfilData?.name ?? perfilData?.nombre,
+        email: perfilData?.email,
+        fotoPerfil: perfilData?.fotoPerfil ?? perfilData?.photo ?? perfilData?.profilePicture,
       };
-      persistAuthSession({ token: data.accessToken, user: usuario });
+
+      persistAuthSession({ token, user: usuario });
       localStorage.setItem("user", JSON.stringify(usuario));
 
-      setToken(data.accessToken);
+      setToken(token);
       setUser(usuario);
       setOpenToast(true);
 

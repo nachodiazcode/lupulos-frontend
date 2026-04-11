@@ -17,13 +17,25 @@ export interface StoredAuthUser {
 /** Devuelve el mejor nombre de usuario disponible desde el objeto guardado */
 export function getDisplayName(user: StoredAuthUser | null): string {
   if (!user) return "cervecero";
-  return (
-    user.username ||
-    user.name ||
-    user.nombre ||
-    (user.email ? user.email.split("@")[0] : "") ||
-    "cervecero"
-  );
+
+  // Intentar campos conocidos primero
+  const fromKnown =
+    (user.username as string) ||
+    (user.name as string) ||
+    (user.nombre as string) ||
+    (user.email ? (user.email as string).split("@")[0] : "");
+
+  if (fromKnown) return fromKnown;
+
+  // Último recurso: buscar cualquier campo string corto que no sea un ID
+  const ID_KEYS = new Set(["_id", "id", "fotoPerfil", "photo", "profilePicture", "email"]);
+  for (const [key, val] of Object.entries(user)) {
+    if (!ID_KEYS.has(key) && typeof val === "string" && val.length > 0 && val.length < 60) {
+      return val;
+    }
+  }
+
+  return "cervecero";
 }
 
 const isBrowser = (): boolean => typeof window !== "undefined";
