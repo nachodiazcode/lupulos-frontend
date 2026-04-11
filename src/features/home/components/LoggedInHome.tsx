@@ -1058,14 +1058,6 @@ export default function LoggedInHome() {
             </aside>
 
             <section className="min-w-0">
-              <div className="mb-4">
-                <p className="text-[11px] font-bold uppercase tracking-[0.24em]" style={{ color: "var(--color-amber-primary)" }}>
-                  Muro vikingo
-                </p>
-                <h2 className="mt-1 text-2xl font-black" style={{ color: "var(--color-text-primary)" }}>
-                  Historias que dan ganas de comentar, guardar y pasarle a alguien más
-                </h2>
-              </div>
 
               {isLoading ? (
                 <div className="flex flex-col gap-4 py-8">
