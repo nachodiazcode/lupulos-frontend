@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence, useMotionValue, useTransform, animate as fmAnimate } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useTransform,
+  animate as fmAnimate,
+} from "framer-motion";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -11,7 +17,21 @@ import GoldenParticles from "@/features/landing/components/GoldenParticles";
 import useAuth from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { getImageUrl } from "@/lib/constants";
-import { getDisplayName } from "@/lib/auth-storage";
+import { getDisplayName, getStoredToken, persistAuthSession } from "@/lib/auth-storage";
+import {
+  DEFAULT_PROFILE_STATS,
+  extractApiData,
+  normalizeProfilePayload,
+  normalizeStoredAuthUser,
+  type ProfileStats,
+} from "@/lib/auth-user";
+import {
+  MAX_VIDEO_DURATION_SECONDS,
+  extractUploadedMedia,
+  getPrimaryPostMedia,
+  readVideoDurationSeconds,
+  type PostMedia,
+} from "@/lib/post-media";
 
 interface Usuario {
   _id?: string;
@@ -31,6 +51,8 @@ interface Post {
   content?: string;
   imagenes?: string[];
   images?: string[];
+  media?: PostMedia[];
+  multimedia?: PostMedia[];
   usuario?: Usuario;
   author?: Usuario;
   createdAt?: string;
@@ -48,8 +70,10 @@ interface FeedSeed {
   title: string;
   body: string;
   image: string;
+  mediaType: "image" | "video" | null;
   author: string;
   likes: number;
+  likedByUsers: string[];
   createdAt: string;
   route: string;
   kicker: string;
@@ -58,6 +82,7 @@ interface FeedSeed {
 
 interface FeedCommentApi {
   _id?: string;
+  id?: string;
   comentario?: string;
   content?: string;
   usuario?: Usuario;
@@ -78,13 +103,159 @@ interface FeedComment {
   source: "seed" | "server" | "local";
 }
 
-type FeedMode = "para-ti" | "trending" | "nuevos";
+interface HomeBeer {
+  _id?: string;
+  name?: string;
+  brewery?: string;
+  style?: string;
+  beerStyle?: string;
+  description?: string;
+  averageRating?: number;
+}
 
-const FEED_MODES: { id: FeedMode; label: string; hint: string }[] = [
-  { id: "para-ti", label: "Para ti", hint: "Lo que engancha rápido y te deja queriendo otra historia" },
-  { id: "trending", label: "En fuego", hint: "Lo que hoy está haciendo ruido en la comunidad" },
-  { id: "nuevos", label: "Recién servido", hint: "Las historias frescas que acaban de caer al muro" },
-];
+interface HomePlace {
+  _id?: string;
+  name?: string;
+  description?: string;
+  averageRating?: number;
+  address?: {
+    city?: string;
+  };
+}
+
+interface StylePulseItem {
+  icon: string;
+  name: string;
+  note: string;
+}
+
+interface RouteSpotItem {
+  icon: string;
+  title: string;
+  detail: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function extractListFromPayload<T>(payload: unknown, fallbackKeys: string[] = []): T[] {
+  const data = extractApiData<unknown>(payload);
+
+  if (Array.isArray(data)) {
+    return data as T[];
+  }
+
+  if (isRecord(data)) {
+    for (const key of fallbackKeys) {
+      if (Array.isArray(data[key])) {
+        return data[key] as T[];
+      }
+    }
+  }
+
+  if (isRecord(payload)) {
+    for (const key of fallbackKeys) {
+      if (Array.isArray(payload[key])) {
+        return payload[key] as T[];
+      }
+    }
+  }
+
+  return [];
+}
+
+function extractTotalFromPayload(payload: unknown): number | null {
+  if (!isRecord(payload) || !isRecord(payload.meta)) return null;
+
+  const total = Number(payload.meta.total);
+  return Number.isFinite(total) ? total : null;
+}
+
+function truncateCopy(value: string, limit = 78): string {
+  const normalized = value.trim();
+  if (!normalized) return "";
+  if (normalized.length <= limit) return normalized;
+  return `${normalized.slice(0, limit).trimEnd()}...`;
+}
+
+function getBeerStyleIcon(style: string): string {
+  const normalized = style.toLowerCase();
+
+  if (normalized.includes("stout") || normalized.includes("porter")) return "🖤";
+  if (normalized.includes("sour")) return "🍋";
+  if (normalized.includes("lager") || normalized.includes("pils")) return "🌾";
+  if (normalized.includes("amber") || normalized.includes("red")) return "🧡";
+  if (normalized.includes("ipa")) return normalized.includes("west") ? "🌲" : "🌫️";
+
+  return "🍺";
+}
+
+function mapBeersToStylePulse(beers: HomeBeer[]): StylePulseItem[] {
+  if (!beers.length) return STYLE_PULSE;
+
+  return beers.slice(0, 4).map((beer) => {
+    const style = beer.beerStyle || beer.style || beer.name || "Descubrimiento cervecero";
+    const brewery = beer.brewery?.trim();
+    const rating =
+      typeof beer.averageRating === "number" && beer.averageRating > 0
+        ? ` · ${beer.averageRating.toFixed(1)}★`
+        : "";
+    const meta = [beer.name?.trim(), brewery].filter(Boolean).join(" · ");
+    const note = truncateCopy(beer.description || `${meta || style}${rating}`, 86);
+
+    return {
+      icon: getBeerStyleIcon(style),
+      name: style,
+      note: note || "Lo que la comunidad esta mirando con ganas de otra ronda.",
+    };
+  });
+}
+
+function mapPlacesToRoutes(places: HomePlace[]): RouteSpotItem[] {
+  if (!places.length) return ROUTES;
+
+  return places.slice(0, 3).map((place) => {
+    const city = place.address?.city?.trim();
+    const rating =
+      typeof place.averageRating === "number" && place.averageRating > 0
+        ? ` · ${place.averageRating.toFixed(1)}★`
+        : "";
+    const detail = truncateCopy(
+      [city, place.description?.trim()].filter(Boolean).join(" · ") ||
+        `hallazgo listo para salir${rating}`,
+      90,
+    );
+
+    return {
+      icon: "📍",
+      title: place.name?.trim() || "Taproom recomendado",
+      detail: detail || `plan con buena pinta${rating}`,
+    };
+  });
+}
+
+function buildLevelProgress(stats: ProfileStats) {
+  const totalXp =
+    stats.posts * 40 +
+    stats.beers * 32 +
+    stats.places * 36 +
+    stats.followers * 18 +
+    stats.following * 6;
+  const xpPerLevel = 500;
+  const level = Math.max(1, Math.floor(totalXp / xpPerLevel) + 1);
+  const xpIntoLevel = totalXp - (level - 1) * xpPerLevel;
+  const rankNames = ["Lupulero", "Catador", "Explorador", "Maestro Cervecero", "Leyenda"];
+  const rankName = rankNames[Math.min(level - 1, rankNames.length - 1)];
+
+  return {
+    level,
+    rankName,
+    currentXp: xpIntoLevel,
+    targetXp: xpPerLevel,
+    progressPercent: Math.max(0, Math.min(100, (xpIntoLevel / xpPerLevel) * 100)),
+  };
+}
 
 const QUICK_ACTIONS = [
   { icon: "🍺", label: "Descubrir una cerveza ahora", href: "/cervezas" },
@@ -95,58 +266,35 @@ const QUICK_ACTIONS = [
 
 const STYLE_PULSE = [
   { icon: "🌫️", name: "Hazy IPA", note: "la jugosa que convierte un vistazo en una segunda pinta" },
-  { icon: "🖤", name: "Imperial Stout", note: "oscura, cremosa y demasiado buena para cerrar el scroll" },
+  {
+    icon: "🖤",
+    name: "Imperial Stout",
+    note: "oscura, cremosa y demasiado buena para cerrar el scroll",
+  },
   { icon: "🍋", name: "Sour cítrica", note: "afilada, frutal y perfecta para mandar por WhatsApp" },
   { icon: "🌲", name: "West Coast IPA", note: "seca, resinosa y con esa amargura que engancha" },
 ];
 
 const ROUTES = [
-  { icon: "📍", title: "Ruta taproom Santiago", detail: "cuatro paradas para salir con la primera cerveza ya decidida" },
-  { icon: "🌊", title: "Valpo de pintas largas", detail: "barras con vista, conversación y ganas de quedarse otra ronda" },
-  { icon: "🍔", title: "Maridajes para burger night", detail: "combinaciones que hacen que la mesa pida una segunda vuelta" },
-];
-
-const FALLBACK_FEED: FeedSeed[] = [
   {
-    id: "fallback-1",
-    title: "La ronda que está empujando más brindis esta semana",
-    body: "Tres estilos, tres moods y una sola consecuencia: guardar la historia, comentarla y mandar el plan al grupo antes de que se te olvide.",
-    image: "/assets/vikingos-cerveza.jpg",
-    author: "Lúpulos",
-    likes: 84,
-    createdAt: new Date().toISOString(),
-    route: "/posts",
-    kicker: "Lo más comentable",
-    mood: "🔥 Subiendo fuerte",
+    icon: "📍",
+    title: "Ruta taproom Santiago",
+    detail: "cuatro paradas para salir con la primera cerveza ya decidida",
   },
   {
-    id: "fallback-2",
-    title: "Tu próxima cerveza favorita no debería tomarte veinte clics",
-    body: "Por eso este home te la acerca con historias que mezclan hallazgos, contexto y ganas reales de salir a probarla.",
-    image: "/assets/lupin.png",
-    author: "Radar lupulero",
-    likes: 61,
-    createdAt: new Date().toISOString(),
-    route: "/cervezas",
-    kicker: "Descubrimiento express",
-    mood: "🍻 Se está guardando",
+    icon: "🌊",
+    title: "Valpo de pintas largas",
+    detail: "barras con vista, conversación y ganas de quedarse otra ronda",
   },
   {
-    id: "fallback-3",
-    title: "Bares que convierten una salida casual en una noche completa",
-    body: "No se trata solo de la carta: se trata de la barra, la música, la conversa y esa primera pinta que empuja la segunda.",
-    image: "/assets/gargola.png",
-    author: "Mapas de salida",
-    likes: 47,
-    createdAt: new Date().toISOString(),
-    route: "/lugares",
-    kicker: "Plan listo",
-    mood: "📍 Para hoy",
+    icon: "🍔",
+    title: "Maridajes para burger night",
+    detail: "combinaciones que hacen que la mesa pida una segunda vuelta",
   },
 ];
 
-const INITIAL_VISIBLE = 5;
-const LOAD_MORE_BATCH = 4;
+const FEED_PAGE_SIZE = 8;
+const LOAD_MORE_THRESHOLD_PX = 1200;
 
 function timeAgo(dateString: string): string {
   if (!dateString) return "recién";
@@ -168,16 +316,19 @@ function getPostId(post: Post): string {
   return post._id || post.id || "";
 }
 
+function getPostKey(post: Post, index = 0): string {
+  return (
+    getPostId(post) ||
+    `${getPostTitle(post) || "post"}-${post.createdAt || post.updatedAt || index}`
+  );
+}
+
 function getPostTitle(post: Post): string {
   return post.titulo || post.title || "";
 }
 
 function getPostContent(post: Post): string {
   return post.contenido || post.content || "";
-}
-
-function getPostImages(post: Post): string[] {
-  return post.imagenes || post.images || [];
 }
 
 function getPostUser(post: Post): Usuario | undefined {
@@ -197,9 +348,11 @@ function mapPostsToFeed(posts: Post[]): FeedSeed[] {
   return posts
     .map((post, index) => {
       const title = getPostTitle(post) || "Hallazgo de la comunidad";
-      const body = getPostContent(post) || "Una recomendación cervecera que merece un segundo vistazo.";
+      const body =
+        getPostContent(post) || "Una recomendación cervecera que merece un segundo vistazo.";
       const author = getPostUser(post)?.username || "Cervecero";
-      const image = getPostImages(post)[0] ? getImageUrl(getPostImages(post)[0]) : "";
+      const primaryMedia = getPrimaryPostMedia(post);
+      const image = primaryMedia ? getImageUrl(primaryMedia.path) : "";
       const id = getPostId(post) || `post-${index}`;
 
       return {
@@ -207,15 +360,38 @@ function mapPostsToFeed(posts: Post[]): FeedSeed[] {
         title,
         body,
         image,
+        mediaType: primaryMedia?.type ?? null,
         author,
         likes: getLikeCount(post),
+        likedByUsers: post.reacciones?.meGusta?.usuarios || post.reactions?.like?.users || [],
         createdAt: post.createdAt || post.updatedAt || new Date().toISOString(),
         route: getPostId(post) ? `/posts/${getPostId(post)}` : "/posts",
-        kicker: image ? "Historia visual" : "Dato para guardar",
+        kicker:
+          primaryMedia?.type === "video"
+            ? "Historia en video"
+            : image
+              ? "Historia visual"
+              : "Dato para guardar",
         mood: getFeedMood(index),
       };
     })
     .filter((item) => item.title || item.body);
+}
+
+function mergePosts(current: Post[], incoming: Post[]): Post[] {
+  const merged = new Map<string, Post>();
+
+  current.forEach((post, index) => {
+    merged.set(getPostKey(post, index), post);
+  });
+
+  incoming.forEach((post, index) => {
+    const key = getPostKey(post, current.length + index);
+    const previous = merged.get(key);
+    merged.set(key, previous ? { ...previous, ...post } : post);
+  });
+
+  return Array.from(merged.values());
 }
 
 function buildSeedComments(item: FeedSeed, index: number): FeedComment[] {
@@ -224,19 +400,28 @@ function buildSeedComments(item: FeedSeed, index: number): FeedComment[] {
       {
         author: "malta.norte",
         text: "Este tipo de historia es la que me hace guardar el plan al tiro. ¿Dónde partirías?",
-        replies: [{ author: "lupulo.club", text: "Si hay hazy en la carta, yo parto por ahí sin pensarlo." }],
+        replies: [
+          {
+            author: "lupulo.club",
+            text: "Si hay hazy en la carta, yo parto por ahí sin pensarlo.",
+          },
+        ],
       },
       {
         author: "barra.artesanal",
         text: "La portada vende sola, pero el copy termina de empujarte.",
-        replies: [{ author: "cerveza.y.ruta", text: "Sí, da ganas de mandarla al grupo y salir hoy." }],
+        replies: [
+          { author: "cerveza.y.ruta", text: "Sí, da ganas de mandarla al grupo y salir hoy." },
+        ],
       },
     ],
     [
       {
         author: "ipa.de.guardia",
         text: "Necesito más cápsulas así: una idea clara y cero humo.",
-        replies: [{ author: "hops.and.friends", text: "Exacto. Ver, comentar, guardar y seguir bajando." }],
+        replies: [
+          { author: "hops.and.friends", text: "Exacto. Ver, comentar, guardar y seguir bajando." },
+        ],
       },
       {
         author: "luna.stout",
@@ -268,9 +453,12 @@ function FeedCard({
 }) {
   const { user } = useAuth();
   const router = useRouter();
-  const hasImage = Boolean(item.image);
+  const hasMedia = Boolean(item.image);
   const hasRealPost = item.route.startsWith("/posts/") && !item.id.startsWith("fallback");
-  const [liked, setLiked] = useState(false);
+  const currentUserId = user?._id || (user as { id?: string } | null)?.id || "";
+  const [liked, setLiked] = useState(() =>
+    currentUserId ? item.likedByUsers.includes(currentUserId) : false,
+  );
   const [saved, setSaved] = useState(false);
   const [likedCount, setLikedCount] = useState(item.likes);
   const [savedCount, setSavedCount] = useState(Math.max(18, item.likes + 11));
@@ -283,8 +471,9 @@ function FeedCard({
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentsLoaded, setCommentsLoaded] = useState(false);
   const [comments, setComments] = useState<FeedComment[]>(() => buildSeedComments(item, index));
-  const currentUsername = getDisplayName(user);
-  const commentCount = comments.length + comments.reduce((sum, comment) => sum + comment.replies.length, 0);
+  const currentUsername = getDisplayName(normalizeStoredAuthUser(user));
+  const commentCount =
+    comments.length + comments.reduce((sum, comment) => sum + comment.replies.length, 0);
 
   useEffect(() => {
     if (!commentsOpen || !hasRealPost || commentsLoaded) return;
@@ -293,14 +482,14 @@ function FeedCard({
 
     const loadComments = async () => {
       try {
-        const res = await api.get(`/post/${item.id}/comentarios`);
-        const data = Array.isArray(res.data?.data) ? res.data.data : res.data?.comentarios || [];
+        const res = await api.get(`/post/${item.id}/comments`);
+        const data = extractListFromPayload<FeedCommentApi>(res.data, ["comments", "comentarios"]);
 
         if (!active) return;
 
         const mapped = data
           .map((comment: FeedCommentApi, commentIndex: number) => ({
-            id: comment._id || `${item.id}-server-${commentIndex}`,
+            id: comment.id || comment._id || `${item.id}-server-${commentIndex}`,
             author: comment.usuario?.username || comment.author?.username || "cervecero",
             text: comment.comentario || comment.content || "",
             replies: [] as FeedReply[],
@@ -357,7 +546,11 @@ function FeedCard({
 
   const handleShareFacebook = () => {
     const url = encodeURIComponent(`${window.location.origin}${item.route}`);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank", "noopener,noreferrer");
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
   const handleShareWhatsApp = () => {
@@ -393,12 +586,31 @@ function FeedCard({
 
     try {
       setIsSubmittingComment(true);
-      await api.post(`/post/${item.id}/comentario`, { content: optimisticComment.text });
+      await api.post(`/post/${item.id}/comments`, { content: optimisticComment.text });
     } catch (error) {
       console.error("❌ Error al publicar comentario desde el home:", error);
-      setShareFeedback("Tu comentario quedó local por ahora. Lo sincronizamos en el post completo.");
+      setShareFeedback(
+        "Tu comentario quedó local por ahora. Lo sincronizamos en el post completo.",
+      );
     } finally {
       setIsSubmittingComment(false);
+    }
+  };
+
+  const handleLike = async () => {
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikedCount((count) => count + (wasLiked ? -1 : 1));
+
+    if (!hasRealPost || !currentUserId) return;
+
+    try {
+      await api.post(`/post/${item.id}/react`, { type: "like" });
+    } catch (error) {
+      console.error("❌ Error al reaccionar al post:", error);
+      // Revertir en caso de error
+      setLiked(wasLiked);
+      setLikedCount((count) => count + (wasLiked ? 1 : -1));
     }
   };
 
@@ -439,7 +651,7 @@ function FeedCard({
       className="snap-start"
     >
       <div
-        className="group relative mx-auto w-full max-w-[29rem] overflow-hidden rounded-[2rem] border"
+        className="group relative w-full overflow-hidden rounded-[2rem] border xl:mx-auto xl:max-w-[29rem]"
         style={{
           background:
             "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 90%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 88%, transparent))",
@@ -448,14 +660,25 @@ function FeedCard({
         }}
       >
         <div className="relative aspect-[9/14] overflow-hidden">
-          {hasImage ? (
-            <Image
-              src={item.image}
-              alt={item.title}
-              fill
-              unoptimized
-              className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-            />
+          {hasMedia ? (
+            item.mediaType === "video" ? (
+              <video
+                src={item.image}
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                muted
+                playsInline
+                preload="metadata"
+                controls={false}
+              />
+            ) : (
+              <Image
+                src={item.image}
+                alt={item.title}
+                fill
+                unoptimized
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+              />
+            )
           ) : (
             <div
               className="flex h-full w-full items-end"
@@ -477,7 +700,7 @@ function FeedCard({
           <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
             <div className="flex items-center gap-2">
               <span
-                className="rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
+                className="rounded-full border px-2.5 py-1 text-[11px] font-bold tracking-[0.18em] uppercase"
                 style={{
                   borderColor: "rgba(255,255,255,0.16)",
                   background: "rgba(10,6,2,0.44)",
@@ -513,7 +736,7 @@ function FeedCard({
                   <p className="text-[11px] font-medium text-white/60">{timeAgo(item.createdAt)}</p>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] font-semibold text-white/80">
-                  <span>🍻 {item.likes}</span>
+                  <span>🍻 {likedCount}</span>
                   <span>•</span>
                   <span>{index + 1}</span>
                 </div>
@@ -522,9 +745,7 @@ function FeedCard({
               <h2 className="mt-3 text-2xl leading-[1.05] font-black text-white sm:text-[2rem]">
                 {item.title}
               </h2>
-              <p className="mt-3 text-[0.97rem] leading-relaxed text-white/78">
-                {item.body}
-              </p>
+              <p className="mt-3 text-[0.97rem] leading-relaxed text-white/78">{item.body}</p>
 
               <div className="mt-4 grid grid-cols-3 gap-2 text-[12px] font-semibold text-white/78">
                 <button
@@ -534,7 +755,10 @@ function FeedCard({
                     setSavedCount((count) => count + (saved ? -1 : 1));
                   }}
                   className="rounded-full border px-3 py-2 text-left transition-all hover:bg-white/10"
-                  style={{ borderColor: "rgba(255,255,255,0.12)", background: saved ? "rgba(251,191,36,0.14)" : "rgba(255,255,255,0.05)" }}
+                  style={{
+                    borderColor: "rgba(255,255,255,0.12)",
+                    background: saved ? "rgba(251,191,36,0.14)" : "rgba(255,255,255,0.05)",
+                  }}
                 >
                   🍺 Guardar
                 </button>
@@ -542,7 +766,10 @@ function FeedCard({
                   type="button"
                   onClick={() => setCommentsOpen((value) => !value)}
                   className="rounded-full border px-3 py-2 text-left transition-all hover:bg-white/10"
-                  style={{ borderColor: "rgba(255,255,255,0.12)", background: commentsOpen ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)" }}
+                  style={{
+                    borderColor: "rgba(255,255,255,0.12)",
+                    background: commentsOpen ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
+                  }}
                 >
                   💬 Comentar
                 </button>
@@ -550,20 +777,41 @@ function FeedCard({
                   type="button"
                   onClick={() => setShareOpen((value) => !value)}
                   className="rounded-full border px-3 py-2 text-left transition-all hover:bg-white/10"
-                  style={{ borderColor: "rgba(255,255,255,0.12)", background: shareOpen ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)" }}
+                  style={{
+                    borderColor: "rgba(255,255,255,0.12)",
+                    background: shareOpen ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
+                  }}
                 >
                   📲 Compartir
                 </button>
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] font-semibold text-white/72">
-                <span className="rounded-full border px-3 py-1.5" style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }}>
+                <span
+                  className="rounded-full border px-3 py-1.5"
+                  style={{
+                    borderColor: "rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                >
                   🍻 {likedCount} saludos
                 </span>
-                <span className="rounded-full border px-3 py-1.5" style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }}>
+                <span
+                  className="rounded-full border px-3 py-1.5"
+                  style={{
+                    borderColor: "rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                >
                   💬 {commentCount} interacciones
                 </span>
-                <span className="rounded-full border px-3 py-1.5" style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)" }}>
+                <span
+                  className="rounded-full border px-3 py-1.5"
+                  style={{
+                    borderColor: "rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                >
                   📚 {savedCount} guardados
                 </span>
               </div>
@@ -571,7 +819,7 @@ function FeedCard({
               {commentsOpen && (
                 <div className="mt-4 rounded-[1.3rem] border border-white/10 bg-black/18 p-3">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-[13px] font-bold uppercase tracking-[0.18em] text-white/75">
+                    <p className="text-[13px] font-bold tracking-[0.18em] text-white/75 uppercase">
                       Conversación en curso
                     </p>
                     <button
@@ -590,14 +838,20 @@ function FeedCard({
                         className="rounded-[1rem] border border-white/8 bg-white/5 p-3"
                       >
                         <p className="text-[13px] font-bold text-white/88">@{comment.author}</p>
-                        <p className="mt-1 text-[13px] leading-relaxed text-white/72">{comment.text}</p>
+                        <p className="mt-1 text-[13px] leading-relaxed text-white/72">
+                          {comment.text}
+                        </p>
 
                         {comment.replies.length > 0 && (
                           <div className="mt-2 space-y-2 border-l border-white/10 pl-3">
                             {comment.replies.map((reply) => (
                               <div key={reply.id}>
-                                <p className="text-[12px] font-semibold text-white/80">@{reply.author}</p>
-                                <p className="text-[12px] leading-relaxed text-white/64">{reply.text}</p>
+                                <p className="text-[12px] font-semibold text-white/80">
+                                  @{reply.author}
+                                </p>
+                                <p className="text-[12px] leading-relaxed text-white/64">
+                                  {reply.text}
+                                </p>
                               </div>
                             ))}
                           </div>
@@ -606,7 +860,9 @@ function FeedCard({
                         <div className="mt-2 flex items-center gap-3">
                           <button
                             type="button"
-                            onClick={() => setReplyingTo((value) => (value === comment.id ? null : comment.id))}
+                            onClick={() =>
+                              setReplyingTo((value) => (value === comment.id ? null : comment.id))
+                            }
                             className="text-[12px] font-semibold text-white/64 transition-colors hover:text-white"
                           >
                             Responder
@@ -620,7 +876,12 @@ function FeedCard({
                           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                             <input
                               value={replyDrafts[comment.id] || ""}
-                              onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+                              onChange={(e) =>
+                                setReplyDrafts((prev) => ({
+                                  ...prev,
+                                  [comment.id]: e.target.value,
+                                }))
+                              }
                               placeholder="Responder sin salir del muro..."
                               className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/6 px-3 py-2 text-[13px] text-white outline-none placeholder:text-white/35"
                             />
@@ -650,7 +911,10 @@ function FeedCard({
                       onClick={handleSubmitComment}
                       disabled={isSubmittingComment}
                       className="rounded-full px-4 py-3 text-[12px] font-bold disabled:opacity-60"
-                      style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)" }}
+                      style={{
+                        background: "var(--gradient-button-primary)",
+                        color: "var(--color-text-dark)",
+                      }}
                     >
                       {isSubmittingComment ? "Publicando..." : "Comentar"}
                     </button>
@@ -660,18 +924,22 @@ function FeedCard({
 
               {shareOpen && (
                 <div className="mt-4 rounded-[1.3rem] border border-white/10 bg-black/18 p-3">
-                  <p className="text-[13px] font-bold uppercase tracking-[0.18em] text-white/74">
+                  <p className="text-[13px] font-bold tracking-[0.18em] text-white/74 uppercase">
                     Compartir esta cápsula
                   </p>
                   <p className="mt-1 text-[13px] leading-relaxed text-white/60">
-                    Muévela rápido por Facebook, WhatsApp o por el share nativo del teléfono para caer en Instagram o Threads.
+                    Muévela rápido por Facebook, WhatsApp o por el share nativo del teléfono para
+                    caer en Instagram o Threads.
                   </p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     <button
                       type="button"
                       onClick={handleShareFacebook}
                       className="rounded-full border px-4 py-2 text-left text-[12px] font-bold text-white/82"
-                      style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)" }}
+                      style={{
+                        borderColor: "rgba(255,255,255,0.1)",
+                        background: "rgba(255,255,255,0.05)",
+                      }}
                     >
                       Facebook
                     </button>
@@ -679,7 +947,10 @@ function FeedCard({
                       type="button"
                       onClick={handleShareWhatsApp}
                       className="rounded-full border px-4 py-2 text-left text-[12px] font-bold text-white/82"
-                      style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)" }}
+                      style={{
+                        borderColor: "rgba(255,255,255,0.1)",
+                        background: "rgba(255,255,255,0.05)",
+                      }}
                     >
                       WhatsApp
                     </button>
@@ -687,7 +958,10 @@ function FeedCard({
                       type="button"
                       onClick={handleShareNative}
                       className="rounded-full border px-4 py-2 text-left text-[12px] font-bold text-white/82"
-                      style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)" }}
+                      style={{
+                        borderColor: "rgba(255,255,255,0.1)",
+                        background: "rgba(255,255,255,0.05)",
+                      }}
                     >
                       Instagram / Threads
                     </button>
@@ -695,7 +969,10 @@ function FeedCard({
                       type="button"
                       onClick={handleCopyLink}
                       className="rounded-full border px-4 py-2 text-left text-[12px] font-bold text-white/82"
-                      style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)" }}
+                      style={{
+                        borderColor: "rgba(255,255,255,0.1)",
+                        background: "rgba(255,255,255,0.05)",
+                      }}
                     >
                       Copiar link
                     </button>
@@ -709,10 +986,7 @@ function FeedCard({
               <div className="mt-4 flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => {
-                    setLiked((value) => !value);
-                    setLikedCount((count) => count + (liked ? -1 : 1));
-                  }}
+                  onClick={handleLike}
                   className="rounded-full border px-4 py-2 text-sm font-bold transition-transform hover:scale-[1.02]"
                   style={{
                     borderColor: liked ? "rgba(251,191,36,0.32)" : "rgba(255,255,255,0.1)",
@@ -768,10 +1042,16 @@ function SidePanel({
         boxShadow: "var(--shadow-card)",
       }}
     >
-      <p className="text-[11px] font-bold uppercase tracking-[0.24em]" style={{ color: "var(--color-amber-primary)" }}>
+      <p
+        className="text-[11px] font-bold tracking-[0.24em] uppercase"
+        style={{ color: "var(--color-amber-primary)" }}
+      >
         {title}
       </p>
-      <h3 className="mt-2 text-xl leading-tight font-black" style={{ color: "var(--color-text-primary)" }}>
+      <h3
+        className="mt-2 text-xl leading-tight font-black"
+        style={{ color: "var(--color-text-primary)" }}
+      >
         {subtitle}
       </h3>
       <div className="mt-4">{children}</div>
@@ -791,17 +1071,14 @@ const PLACEHOLDER_LINES = [
   "¿Cuál fue la chela del fin de semana?",
 ];
 
-function MagicComposer({
-  onPostCreated,
-}: {
-  onPostCreated: () => void;
-}) {
+function MagicComposer({ onPostCreated }: { onPostCreated: () => void }) {
   const { user } = useAuth();
   const [focused, setFocused] = useState(false);
   const [titulo, setTitulo] = useState("");
   const [contenido, setContenido] = useState("");
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
+  const [composerError, setComposerError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -810,13 +1087,22 @@ function MagicComposer({
   // Neon border rotation
   const rotation = useMotionValue(0);
   useEffect(() => {
-    const ctrl = fmAnimate(rotation, 360, { duration: 4, repeat: Infinity, ease: "linear" });
+    const ctrl = fmAnimate(rotation, 360, { duration: 7, repeat: Infinity, ease: "linear" });
     return () => ctrl.stop();
   }, [rotation]);
 
+  // Aurora palette: violet → rose → fuchsia → indigo → violet
   const neonBg = useTransform(
     rotation,
-    (r) => `conic-gradient(from ${r}deg, #f59e0b, #ef4444, #f59e0b, #34d399, #f59e0b)`,
+    (r) =>
+      `conic-gradient(from ${r}deg,` +
+      `#7c3aed 0%,` +
+      `#a855f7 15%,` +
+      `#ec4899 35%,` +
+      `#f43f5e 50%,` +
+      `#d946ef 65%,` +
+      `#818cf8 82%,` +
+      `#7c3aed 100%)`,
   );
 
   // Rotate placeholder
@@ -835,10 +1121,38 @@ function MagicComposer({
     return () => urls.forEach((u) => URL.revokeObjectURL(u));
   }, [mediaFiles]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    setMediaFiles((prev) => [...prev, ...files].slice(0, 4));
+
+    setComposerError("");
+    const acceptedFiles: File[] = [];
+
+    for (const file of files) {
+      if (file.type.startsWith("video/")) {
+        try {
+          const durationSeconds = await readVideoDurationSeconds(file);
+          if (durationSeconds > MAX_VIDEO_DURATION_SECONDS) {
+            setComposerError("Los videos del muro pueden durar hasta 12 minutos.");
+            continue;
+          }
+        } catch (error) {
+          console.error("❌ Error al leer duración del video:", error);
+          setComposerError("No pudimos leer uno de los videos seleccionados.");
+          continue;
+        }
+      }
+
+      acceptedFiles.push(file);
+    }
+
+    setMediaFiles((prev) => {
+      const next = [...prev, ...acceptedFiles].slice(0, 4);
+      if (prev.length + acceptedFiles.length > 4) {
+        setComposerError("Puedes subir hasta 4 archivos por historia.");
+      }
+      return next;
+    });
     e.target.value = "";
   };
 
@@ -849,22 +1163,40 @@ function MagicComposer({
   const handleSubmit = async () => {
     if (!contenido.trim() && mediaFiles.length === 0) return;
     setIsSubmitting(true);
+    setComposerError("");
 
     try {
+      const uploadedMediaItems: PostMedia[] = [];
       const uploadedPaths: string[] = [];
       for (const file of mediaFiles) {
         const formData = new FormData();
-        formData.append("imagen", file);
-        const res = await api.post(`/post/upload`, formData, {
+        formData.append("media", file);
+        if (file.type.startsWith("video/")) {
+          const durationSeconds = await readVideoDurationSeconds(file);
+          formData.append("durationSeconds", String(durationSeconds));
+        }
+
+        const res = await api.post(`/post/muro-vikingo/upload`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        if (res.data?.path) uploadedPaths.push(res.data.path);
+        const uploadedMedia = extractUploadedMedia(res.data);
+        if (uploadedMedia?.path) {
+          uploadedMediaItems.push(uploadedMedia);
+          uploadedPaths.push(uploadedMedia.path);
+        } else {
+          throw new Error("Upload response did not include a media path");
+        }
       }
 
-      await api.post(`/post`, {
-        titulo: titulo.trim() || undefined,
-        contenido: contenido.trim(),
-        imagenes: uploadedPaths,
+      await api.post(`/post/muro-vikingo`, {
+        ...(titulo.trim() ? { title: titulo.trim() } : {}),
+        ...(contenido.trim() ? { content: contenido.trim() } : {}),
+        ...(uploadedMediaItems.length > 0
+          ? {
+              media: uploadedMediaItems,
+              images: uploadedPaths,
+            }
+          : {}),
       });
 
       setTitulo("");
@@ -874,35 +1206,36 @@ function MagicComposer({
       onPostCreated();
     } catch (err) {
       console.error("❌ Error al publicar:", err);
+      setComposerError("No pudimos publicar tu historia. Intenta de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const hasContent = titulo.trim() || contenido.trim() || mediaFiles.length > 0;
-  const displayName = getDisplayName(user);
+  const displayName = getDisplayName(normalizeStoredAuthUser(user));
 
   return (
-    <div className="relative mb-6" style={{ borderRadius: 24, padding: 1.5 }}>
-      {/* ── Neon border — blurred glow ── */}
+    <div className="relative mb-6" style={{ borderRadius: 26, padding: 2 }}>
+      {/* ── Aurora glow — soft outer halo ── */}
       <motion.div
-        className="absolute -inset-[3px]"
+        className="absolute -inset-[10px]"
         style={{
-          borderRadius: 26,
+          borderRadius: 36,
           background: neonBg,
-          filter: "blur(14px)",
-          opacity: focused ? 0.35 : 0.12,
-          transition: "opacity 0.4s ease",
+          filter: "blur(22px)",
+          opacity: focused ? 0.6 : 0.22,
+          transition: "opacity 0.5s ease",
         }}
       />
-      {/* ── Neon border — crisp line ── */}
+      {/* ── Neon border — crisp rotating line ── */}
       <motion.div
         className="absolute inset-0"
         style={{
-          borderRadius: 24,
+          borderRadius: 26,
           background: neonBg,
-          opacity: focused ? 0.7 : 0.3,
-          transition: "opacity 0.4s ease",
+          opacity: focused ? 1 : 0.6,
+          transition: "opacity 0.5s ease",
         }}
       />
 
@@ -910,15 +1243,15 @@ function MagicComposer({
       <div
         className="relative overflow-hidden"
         style={{
-          borderRadius: 22.5,
+          borderRadius: 24,
           background:
-            "linear-gradient(135deg, color-mix(in srgb, var(--color-surface-card) 88%, transparent) 0%, color-mix(in srgb, var(--color-surface-card-alt) 82%, transparent) 100%)",
-          backdropFilter: "blur(24px) saturate(1.3)",
-          WebkitBackdropFilter: "blur(24px) saturate(1.3)",
+            "linear-gradient(160deg, color-mix(in srgb, var(--color-surface-card) 92%, transparent) 0%, color-mix(in srgb, var(--color-surface-card-alt) 86%, transparent) 100%)",
+          backdropFilter: "blur(28px) saturate(1.4)",
+          WebkitBackdropFilter: "blur(28px) saturate(1.4)",
           boxShadow: focused
-            ? "0 0 40px rgba(251,191,36,0.08), inset 0 1px 0 rgba(255,255,255,0.12)"
-            : "inset 0 1px 0 rgba(255,255,255,0.08)",
-          transition: "box-shadow 0.4s ease",
+            ? "0 0 60px rgba(168,85,247,0.12), 0 0 30px rgba(236,72,153,0.10), inset 0 1px 0 rgba(255,255,255,0.14)"
+            : "0 0 24px rgba(124,58,237,0.08), inset 0 1px 0 rgba(255,255,255,0.09)",
+          transition: "box-shadow 0.5s ease",
         }}
       >
         {/* Subtle inner glass reflection */}
@@ -957,9 +1290,8 @@ function MagicComposer({
                       setFocused(true);
                       setTimeout(() => textareaRef.current?.focus(), 50);
                     }}
-                    className="w-full cursor-text rounded-2xl border px-4 py-3 text-left text-sm transition-all"
+                    className="w-full cursor-text rounded-2xl px-4 py-3 text-left text-sm transition-all"
                     style={{
-                      borderColor: "color-mix(in srgb, var(--color-border-light) 55%, transparent)",
                       background: "rgba(255,255,255,0.03)",
                       color: "var(--color-text-muted)",
                     }}
@@ -989,8 +1321,12 @@ function MagicComposer({
                       onFocus={() => setFocused(true)}
                       placeholder="¿Qué estás tomando...?"
                       rows={3}
-                      className="w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-white/25"
-                      style={{ color: "var(--color-text-primary)" }}
+                      className="w-full resize-none border-0 bg-transparent text-sm leading-relaxed shadow-none outline-none placeholder:text-white/25 focus:outline-none"
+                      style={{
+                        color: "var(--color-text-primary)",
+                        border: "none",
+                        boxShadow: "none",
+                      }}
                     />
                   </motion.div>
                 )}
@@ -1033,6 +1369,10 @@ function MagicComposer({
             )}
           </AnimatePresence>
 
+          {composerError ? (
+            <p className="mt-3 text-sm font-medium text-amber-300/95">{composerError}</p>
+          ) : null}
+
           {/* ── Action bar ── */}
           <AnimatePresence>
             {focused && (
@@ -1041,10 +1381,10 @@ function MagicComposer({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.2 }}
-                className="mt-3 flex items-center justify-between border-t pt-3"
+                className="mt-3 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between"
                 style={{ borderColor: "rgba(255,255,255,0.06)" }}
               >
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1.5">
                   {/* Photo */}
                   <input
                     ref={fileInputRef}
@@ -1060,7 +1400,9 @@ function MagicComposer({
                     onClick={() => fileInputRef.current?.click()}
                     className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors"
                     style={{ color: "var(--color-text-secondary)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.08)")}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "rgba(251,191,36,0.08)")
+                    }
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     <span>📷</span> Foto
@@ -1077,14 +1419,16 @@ function MagicComposer({
                     }}
                     className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors"
                     style={{ color: "var(--color-text-secondary)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.08)")}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "rgba(251,191,36,0.08)")
+                    }
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     <span>🎬</span> Video
                   </motion.button>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2 sm:justify-end">
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
@@ -1105,7 +1449,9 @@ function MagicComposer({
                     disabled={!hasContent || isSubmitting}
                     className="relative overflow-hidden rounded-full px-5 py-1.5 text-[12px] font-bold transition-all disabled:opacity-40"
                     style={{
-                      background: hasContent ? "var(--gradient-button-primary)" : "rgba(255,255,255,0.06)",
+                      background: hasContent
+                        ? "var(--gradient-button-primary)"
+                        : "rgba(255,255,255,0.06)",
                       color: hasContent ? "var(--color-text-dark)" : "var(--color-text-muted)",
                       boxShadow: hasContent ? "var(--shadow-amber-glow)" : "none",
                     }}
@@ -1114,7 +1460,10 @@ function MagicComposer({
                     {hasContent && (
                       <span
                         className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-700 hover:translate-x-full"
-                        style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)" }}
+                        style={{
+                          background:
+                            "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
+                        }}
                       />
                     )}
                   </motion.button>
@@ -1129,100 +1478,175 @@ function MagicComposer({
 }
 
 export default function LoggedInHome() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [profileStats, setProfileStats] = useState<ProfileStats>(DEFAULT_PROFILE_STATS);
+  const [trendingBeers, setTrendingBeers] = useState<HomeBeer[]>([]);
+  const [featuredPlaces, setFeaturedPlaces] = useState<HomePlace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [mode, setMode] = useState<FeedMode>("para-ti");
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [feedPage, setFeedPage] = useState(1);
+  const [feedTotal, setFeedTotal] = useState<number | null>(null);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
   const extendLockRef = useRef(0);
+  const feedRequestInFlightRef = useRef(false);
+  const currentUserId = user?._id || (typeof user?.id === "string" ? user.id : "") || "";
+  const currentUserAvatar = user?.fotoPerfil || user?.photo || user?.profilePicture || "";
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (page = 1, mode: "replace" | "append" = "replace") => {
+    if (feedRequestInFlightRef.current) return;
+
+    feedRequestInFlightRef.current = true;
+    if (mode === "replace") {
+      setIsLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
     try {
-      const res = await api.get("/post");
-      const data = Array.isArray(res.data?.data) ? res.data.data : res.data?.posts || [];
-      setPosts(data);
+      const res = await api.get("/post/muro-vikingo", {
+        params: {
+          page,
+          limit: FEED_PAGE_SIZE,
+        },
+      });
+      const data = extractListFromPayload<Post>(res.data, ["posts"]);
+      const total = extractTotalFromPayload(res.data);
+
+      setFeedPage(page);
+      setFeedTotal(total);
+      setHasMorePosts(
+        total !== null ? page * FEED_PAGE_SIZE < total : data.length === FEED_PAGE_SIZE,
+      );
+      setPosts((current) => (mode === "append" ? mergePosts(current, data) : data));
     } catch (error) {
       console.error("❌ Error al cargar feed para home:", error);
+      if (mode === "replace") {
+        setPosts([]);
+        setFeedTotal(0);
+        setHasMorePosts(false);
+      }
     } finally {
-      setIsLoading(false);
+      feedRequestInFlightRef.current = false;
+      if (mode === "replace") {
+        setIsLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchPosts();
+    void fetchPosts(1, "replace");
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchHomeContext = async () => {
+      const [profileResult, beersResult, placesResult] = await Promise.allSettled([
+        currentUserId ? api.get(`/auth/profile/${currentUserId}`) : Promise.resolve(null),
+        api.get("/beer/top-rated"),
+        api.get("/places/top-rated"),
+      ]);
+
+      if (!active) return;
+
+      if (profileResult.status === "fulfilled" && profileResult.value) {
+        const profilePayload = normalizeProfilePayload(profileResult.value.data, currentUserId);
+        setProfileStats(profilePayload.stats);
+
+        const mergedUser = normalizeStoredAuthUser(
+          { ...(user ?? {}), ...(profilePayload.user ?? {}) },
+          currentUserId,
+        );
+
+        if (
+          mergedUser &&
+          (user?._id !== mergedUser._id ||
+            user?.username !== mergedUser.username ||
+            user?.email !== mergedUser.email ||
+            currentUserAvatar !==
+              (mergedUser.fotoPerfil || mergedUser.photo || mergedUser.profilePicture || ""))
+        ) {
+          const token = getStoredToken();
+          if (token) {
+            persistAuthSession({ token, user: mergedUser });
+          }
+          setUser(mergedUser);
+        }
+      }
+
+      if (beersResult.status === "fulfilled") {
+        const beers = extractListFromPayload<HomeBeer>(beersResult.value.data);
+        setTrendingBeers(beers);
+      }
+
+      if (placesResult.status === "fulfilled") {
+        const places = extractListFromPayload<HomePlace>(placesResult.value.data);
+        setFeaturedPlaces(places);
+      }
+    };
+
+    void fetchHomeContext();
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [currentUserAvatar, currentUserId, setUser, user]);
 
   const feedPool = useMemo(() => {
-    const normalized = mapPostsToFeed(posts);
-
-    if (mode === "trending") {
-      return [...normalized].sort((a, b) => b.likes - a.likes);
-    }
-
-    if (mode === "nuevos") {
-      return [...normalized].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-    }
-
-    return [...normalized].sort((a, b) => {
-      const scoreA = a.likes * 4 + new Date(a.createdAt).getTime() / 1_000_000;
-      const scoreB = b.likes * 4 + new Date(b.createdAt).getTime() / 1_000_000;
-      return scoreB - scoreA;
-    });
-  }, [mode, posts]);
+    return mapPostsToFeed(posts);
+  }, [posts]);
 
   const visibleFeed = useMemo(() => {
-    return feedPool.slice(0, visibleCount).map((base, index) => ({
+    return feedPool.map((base, index) => ({
       ...base,
-      renderId: `${base.id}-${index}`,
-      lap: 0,
+      renderId: `${base.id}-${base.createdAt}-${index}`,
+      lap: Math.floor(index / FEED_PAGE_SIZE),
     }));
-  }, [feedPool, visibleCount]);
+  }, [feedPool]);
 
-  const totalLikes = useMemo(
-    () => feedPool.reduce((sum, item) => sum + item.likes, 0),
-    [feedPool],
-  );
+  const totalLikes = useMemo(() => feedPool.reduce((sum, item) => sum + item.likes, 0), [feedPool]);
+  const feedItemCount = feedTotal ?? feedPool.length;
   const projectedComments = useMemo(
-    () => Math.max(feedPool.length * 3, Math.round(totalLikes * 0.48)),
-    [feedPool.length, totalLikes],
+    () => Math.max(feedItemCount * 3, Math.round(totalLikes * 0.48)),
+    [feedItemCount, totalLikes],
   );
+  const trendingStyles = useMemo(() => mapBeersToStylePulse(trendingBeers), [trendingBeers]);
+  const featuredRoutes = useMemo(() => mapPlacesToRoutes(featuredPlaces), [featuredPlaces]);
+  const levelProgress = useMemo(() => buildLevelProgress(profileStats), [profileStats]);
+  const displayName = getDisplayName(normalizeStoredAuthUser(user, currentUserId));
   const projectedPlans = useMemo(
-    () => Math.max(ROUTES.length * 4, feedPool.length + 8),
-    [feedPool.length],
+    () => Math.max(featuredRoutes.length * 4, feedItemCount + 8),
+    [featuredRoutes.length, feedItemCount],
   );
-
-  useEffect(() => {
-    setVisibleCount(INITIAL_VISIBLE);
-  }, [mode]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 1200;
+      if (isLoading || isLoadingMore || !hasMorePosts) return;
+
+      const nearBottom =
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - LOAD_MORE_THRESHOLD_PX;
       const enoughTimePassed = Date.now() - extendLockRef.current > 450;
 
       if (nearBottom && enoughTimePassed) {
         extendLockRef.current = Date.now();
-        setVisibleCount((current) => current + LOAD_MORE_BATCH);
+        void fetchPosts(feedPage + 1, "append");
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [feedPage, hasMorePosts, isLoading, isLoadingMore]);
 
   return (
     <>
       <GoldenParticles count={22} />
       <Navbar />
 
-      <main className="relative overflow-hidden pb-24 pt-2">
+      <main className="relative overflow-hidden pt-2 pb-24">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -1232,31 +1656,35 @@ export default function LoggedInHome() {
         />
 
         <div className="relative mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
-
           {/* ─── Welcome + Gamification Banner ─── */}
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="mb-2 flex items-center justify-between gap-3 overflow-hidden rounded-2xl border px-4 py-3"
+            className="mb-2 flex flex-col items-start gap-4 overflow-hidden rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
             style={{
-              background: "linear-gradient(135deg, rgba(251,191,36,0.07) 0%, rgba(249,115,22,0.05) 100%)",
+              background:
+                "linear-gradient(135deg, rgba(251,191,36,0.07) 0%, rgba(249,115,22,0.05) 100%)",
               borderColor: "color-mix(in srgb, var(--color-border-amber) 45%, transparent)",
               backdropFilter: "blur(12px)",
             }}
           >
             {/* Left: greeting */}
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex min-w-0 items-center gap-3">
               <motion.span
-                className="text-xl shrink-0"
+                className="shrink-0 text-xl"
                 animate={{ rotate: [0, 12, -8, 0] }}
                 transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 4 }}
               >
                 🍺
               </motion.span>
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
-                  ¡Hola de nuevo, @{getDisplayName(user)}! — Da likes, publica y sube de nivel en la comunidad cervecera
+                <p
+                  className="truncate text-sm font-bold"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  ¡Hola de nuevo, @{displayName}! — Da likes, publica y sube de nivel en la
+                  comunidad cervecera
                 </p>
                 <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
                   Cada interacción suma XP y construye tu reputación 🏅
@@ -1267,26 +1695,73 @@ export default function LoggedInHome() {
             {/* Right: XP bar */}
             <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold" style={{ color: "var(--color-amber-primary)" }}>Nivel 1 · Lupulero</span>
+                <span
+                  className="text-[11px] font-bold"
+                  style={{ color: "var(--color-amber-primary)" }}
+                >
+                  Nivel {levelProgress.level} · {levelProgress.rankName}
+                </span>
                 <motion.div
                   className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black"
-                  style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)" }}
+                  style={{
+                    background: "var(--gradient-button-primary)",
+                    color: "var(--color-text-dark)",
+                  }}
                   animate={{ scale: [1, 1.15, 1] }}
                   transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
                 >
                   ⭐
                 </motion.div>
               </div>
-              <div className="h-1.5 w-32 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div
+                className="h-1.5 w-32 overflow-hidden rounded-full"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+              >
                 <motion.div
                   className="h-full rounded-full"
-                  style={{ background: "linear-gradient(90deg, var(--color-amber-primary), #f97316)" }}
+                  style={{
+                    background: "linear-gradient(90deg, var(--color-amber-primary), #f97316)",
+                  }}
                   initial={{ width: "0%" }}
-                  animate={{ width: "24%" }}
+                  animate={{ width: `${levelProgress.progressPercent}%` }}
                   transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
                 />
               </div>
-              <p className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>120 / 500 XP para Nivel 2</p>
+              <p className="text-[9px]" style={{ color: "var(--color-text-muted)" }}>
+                {levelProgress.currentXp} / {levelProgress.targetXp} XP para Nivel{" "}
+                {levelProgress.level + 1}
+              </p>
+            </div>
+
+            <div className="w-full sm:hidden">
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className="text-[11px] font-bold"
+                  style={{ color: "var(--color-amber-primary)" }}
+                >
+                  Nivel {levelProgress.level} · {levelProgress.rankName}
+                </span>
+                <span
+                  className="text-[10px] font-semibold"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {levelProgress.currentXp} / {levelProgress.targetXp} XP
+                </span>
+              </div>
+              <div
+                className="mt-2 h-1.5 overflow-hidden rounded-full"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+              >
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{
+                    background: "linear-gradient(90deg, var(--color-amber-primary), #f97316)",
+                  }}
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${levelProgress.progressPercent}%` }}
+                  transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
+                />
+              </div>
             </div>
           </motion.div>
 
@@ -1302,20 +1777,21 @@ export default function LoggedInHome() {
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(350px,0.9fr)] xl:items-end">
               <div className="max-w-3xl">
                 <span
-                  className="inline-flex rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em]"
+                  className="inline-flex rounded-full border px-3 py-1 text-[11px] font-bold tracking-[0.24em] uppercase"
                   style={{
-                      borderColor: "color-mix(in srgb, var(--color-border-amber) 70%, transparent)",
-                      color: "var(--color-amber-primary)",
+                    borderColor: "color-mix(in srgb, var(--color-border-amber) 70%, transparent)",
+                    color: "var(--color-amber-primary)",
                     background: "rgba(251,191,36,0.06)",
                   }}
                 >
                   ✨ Tu espacio cervecero
                 </span>
-                <h1 className="mt-3 max-w-3xl text-2xl leading-snug sm:text-[1.75rem] xl:text-[2rem] font-extrabold">
+                <h1 className="mt-3 max-w-3xl text-2xl leading-snug font-extrabold sm:text-[1.75rem] xl:text-[2rem]">
                   Bienvenido a{" "}
                   <span
                     style={{
-                      background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 40%, #f97316 100%)",
+                      background:
+                        "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 40%, #f97316 100%)",
                       backgroundSize: "300% 300%",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
@@ -1324,8 +1800,8 @@ export default function LoggedInHome() {
                     }}
                   >
                     Lúpulos
-                  </span>
-                  {" "}— publica tu boti, tu pub, tu cerveza favorita y súmate a esta nueva comunidad.
+                  </span>{" "}
+                  — publica tu boti, tu pub, tu cerveza favorita y súmate a esta nueva comunidad.
                 </h1>
 
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -1338,7 +1814,8 @@ export default function LoggedInHome() {
                       key={chip}
                       className="rounded-full border px-3 py-1.5 text-[12px] font-semibold"
                       style={{
-                        borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+                        borderColor:
+                          "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
                         background: "rgba(255,255,255,0.04)",
                         color: "var(--color-text-secondary)",
                       }}
@@ -1348,14 +1825,208 @@ export default function LoggedInHome() {
                   ))}
                 </div>
               </div>
-
             </div>
-
           </section>
 
+          <div className="mt-4 space-y-4 xl:hidden">
+            <section
+              className="overflow-hidden rounded-[1.7rem] border p-4"
+              style={{
+                background:
+                  "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 94%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 90%, transparent))",
+                borderColor: "color-mix(in srgb, var(--color-border-light) 76%, transparent)",
+                boxShadow: "var(--shadow-card)",
+              }}
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p
+                    className="text-[11px] font-bold tracking-[0.24em] uppercase"
+                    style={{ color: "var(--color-amber-primary)" }}
+                  >
+                    Accesos app
+                  </p>
+                  <h2
+                    className="mt-2 text-xl leading-tight font-black"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
+                    Todo lo clave en dos toques
+                  </h2>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div
+                    className="rounded-2xl border px-3 py-2"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
+                      background: "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <p
+                      className="text-sm font-black"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      {feedItemCount}
+                    </p>
+                    <p
+                      className="text-[10px] font-semibold tracking-[0.18em] uppercase"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      Historias
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-2xl border px-3 py-2"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
+                      background: "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <p
+                      className="text-sm font-black"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      {projectedComments}
+                    </p>
+                    <p
+                      className="text-[10px] font-semibold tracking-[0.18em] uppercase"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      Comentarios
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-2xl border px-3 py-2"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
+                      background: "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <p
+                      className="text-sm font-black"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      {projectedPlans}
+                    </p>
+                    <p
+                      className="text-[10px] font-semibold tracking-[0.18em] uppercase"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      Planes
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {QUICK_ACTIONS.map((action) => (
+                  <Link
+                    key={action.href}
+                    href={action.href}
+                    className="flex items-center justify-between rounded-[1.2rem] border px-3.5 py-3 transition-transform hover:translate-y-[-1px]"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+                      background: "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <span
+                      className="flex items-center gap-2 text-sm font-semibold"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      <span>{action.icon}</span>
+                      {action.label}
+                    </span>
+                    <span style={{ color: "var(--color-text-muted)" }}>→</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            <section
+              className="overflow-hidden rounded-[1.7rem] border p-4"
+              style={{
+                background:
+                  "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 94%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 90%, transparent))",
+                borderColor: "color-mix(in srgb, var(--color-border-light) 76%, transparent)",
+                boxShadow: "var(--shadow-card)",
+              }}
+            >
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p
+                    className="text-[11px] font-bold tracking-[0.24em] uppercase"
+                    style={{ color: "var(--color-amber-primary)" }}
+                  >
+                    Ruido del día
+                  </p>
+                  <h2
+                    className="mt-2 text-xl leading-tight font-black"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
+                    Estilos y planes que vienen empujando
+                  </h2>
+                </div>
+                <Link
+                  href="/lugares"
+                  className="shrink-0 text-[12px] font-semibold"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
+                  Ver rutas
+                </Link>
+              </div>
+
+              <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+                {trendingStyles.map((item, index) => (
+                  <div
+                    key={`${item.name}-${index}`}
+                    className="min-w-[240px] rounded-[1.25rem] border px-3.5 py-3"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                      background: "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <p className="text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
+                      {item.icon} {item.name}
+                    </p>
+                    <p
+                      className="mt-1 text-[13px] leading-relaxed"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      {item.note}
+                    </p>
+                  </div>
+                ))}
+
+                {featuredRoutes.map((route) => (
+                  <Link
+                    key={route.title}
+                    href="/lugares"
+                    className="block min-w-[240px] rounded-[1.25rem] border px-3.5 py-3"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                      background: "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <p className="text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
+                      {route.icon} {route.title}
+                    </p>
+                    <p
+                      className="mt-1 text-[13px] leading-relaxed"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      {route.detail}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </div>
+
           <div className="mt-2 grid gap-2 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-            <aside className="flex flex-col gap-4 xl:sticky xl:top-24 xl:self-start">
-              <SidePanel title="Entradas rápidas" subtitle="Abre algo bueno en menos de diez segundos">
+            <aside className="hidden flex-col gap-4 xl:sticky xl:top-24 xl:flex xl:self-start">
+              <SidePanel
+                title="Entradas rápidas"
+                subtitle="Abre algo bueno en menos de diez segundos"
+              >
                 <div className="grid gap-2.5">
                   {QUICK_ACTIONS.map((action) => (
                     <Link
@@ -1363,11 +2034,15 @@ export default function LoggedInHome() {
                       href={action.href}
                       className="flex items-center justify-between rounded-[1.2rem] border px-3.5 py-3 transition-transform hover:translate-x-1"
                       style={{
-                        borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+                        borderColor:
+                          "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
                         background: "rgba(255,255,255,0.03)",
                       }}
                     >
-                      <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+                      <span
+                        className="flex items-center gap-2 text-sm font-semibold"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
                         <span>{action.icon}</span>
                         {action.label}
                       </span>
@@ -1377,21 +2052,31 @@ export default function LoggedInHome() {
                 </div>
               </SidePanel>
 
-              <SidePanel title="Radar del día" subtitle="Lo que hoy está acelerando las ganas de pedir otra">
+              <SidePanel
+                title="Radar del día"
+                subtitle="Lo que hoy está acelerando las ganas de pedir otra"
+              >
                 <div className="space-y-3">
-                  {STYLE_PULSE.map((item) => (
+                  {trendingStyles.map((item) => (
                     <div
                       key={item.name}
                       className="rounded-[1.2rem] border px-3.5 py-3"
                       style={{
-                        borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                        borderColor:
+                          "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
                         background: "rgba(255,255,255,0.025)",
                       }}
                     >
-                      <p className="text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
+                      <p
+                        className="text-sm font-bold"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
                         {item.icon} {item.name}
                       </p>
-                      <p className="mt-1 text-[13px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+                      <p
+                        className="mt-1 text-[13px] leading-relaxed"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
                         {item.note}
                       </p>
                     </div>
@@ -1407,13 +2092,20 @@ export default function LoggedInHome() {
               {isLoading ? (
                 <div className="flex flex-col gap-4 py-8">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-40 animate-pulse rounded-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
+                    <div
+                      key={i}
+                      className="h-40 animate-pulse rounded-2xl"
+                      style={{ background: "rgba(255,255,255,0.04)" }}
+                    />
                   ))}
                 </div>
               ) : visibleFeed.length === 0 ? (
                 <div className="flex flex-col items-center py-16 text-center">
                   <span className="text-5xl">🍺</span>
-                  <h3 className="mt-4 text-lg font-bold" style={{ color: "var(--color-text-primary)" }}>
+                  <h3
+                    className="mt-4 text-lg font-bold"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
                     El muro está esperando tu primera historia
                   </h3>
                   <p className="mt-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
@@ -1422,38 +2114,77 @@ export default function LoggedInHome() {
                   <Link
                     href="/posts"
                     className="mt-5 rounded-full px-6 py-2.5 text-sm font-bold"
-                    style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+                    style={{
+                      background: "var(--gradient-button-primary)",
+                      color: "var(--color-text-dark)",
+                      boxShadow: "var(--shadow-amber-glow)",
+                    }}
                   >
                     Publicar ahora
                   </Link>
                 </div>
               ) : (
-                <div className="flex flex-col gap-8 snap-y snap-proximity">
-                  {visibleFeed.map((item, index) => (
-                    <FeedCard key={item.renderId} item={item} index={index} />
-                  ))}
-                </div>
+                <>
+                  <div className="flex snap-y snap-proximity flex-col gap-8">
+                    {visibleFeed.map((item, index) => (
+                      <FeedCard
+                        key={item.renderId}
+                        item={item}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+
+                  {isLoadingMore && (
+                    <div className="mt-6 flex flex-col gap-4">
+                      {[1, 2].map((i) => (
+                        <div
+                          key={`feed-loading-${i}`}
+                          className="h-32 animate-pulse rounded-2xl"
+                          style={{ background: "rgba(255,255,255,0.04)" }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {!hasMorePosts && visibleFeed.length > 0 && (
+                    <p
+                      className="mt-6 text-center text-sm font-medium"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      Llegaste al final del muro por ahora. Vuelve en un rato para ver nuevas
+                      historias.
+                    </p>
+                  )}
+                </>
               )}
             </section>
 
-            <aside className="flex flex-col gap-4 xl:sticky xl:top-24 xl:self-start">
+            <aside className="hidden flex-col gap-4 xl:sticky xl:top-24 xl:flex xl:self-start">
               <SidePanel title="Ruido del día" subtitle="Estilos y antojos que hoy vienen subiendo">
                 <div className="space-y-3">
-                  {STYLE_PULSE.map((item, index) => (
+                  {trendingStyles.map((item, index) => (
                     <div
                       key={`${item.name}-${index}`}
                       className="flex items-start gap-3 rounded-[1.2rem] border px-3.5 py-3"
                       style={{
-                        borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                        borderColor:
+                          "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
                         background: "rgba(255,255,255,0.03)",
                       }}
                     >
                       <span className="mt-0.5 text-base">{item.icon}</span>
                       <div>
-                        <p className="text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
+                        <p
+                          className="text-sm font-bold"
+                          style={{ color: "var(--color-text-primary)" }}
+                        >
                           {item.name}
                         </p>
-                        <p className="mt-1 text-[13px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+                        <p
+                          className="mt-1 text-[13px] leading-relaxed"
+                          style={{ color: "var(--color-text-secondary)" }}
+                        >
                           {item.note}
                         </p>
                       </div>
@@ -1462,22 +2193,32 @@ export default function LoggedInHome() {
                 </div>
               </SidePanel>
 
-              <SidePanel title="Fuera del scroll" subtitle="Planes listos para pasar de mirar a salir">
+              <SidePanel
+                title="Fuera del scroll"
+                subtitle="Planes listos para pasar de mirar a salir"
+              >
                 <div className="space-y-3">
-                  {ROUTES.map((route) => (
+                  {featuredRoutes.map((route) => (
                     <Link
                       key={route.title}
                       href="/lugares"
                       className="block rounded-[1.2rem] border px-3.5 py-3 transition-transform hover:translate-y-[-1px]"
                       style={{
-                        borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                        borderColor:
+                          "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
                         background: "rgba(255,255,255,0.03)",
                       }}
                     >
-                      <p className="text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
+                      <p
+                        className="text-sm font-bold"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
                         {route.icon} {route.title}
                       </p>
-                      <p className="mt-1 text-[13px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+                      <p
+                        className="mt-1 text-[13px] leading-relaxed"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
                         {route.detail}
                       </p>
                     </Link>

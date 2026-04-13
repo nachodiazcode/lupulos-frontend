@@ -22,14 +22,14 @@ interface OrbitAvatar {
 
 const avatars: OrbitAvatar[] = [
   // Outer ring
-  { src: "/assets/avatars/ragnar.png", name: "Ragnar", size: 62, ring: "outer", chatBubble: "🍺 Salud!" },
-  { src: "/assets/avatars/Lagertha.png", name: "Lagertha", size: 58, ring: "outer", chatBubble: "Increíble IPA" },
-  { src: "/assets/avatars/bjorn.png", name: "Bjorn", size: 54, ring: "outer" },
-  { src: "/assets/avatars/Kwenthrith.png", name: "Kwenthrith", size: 56, ring: "outer", chatBubble: "⭐⭐⭐⭐⭐" },
+  { src: "/assets/avatars/ragnar.webp", name: "Ragnar", size: 62, ring: "outer", chatBubble: "🍺 Salud!" },
+  { src: "/assets/avatars/Lagertha.webp", name: "Lagertha", size: 58, ring: "outer", chatBubble: "Increíble IPA" },
+  { src: "/assets/avatars/bjorn.webp", name: "Bjorn", size: 54, ring: "outer" },
+  { src: "/assets/avatars/Kwenthrith.webp", name: "Kwenthrith", size: 56, ring: "outer", chatBubble: "⭐⭐⭐⭐⭐" },
   // Inner ring
-  { src: "/assets/avatars/Sigrun.png", name: "Sigrun", size: 50, ring: "inner", chatBubble: "Me encanta!" },
-  { src: "/assets/avatars/ragnar.png", name: "Ragnar2", size: 46, ring: "inner" },
-  { src: "/assets/avatars/Lagertha.png", name: "Lagertha2", size: 48, ring: "inner", chatBubble: "📍 Nuevo bar" },
+  { src: "/assets/avatars/Sigrun.webp", name: "Sigrun", size: 50, ring: "inner", chatBubble: "Me encanta!" },
+  { src: "/assets/avatars/ragnar.webp", name: "Ragnar2", size: 46, ring: "inner" },
+  { src: "/assets/avatars/Lagertha.webp", name: "Lagertha2", size: 48, ring: "inner", chatBubble: "📍 Nuevo bar" },
 ];
 
 const reactions = [
@@ -119,11 +119,12 @@ export default function CommunityAnimation() {
           }}
         >
           <Image
-            src="/assets/personajes/lupin.png"
+            src="/assets/personajes/lupin.webp"
             alt="Lupin"
             width={90}
             height={90}
             className="object-cover"
+            sizes="90px"
             style={{ marginTop: 10 }}
           />
         </div>
@@ -180,6 +181,7 @@ export default function CommunityAnimation() {
                     width={avatar.size}
                     height={avatar.size}
                     className="h-full w-full object-cover"
+                    sizes={`${avatar.size}px`}
                   />
                 </div>
                 {/* Chat bubble */}

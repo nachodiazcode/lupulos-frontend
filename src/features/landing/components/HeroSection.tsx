@@ -41,82 +41,6 @@ function generateSparkles(count: number): Sparkle[] {
    Data
    ═══════════════════════════════════ */
 
-const avatarNames = ["ragnar", "Lagertha", "bjorn", "Kwenthrith"] as const;
-
-const statChips = [
-  { icon: "🍺", value: "1.200+", label: "cervezas con ficha" },
-  { icon: "📍", value: "280+",   label: "cervecerías activas" },
-  { icon: "💬", value: "42K+",   label: "reseñas reales" },
-];
-
-/* ═══════════════════════════════════
-   Word Cycler
-   ═══════════════════════════════════ */
-
-const ACTION_WORDS = [
-  "descubrir", "compartir", "explorar", "conectar",
-] as const;
-
-function BeerStyleCycler() {
-  const [wordIdx, setWordIdx] = useState(0);
-  const [displayText, setDisplayText] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const currentWord = ACTION_WORDS[wordIdx];
-    let timeout: NodeJS.Timeout;
-
-    if (!isDeleting && displayText === currentWord) {
-      timeout = setTimeout(() => setIsDeleting(true), 1800);
-    } else if (isDeleting && displayText === "") {
-      setIsDeleting(false);
-      setWordIdx((i) => (i + 1) % ACTION_WORDS.length);
-    } else if (isDeleting) {
-      timeout = setTimeout(() => {
-        setDisplayText(currentWord.substring(0, displayText.length - 1));
-      }, 45);
-    } else {
-      timeout = setTimeout(() => {
-        setDisplayText(currentWord.substring(0, displayText.length + 1));
-      }, 110);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [displayText, isDeleting, wordIdx]);
-
-  return (
-    <span className="relative inline-block align-baseline" aria-live="polite" style={{ minWidth: "10ch" }}>
-      <span
-        className="font-black inline-block align-baseline"
-        style={{
-          background: "linear-gradient(135deg, #ea580c, #f97316, #fbbf24, #c084fc, #a855f7, #7c3aed, #ea580c)",
-          backgroundSize: "300% 300%",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          animation: "magic-gradient-shift 5s ease-in-out infinite",
-          textShadow: "none",
-        }}
-      >
-        {displayText}
-      </span>
-      <motion.span
-        className="inline-block"
-        style={{
-          width: "3px",
-          height: "0.85em",
-          background: "linear-gradient(180deg, #f59e0b, #d97706)",
-          marginLeft: "2px",
-          verticalAlign: "baseline",
-          borderRadius: "1.5px",
-          display: "inline-block",
-        }}
-        animate={{ opacity: [1, 0] }}
-        transition={{ duration: 0.55, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-      />
-    </span>
-  );
-}
-
 /* ═══════════════════════════════════
    Component
    ═══════════════════════════════════ */
@@ -363,7 +287,7 @@ export default function HeroSection() {
             >
               <div className="relative aspect-[16/9] overflow-hidden">
                 <Image
-                  src="/assets/vikingos-cerveza.jpg"
+                  src="/assets/vikingos-cerveza.webp"
                   alt="Cerveceros disfrutando cerveza artesanal"
                   fill
                   className="object-cover"
@@ -503,7 +427,7 @@ export default function HeroSection() {
             >
               <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem]">
                 <Image
-                  src="/assets/vikingos-cerveza.jpg"
+                  src="/assets/vikingos-cerveza.webp"
                   alt="Cerveceros disfrutando cerveza artesanal"
                   fill
                   priority

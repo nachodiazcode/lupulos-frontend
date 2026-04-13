@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroSection from "@/features/landing/components/HeroSection";
@@ -9,7 +10,10 @@ import NewsletterBanner from "@/features/landing/components/NewsletterBanner";
 import GoldenParticles from "@/features/landing/components/GoldenParticles";
 import TrendsSidenav from "@/features/landing/components/TrendsSidenav";
 import useAuth from "@/hooks/useAuth";
-import LoggedInHome from "./LoggedInHome";
+
+const LoggedInHome = dynamic(() => import("./LoggedInHome"), {
+  loading: () => <HomeLoadingState />,
+});
 
 function PublicHome() {
   return (

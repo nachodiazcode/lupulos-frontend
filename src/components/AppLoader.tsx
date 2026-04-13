@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const LOADER_SESSION_KEY = "lupulos-loader-seen";
+const LOADER_MIN_DURATION_MS = 280;
+
 /* ─── Hop flower SVG ─── */
 function HopFlower() {
   return (
@@ -38,7 +41,7 @@ function Ripple({ delay }: { delay: number }) {
       className="absolute rounded-full"
       style={{
         inset: 0,
-        border: "1px solid rgba(251,191,36,0.28)",
+        border: "1px solid color-mix(in srgb, var(--color-amber-primary) 28%, transparent)",
       }}
       animate={{ scale: [1, 2.5], opacity: [0.65, 0] }}
       transition={{ duration: 2.4, repeat: Infinity, delay, ease: "easeOut" }}
@@ -51,7 +54,24 @@ export default function AppLoader({ children }: { children: React.ReactNode }) {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setDone(true), 900);
+    try {
+      if (sessionStorage.getItem(LOADER_SESSION_KEY) === "1") {
+        setDone(true);
+        return;
+      }
+    } catch {
+      // noop: sessionStorage can fail in restricted environments
+    }
+
+    const t = setTimeout(() => {
+      try {
+        sessionStorage.setItem(LOADER_SESSION_KEY, "1");
+      } catch {
+        // noop
+      }
+      setDone(true);
+    }, LOADER_MIN_DURATION_MS);
+
     return () => clearTimeout(t);
   }, []);
 
@@ -63,50 +83,60 @@ export default function AppLoader({ children }: { children: React.ReactNode }) {
             key="app-loader"
             className="fixed inset-0 flex flex-col items-center justify-center gap-8"
             style={{
-              /* Hardcoded ambar dark — resolves before CSS vars are ready */
-              background:
-                "linear-gradient(180deg, #0c0a09 0%, #1a1510 45%, #2a2018 70%, #0c0a09 100%)",
+              background: "var(--gradient-hero)",
+              color: "var(--color-text-primary)",
               zIndex: 99999,
             }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Spinner: hop flower + ripple rings */}
             <div
-              className="relative flex items-center justify-center"
-              style={{ width: 112, height: 112 }}
+              className="flex flex-col items-center gap-8 rounded-[32px] px-10 py-10 backdrop-blur-2xl"
+              style={{
+                background:
+                  "color-mix(in srgb, var(--color-surface-card) 88%, transparent)",
+                border:
+                  "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
+                boxShadow:
+                  "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), var(--shadow-elevated)",
+              }}
             >
-              <Ripple delay={0} />
-              <Ripple delay={0.8} />
-              <Ripple delay={1.6} />
-              <HopFlower />
-            </div>
+              {/* Spinner: hop flower + ripple rings */}
+              <div
+                className="relative flex items-center justify-center"
+                style={{ width: 112, height: 112 }}
+              >
+                <Ripple delay={0} />
+                <Ripple delay={0.8} />
+                <Ripple delay={1.6} />
+                <HopFlower />
+              </div>
 
-            {/* Wordmark */}
-            <div className="flex flex-col items-center gap-2">
-              <motion.p
-                className="text-[2rem] font-black tracking-[0.35em] uppercase"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #fbbf24 0%, #f97316 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                LÚPULOS
-              </motion.p>
-              <motion.span
-                className="text-[9px] tracking-[0.3em] uppercase"
-                style={{ color: "rgba(251,191,36,0.38)" }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-              >
-                cargando…
-              </motion.span>
+              {/* Wordmark */}
+              <div className="flex flex-col items-center gap-2">
+                <motion.p
+                  className="text-[2rem] font-black tracking-[0.35em] uppercase"
+                  style={{
+                    background: "var(--gradient-heading, var(--gradient-button-primary))",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  LÚPULOS
+                </motion.p>
+                <motion.span
+                  className="text-[9px] tracking-[0.3em] uppercase"
+                  style={{ color: "var(--color-text-muted)" }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                >
+                  cargando…
+                </motion.span>
+              </div>
             </div>
           </motion.div>
         )}

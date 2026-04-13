@@ -18,12 +18,9 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       "@mui/material",
       "@mui/icons-material",
-      "@mui/lab",
       "@emotion/react",
       "@emotion/styled",
       "framer-motion",
-      "lucide-react",
-      "@heroicons/react",
     ],
   },
 

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { getImageUrl } from "@/lib/constants";
+import { getPrimaryPostMedia, inferMediaType, type PostMedia } from "@/lib/post-media";
 import {
   Box,
   Container,
@@ -52,6 +53,8 @@ interface Post {
   content?: string;
   imagenes?: string[];
   images?: string[];
+  media?: PostMedia[];
+  multimedia?: PostMedia[];
   usuario?: Usuario;
   author?: Usuario;
   reacciones?: {
@@ -145,6 +148,7 @@ export default function PostDetailPage() {
 
   const yaDioLike = getLikeUsers(post).includes(getUserId(user));
   const esAutor = getUserId(getPostUser(post)) === getUserId(user);
+  const primaryMedia = getPrimaryPostMedia(post);
 
   const toggleLike = async () => {
     if (!getUserId(user) || !post) return;
@@ -233,22 +237,36 @@ export default function PostDetailPage() {
                 <Typography variant="h4" fontWeight="bold" mb={2}>
                   {getPostTitle(post)}
                 </Typography>
-                {getPostImages(post)[0] && (
-                  <Image
-                    src={getImageUrl(getPostImages(post)[0])}
-                    alt={getPostTitle(post)}
-                    width={900}
-                    height={500}
-                    unoptimized
-                    style={{
-                      width: "100%",
-                      maxHeight: "460px", // 🔼 un poco más grande que antes
-                      objectFit: "contain",
-                      borderRadius: "1.5rem", // 🔄 curva más elegante (24px)
-                      marginBottom: 24,
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.3)", // 🖼️ un leve sombreado moderno
-                    }}
-                  />
+                {primaryMedia?.path && (
+                  inferMediaType(primaryMedia.path, primaryMedia.type) === "video" ? (
+                    <video
+                      src={getImageUrl(primaryMedia.path)}
+                      controls
+                      className="w-full rounded-3xl"
+                      style={{
+                        maxHeight: "460px",
+                        objectFit: "contain",
+                        marginBottom: 24,
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                      }}
+                    />
+                  ) : (
+                    <Image
+                      src={getImageUrl(primaryMedia.path)}
+                      alt={getPostTitle(post)}
+                      width={900}
+                      height={500}
+                      unoptimized
+                      style={{
+                        width: "100%",
+                        maxHeight: "460px",
+                        objectFit: "contain",
+                        borderRadius: "1.5rem",
+                        marginBottom: 24,
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                      }}
+                    />
+                  )
                 )}
                 <Typography variant="body1" mb={3}>
                   {getPostContent(post)}
@@ -344,9 +362,6 @@ function getPostTitle(post?: Post | null): string {
 }
 function getPostContent(post?: Post | null): string {
   return post?.contenido || post?.content || "";
-}
-function getPostImages(post?: Post | null): string[] {
-  return post?.imagenes || post?.images || [];
 }
 function getPostUser(post?: Post | null): Usuario | undefined {
   return post?.usuario || post?.author;

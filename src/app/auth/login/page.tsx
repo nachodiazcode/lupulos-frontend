@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,7 +10,39 @@ import useAuth from "@/hooks/useAuth";
 import { GOOGLE_AUTH_URL } from "@/lib/constants";
 import api from "@/lib/api";
 import { persistAuthSession } from "@/lib/auth-storage";
+import {
+  extractAuthSession,
+  normalizeProfilePayload,
+  normalizeStoredAuthUser,
+} from "@/lib/auth-user";
 import { getErrorMessage } from "@/lib/errors";
+
+const LOGIN_THEME = {
+  accent: "var(--color-amber-primary)",
+  accentHover: "var(--color-amber-hover)",
+  accentGradient: "var(--gradient-button-primary)",
+  headingGradient: "var(--gradient-heading, var(--gradient-button-primary))",
+  buttonText: "var(--color-text-dark)",
+  panelGradient: "var(--gradient-card-glass)",
+  panelSurface: "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-elevated) 6%)",
+  fieldSurface: "color-mix(in srgb, var(--color-surface-card) 96%, var(--color-surface-elevated) 4%)",
+  buttonSurface: "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-overlay) 6%)",
+  textPrimary: "var(--color-text-primary)",
+  textSecondary: "var(--color-text-secondary)",
+  textMuted: "var(--color-text-muted)",
+  border: "var(--color-border-light)",
+  borderAccent: "color-mix(in srgb, var(--color-border-amber) 48%, var(--color-border-light))",
+  borderHighlight: "color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))",
+  shadow: "var(--shadow-elevated)",
+  glow: "var(--shadow-amber-glow)",
+  glowLarge: "var(--shadow-amber-glow-lg)",
+  errorBg: "color-mix(in srgb, var(--color-error) 12%, var(--color-surface-card) 88%)",
+  errorBorder: "color-mix(in srgb, var(--color-error) 30%, transparent)",
+  errorText: "color-mix(in srgb, var(--color-error-dark) 72%, var(--color-text-primary))",
+} as const;
+
+const LOGIN_BORDER_COLORS =
+  "var(--color-amber-primary), var(--color-orange-cta), var(--color-emerald), var(--color-amber-light), var(--color-amber-primary)";
 
 /* ═══════════════════════════════════════════
    Neon Border — Reusable rotating gradient border
@@ -103,7 +135,7 @@ function GradientBorder({
   const background = useTransform(
     rotation,
     (r) =>
-      `conic-gradient(from ${r}deg, #f97316, #ea580c, #c2410c, #b45309, #f59e0b, #fb923c, #f97316)`,
+      `conic-gradient(from ${r}deg, ${LOGIN_BORDER_COLORS})`,
   );
 
   return (
@@ -137,10 +169,10 @@ function GradientBorder({
 type InputStatus = "idle" | "focus" | "valid" | "invalid";
 
 const NEON_INPUT_COLORS: Record<InputStatus, string> = {
-  idle: "rgba(255,255,255,0.10)",
-  focus: "#b45309, #92400e, #78350f, #a16207, #b45309",
-  valid: "#065f46, #047857, #a16207, #065f46",
-  invalid: "#991b1b, #b91c1c, #7c2d12, #991b1b",
+  idle: "var(--color-border-light)",
+  focus: "var(--color-amber-primary), var(--color-amber-light), var(--color-emerald), var(--color-amber-dark), var(--color-amber-primary)",
+  valid: "var(--color-emerald), var(--color-emerald-dark), var(--color-amber-light), var(--color-emerald), var(--color-emerald-dark)",
+  invalid: "var(--color-error), var(--color-error-dark), var(--color-orange-cta), var(--color-error), var(--color-error-dark)",
 };
 
 function NeonInput({
@@ -170,7 +202,11 @@ function NeonInput({
 
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="block text-xs font-medium tracking-wide text-amber-200/70 uppercase">
+      <label
+        htmlFor={id}
+        className="block text-xs font-medium uppercase tracking-wide"
+        style={{ color: LOGIN_THEME.textSecondary }}
+      >
         {label}
       </label>
       <div className="relative">
@@ -191,14 +227,17 @@ function NeonInput({
                 glowIntensity={status === "invalid" ? "strong" : status === "valid" ? "medium" : "subtle"}
                 pulseSpeed={status === "invalid" ? 1.2 : 2.4}
               >
-                <div className="h-[48px] rounded-xl" style={{ background: "rgba(12,8,4,0.95)" }} />
+                <div className="h-[48px] rounded-xl" style={{ background: LOGIN_THEME.fieldSurface }} />
               </NeonBorder>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Icon */}
-        <span className="pointer-events-none absolute top-1/2 left-3.5 z-10 -translate-y-1/2 text-amber-400/50">
+        <span
+          className="pointer-events-none absolute top-1/2 left-3.5 z-10 -translate-y-1/2"
+          style={{ color: LOGIN_THEME.textMuted }}
+        >
           {icon}
         </span>
 
@@ -210,10 +249,22 @@ function NeonInput({
           value={value}
           onChange={onChange}
           required={required}
-          className={`relative z-[5] w-full rounded-xl py-3 text-sm text-white placeholder-white/45 transition-all duration-300 focus:outline-none ${rightElement ? "pr-12 pl-11" : "pr-4 pl-11"} ${
-            showNeon ? "border-transparent" : "border border-white/10 bg-white/5"
+          className={`login-input relative z-[5] w-full rounded-xl py-3 text-sm transition-all duration-300 focus:outline-none ${rightElement ? "pr-12 pl-11" : "pr-4 pl-11"} ${
+            showNeon ? "border-transparent" : "border"
           }`}
-          style={showNeon ? { border: "1.5px solid transparent", background: "rgba(12,8,4,0.95)" } : undefined}
+          style={
+            showNeon
+              ? {
+                  border: "1.5px solid transparent",
+                  background: LOGIN_THEME.fieldSurface,
+                  color: LOGIN_THEME.textPrimary,
+                }
+              : {
+                  borderColor: LOGIN_THEME.border,
+                  background: LOGIN_THEME.fieldSurface,
+                  color: LOGIN_THEME.textPrimary,
+                }
+          }
         />
 
         {/* Right element (show/hide password) */}
@@ -261,7 +312,7 @@ function NeonGoogleButton({ className = "" }: { className?: string }) {
     <NeonBorder
       radius={14}
       borderWidth={1.5}
-      colors="#fbbf24, #c084fc, #f59e0b, #a855f7, #fcd34d, #7c3aed, #fbbf24"
+      colors={LOGIN_BORDER_COLORS}
       glowIntensity="medium"
       pulseSpeed={2.8}
     >
@@ -269,18 +320,26 @@ function NeonGoogleButton({ className = "" }: { className?: string }) {
         href={GOOGLE_AUTH_URL}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.97 }}
-        className={`group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl py-3.5 text-sm font-semibold text-white transition-all duration-300 ${className}`}
+        className={`group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl py-3.5 text-sm font-semibold transition-all duration-300 ${className}`}
         style={{
-          background: "linear-gradient(135deg, rgba(20,10,4,0.96) 0%, rgba(12,6,2,0.98) 100%)",
+          background: LOGIN_THEME.buttonSurface,
+          color: LOGIN_THEME.textPrimary,
         }}
       >
         {/* Shimmer sweep */}
-        <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-amber-400/10 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+        <span
+          className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-light) 20%, transparent), transparent)",
+          }}
+        />
         {/* Ambient inner glow */}
         <motion.span
           className="pointer-events-none absolute inset-0 rounded-xl"
           style={{
-            background: "radial-gradient(ellipse at 50% 50%, rgba(251,191,36,0.06), transparent 70%)",
+            background:
+              "radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--color-amber-primary) 12%, transparent), transparent 70%)",
           }}
           animate={{ opacity: [0.3, 0.7, 0.3] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -315,14 +374,14 @@ interface Particle {
 }
 
 const PARTICLE_COLORS = [
-  "rgba(234,88,12,0.35)",   // deep orange
-  "rgba(249,115,22,0.30)",  // orange
-  "rgba(194,65,12,0.28)",   // burnt orange
-  "rgba(251,146,60,0.25)",  // warm orange
-  "rgba(180,83,9,0.22)",    // dark amber
-  "rgba(245,158,11,0.20)",  // amber
-  "rgba(217,119,6,0.28)",   // caramel
-  "rgba(154,52,18,0.22)",   // dark burnt
+  "color-mix(in srgb, var(--color-amber-primary) 32%, transparent)",
+  "color-mix(in srgb, var(--color-orange-cta) 26%, transparent)",
+  "color-mix(in srgb, var(--color-emerald) 22%, transparent)",
+  "color-mix(in srgb, var(--color-amber-light) 20%, transparent)",
+  "color-mix(in srgb, var(--color-text-primary) 10%, transparent)",
+  "color-mix(in srgb, var(--color-amber-dark) 24%, transparent)",
+  "color-mix(in srgb, var(--color-orange-cta-hover) 20%, transparent)",
+  "color-mix(in srgb, var(--color-emerald-dark) 18%, transparent)",
 ];
 
 function generateParticles(count: number): Particle[] {
@@ -429,30 +488,32 @@ export default function LoginPage() {
 
     try {
       const { data } = await api.post("/auth/login", { email, password });
-
-      const token = data.accessToken ?? data.token;
-      const userId = data.user?.id ?? data.user?._id;
+      const session = extractAuthSession(data);
+      const token = session.accessToken;
+      const userId =
+        session.user?._id ||
+        (typeof session.user?.id === "string" ? session.user.id : undefined);
 
       // Traer perfil completo para garantizar que tenemos todos los campos
-      let perfilData = data.user;
+      let usuario = session.user;
       if (userId && token) {
         try {
           const perfilRes = await api.get(`/auth/perfil/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          perfilData = perfilRes.data?.user ?? perfilRes.data ?? data.user;
+          const profilePayload = normalizeProfilePayload(perfilRes.data, userId);
+          usuario = normalizeStoredAuthUser(
+            { ...(session.user ?? {}), ...(profilePayload.user ?? {}) },
+            userId,
+          );
         } catch {
           // Si falla, usamos lo que trajo el login
         }
       }
 
-      const usuario = {
-        _id: userId,
-        username: perfilData?.username ?? perfilData?.name ?? perfilData?.nombre,
-        name: perfilData?.name ?? perfilData?.nombre,
-        email: perfilData?.email,
-        fotoPerfil: perfilData?.fotoPerfil ?? perfilData?.photo ?? perfilData?.profilePicture,
-      };
+      if (!token || !usuario) {
+        throw new Error("No se pudo normalizar la sesion del usuario.");
+      }
 
       persistAuthSession({ token, user: usuario });
       localStorage.setItem("user", JSON.stringify(usuario));
@@ -508,7 +569,8 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="text-amber-400/50 transition-colors hover:text-amber-400"
+            className="transition-opacity hover:opacity-80"
+            style={{ color: LOGIN_THEME.textMuted }}
           >
             {showPassword ? EyeOffIcon : EyeIcon}
           </button>
@@ -522,7 +584,12 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: -5, height: 0 }}
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -5, height: 0 }}
-            className="flex items-center gap-2 overflow-hidden rounded-lg border border-red-400/20 bg-red-400/10 px-4 py-2.5 text-sm text-red-300"
+            className="flex items-center gap-2 overflow-hidden rounded-lg border px-4 py-2.5 text-sm"
+            style={{
+              borderColor: LOGIN_THEME.errorBorder,
+              background: LOGIN_THEME.errorBg,
+              color: LOGIN_THEME.errorText,
+            }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
@@ -536,7 +603,11 @@ export default function LoginPage() {
 
       {/* Forgot password */}
       <div className="flex justify-end">
-        <Link href="/auth/forgot-password" className="text-xs text-amber-400/70 transition-colors hover:text-amber-400">
+        <Link
+          href="/auth/forgot-password"
+          className="text-xs transition-opacity hover:opacity-80"
+          style={{ color: LOGIN_THEME.accent }}
+        >
           ¿Olvidaste tu contraseña?
         </Link>
       </div>
@@ -547,13 +618,20 @@ export default function LoginPage() {
         disabled={loading}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.97 }}
-        className="group relative w-full overflow-hidden rounded-xl py-3.5 text-sm font-semibold text-black shadow-lg transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="group relative w-full overflow-hidden rounded-xl py-3.5 text-sm font-semibold shadow-lg transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
         style={{
-          background: "linear-gradient(135deg, #fbbf24, #f59e0b, #d97706)",
-          boxShadow: "0 8px 32px rgba(245,158,11,0.3)",
+          background: LOGIN_THEME.accentGradient,
+          color: LOGIN_THEME.buttonText,
+          boxShadow: LOGIN_THEME.glow,
         }}
       >
-        <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+        <span
+          className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, color-mix(in srgb, white 28%, transparent), transparent)",
+          }}
+        />
         {loading ? (
           <span className="relative flex items-center justify-center gap-2">
             <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -570,14 +648,14 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-x-hidden overflow-y-auto">
-      {/* Fondo — Amber Pale Ale gradient */}
+    <div
+      className="relative flex min-h-screen items-center justify-center overflow-x-hidden overflow-y-auto"
+      style={{ color: LOGIN_THEME.textPrimary }}
+    >
+      {/* Fondo */}
       <div
         className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse at 20% 30%, rgba(194,65,12,0.40) 0%, transparent 55%), radial-gradient(ellipse at 80% 25%, rgba(234,88,12,0.22) 0%, transparent 45%), radial-gradient(ellipse at 75% 60%, rgba(154,52,18,0.35) 0%, transparent 50%), radial-gradient(ellipse at 30% 75%, rgba(180,83,9,0.18) 0%, transparent 40%), radial-gradient(ellipse at 50% 90%, rgba(120,50,18,0.30) 0%, transparent 45%), linear-gradient(180deg, #060402 0%, #140a03 25%, #1e0f06 45%, #150b04 65%, #060402 100%)",
-        }}
+        style={{ background: "var(--gradient-hero)" }}
       />
 
       {/* Partículas flotantes */}
@@ -648,7 +726,13 @@ export default function LoginPage() {
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="mt-0.5 text-2xl font-bold tracking-tight leading-tight text-white"
+              className="mt-0.5 text-2xl leading-tight font-bold tracking-tight"
+              style={{
+                background: LOGIN_THEME.headingGradient,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
             >
               Bienvenido a Lúpulos
             </motion.h1>
@@ -656,7 +740,8 @@ export default function LoginPage() {
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-sm text-amber-200/60" style={{ lineHeight: "1.15" }}
+              className="text-sm"
+              style={{ lineHeight: "1.15", color: LOGIN_THEME.textSecondary }}
             >
               La nueva red social para amantes de la cerveza
             </motion.p>
@@ -677,8 +762,8 @@ export default function LoginPage() {
             onClick={() => setFormOpen(!formOpen)}
             className="relative my-2.5 flex w-full items-center gap-2 transition-colors"
           >
-            <div className="flex-1 border-t border-white/10" />
-            <span className="flex items-center gap-1.5 px-2 text-xs text-white/40 transition-colors hover:text-white/60">
+            <div className="flex-1 border-t" style={{ borderColor: LOGIN_THEME.border }} />
+            <span className="flex items-center gap-1.5 px-2 text-xs transition-opacity hover:opacity-80" style={{ color: LOGIN_THEME.textMuted }}>
               o inicia con tu correo
               <motion.svg
                 width="12"
@@ -695,7 +780,7 @@ export default function LoginPage() {
                 <polyline points="6 9 12 15 18 9" />
               </motion.svg>
             </span>
-            <div className="flex-1 border-t border-white/10" />
+            <div className="flex-1 border-t" style={{ borderColor: LOGIN_THEME.border }} />
           </button>
 
           {/* Collapsible Form */}
@@ -718,10 +803,15 @@ export default function LoginPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7, duration: 0.5 }}
-            className="mt-2.5 text-center text-sm text-white/40"
+            className="mt-2.5 text-center text-sm"
+            style={{ color: LOGIN_THEME.textMuted }}
           >
             ¿No tienes cuenta?{" "}
-            <Link href="/auth/register" className="font-medium text-amber-400 transition-colors hover:text-amber-300">
+            <Link
+              href="/auth/register"
+              className="font-medium transition-opacity hover:opacity-80"
+              style={{ color: LOGIN_THEME.accent }}
+            >
               Regístrate aquí
             </Link>
           </motion.p>
@@ -756,8 +846,8 @@ export default function LoginPage() {
             <div
               className="rounded-3xl px-10 py-10 shadow-2xl backdrop-blur-xl"
               style={{
-                background: "linear-gradient(135deg, rgba(30,16,6,0.96) 0%, rgba(18,10,4,0.98) 100%)",
-                boxShadow: "0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(251,191,36,0.06), inset 0 1px 0 rgba(255,255,255,0.05)",
+                background: LOGIN_THEME.panelGradient,
+                boxShadow: `inset 0 1px 0 color-mix(in srgb, white 24%, transparent), ${LOGIN_THEME.glowLarge}`,
               }}
             >
               {/* Logo */}
@@ -779,7 +869,13 @@ export default function LoginPage() {
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
-                  className="mt-5 text-3xl font-bold tracking-tight text-white"
+                  className="mt-5 text-3xl font-bold tracking-tight"
+                  style={{
+                    background: LOGIN_THEME.headingGradient,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
                 >
                   Bienvenido a Lúpulos
                 </motion.h1>
@@ -787,7 +883,8 @@ export default function LoginPage() {
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
-                  className="mt-2 text-sm text-amber-200/60"
+                  className="mt-2 text-sm"
+                  style={{ color: LOGIN_THEME.textSecondary }}
                 >
                   La nueva red social para amantes de la cerveza
                 </motion.p>
@@ -798,18 +895,22 @@ export default function LoginPage() {
 
               {/* Separator */}
               <div className="relative my-6 flex items-center">
-                <div className="flex-1 border-t border-white/10" />
-                <span className="px-4 text-xs text-white/30">o continúa con</span>
-                <div className="flex-1 border-t border-white/10" />
+                <div className="flex-1 border-t" style={{ borderColor: LOGIN_THEME.border }} />
+                <span className="px-4 text-xs" style={{ color: LOGIN_THEME.textMuted }}>o continúa con</span>
+                <div className="flex-1 border-t" style={{ borderColor: LOGIN_THEME.border }} />
               </div>
 
               {/* Google OAuth with Neon Border */}
               <NeonGoogleButton />
 
               {/* Register link */}
-              <p className="mt-6 text-center text-sm text-white/40">
+              <p className="mt-6 text-center text-sm" style={{ color: LOGIN_THEME.textMuted }}>
                 ¿No tienes cuenta?{" "}
-                <Link href="/auth/register" className="font-medium text-amber-400 transition-colors hover:text-amber-300">
+                <Link
+                  href="/auth/register"
+                  className="font-medium transition-opacity hover:opacity-80"
+                  style={{ color: LOGIN_THEME.accent }}
+                >
                   Regístrate aquí
                 </Link>
               </p>
@@ -827,11 +928,23 @@ export default function LoginPage() {
         <Alert
           severity="success"
           variant="filled"
-          sx={{ backgroundColor: "#15803d", borderRadius: "12px", fontWeight: 500 }}
+          sx={{
+            background: "var(--gradient-button-primary)",
+            color: "var(--color-text-dark)",
+            borderRadius: "12px",
+            fontWeight: 600,
+            boxShadow: "var(--shadow-amber-glow)",
+          }}
         >
           ¡Bienvenido a Lúpulos App!
         </Alert>
       </Snackbar>
+      <style jsx>{`
+        .login-input::placeholder {
+          color: var(--color-text-muted);
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 }

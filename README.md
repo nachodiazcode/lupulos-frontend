@@ -1,4 +1,4 @@
-# Lúpulos Frontend
+# Lúpulos Backend
 Frontend web de **Lúpulos**, construido con **Next.js (App Router)**, **React** y **TypeScript**.
 - Producción: https://lupulos.app
 - Backend/API: https://github.com/ignaciosergiodiaz/lupulos-api

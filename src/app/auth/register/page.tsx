@@ -10,6 +10,7 @@ import api from "@/lib/api";
 import { GOOGLE_AUTH_URL } from "@/lib/constants";
 import useAuth from "@/hooks/useAuth";
 import { persistAuthSession } from "@/lib/auth-storage";
+import { extractAuthSession } from "@/lib/auth-user";
 import { getErrorMessage } from "@/lib/errors";
 import HeroIllustration from "@/components/ui/HeroIllustration";
 
@@ -256,17 +257,16 @@ export default function RegisterPage() {
         return;
       }
 
-      const usuario = {
-        _id: data.user?.id ?? data.user?._id,
-        username: data.user?.username,
-        email: data.user?.email,
-        fotoPerfil: data.user?.photo,
-      };
-      persistAuthSession({ token: data.accessToken, user: usuario, justLoggedIn: true });
+      const session = extractAuthSession(data);
+      if (!session.accessToken || !session.user) {
+        throw new Error("No se pudo normalizar la sesion del registro.");
+      }
+
+      persistAuthSession({ token: session.accessToken, user: session.user, justLoggedIn: true });
       localStorage.setItem("justLoggedIn", "true");
 
-      setToken(data.accessToken);
-      setUser(usuario);
+      setToken(session.accessToken);
+      setUser(session.user);
       setOpenToast(true);
 
       setTimeout(() => router.push("/cervezas"), 1200);

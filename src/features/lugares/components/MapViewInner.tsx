@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo } from "react";
+import Image from "next/image";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Place } from "../types";
@@ -94,9 +95,11 @@ export default function MapViewInner({ places, selectedId, onSelectPlace }: Prop
             <Popup>
               <div style={{ minWidth: 180 }}>
                 {lugar.coverImage && (
-                  <img
+                  <Image
                     src={getImageUrl(lugar.coverImage)}
                     alt={lugar.name}
+                    width={180}
+                    height={100}
                     style={{
                       width: "100%",
                       height: 100,

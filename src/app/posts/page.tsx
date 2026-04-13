@@ -4,6 +4,14 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence, Reorder, type Variants } from "framer-motion";
 import { api } from "@/lib/api";
 import { getImageUrl } from "@/lib/constants";
+import {
+  MAX_VIDEO_DURATION_SECONDS,
+  extractUploadedMedia,
+  getPrimaryPostMedia,
+  inferMediaType,
+  readVideoDurationSeconds,
+  type PostMedia,
+} from "@/lib/post-media";
 import { Modal, Box, TextField, Button, Typography, CircularProgress } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -31,6 +39,8 @@ interface Post {
   content?: string;
   imagenes?: string[];
   images?: string[];
+  media?: PostMedia[];
+  multimedia?: PostMedia[];
   usuario?: Usuario;
   author?: Usuario;
   createdAt?: string;
@@ -141,7 +151,9 @@ function PostCard({
   shareOpenId: string | null;
   onShareToggle: (id: string | null) => void;
 }) {
-  const img = getPostImages(post)[0];
+  const primaryMedia = getPrimaryPostMedia(post);
+  const mediaPath = primaryMedia?.path || getPostImages(post)[0] || "";
+  const mediaType = primaryMedia?.type || inferMediaType(mediaPath);
   const [imgError, setImgError] = useState(false);
   const username = getPostUser(post)?.username ?? "anon";
   const postId = getPostId(post);
@@ -216,15 +228,25 @@ function PostCard({
         style={{ background: "var(--color-surface-card-alt)" }}
         onClick={onClick}
       >
-        {img && !imgError ? (
-          <Image
-            src={getImageUrl(img)}
-            alt={getPostTitle(post)}
-            fill
-            unoptimized
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={() => setImgError(true)}
-          />
+        {mediaPath && !imgError ? (
+          mediaType === "video" ? (
+            <video
+              src={getImageUrl(mediaPath)}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              muted
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <Image
+              src={getImageUrl(mediaPath)}
+              alt={getPostTitle(post)}
+              fill
+              unoptimized
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={() => setImgError(true)}
+            />
+          )
         ) : (
           <div
             className="flex h-full w-full flex-col items-center justify-center gap-2 select-none"
@@ -394,6 +416,7 @@ export default function PostPage() {
   const [contenido, setContenido] = useState("");
   const [imagen, setImagen] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [mediaError, setMediaError] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -429,6 +452,7 @@ export default function PostPage() {
       setPreview(url);
       return () => URL.revokeObjectURL(url);
     }
+    setPreview(null);
   }, [imagen]);
 
   /* Close share dropdown on outside click */
@@ -462,29 +486,66 @@ export default function PostPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleMediaSelected = async (file: File | null) => {
+    if (!file) return;
+
+    setMediaError("");
+
+    if (file.type.startsWith("video/")) {
+      try {
+        const durationSeconds = await readVideoDurationSeconds(file);
+        if (durationSeconds > MAX_VIDEO_DURATION_SECONDS) {
+          setMediaError("Los videos del muro pueden durar hasta 12 minutos.");
+          return;
+        }
+      } catch (error) {
+        console.error("❌ Error al leer duración del video:", error);
+        setMediaError("No pudimos leer la duración de ese video.");
+        return;
+      }
+    }
+
+    setImagen(file);
+  };
+
+  const handleSubmit = async () => {
     const userId = getUserId(user);
     if (!userId) return;
     try {
+      let uploadedMedia: PostMedia | null = null;
       let imagePath = "";
       if (imagen) {
         const formData = new FormData();
-        formData.append("imagen", imagen);
+        formData.append("media", imagen);
+        if (imagen.type.startsWith("video/")) {
+          const durationSeconds = await readVideoDurationSeconds(imagen);
+          formData.append("durationSeconds", String(durationSeconds));
+        }
         const res = await api.post(`/post/upload`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        imagePath = res.data.path;
+        uploadedMedia = extractUploadedMedia(res.data);
+        imagePath = uploadedMedia?.path || "";
+        if (!imagePath) {
+          throw new Error("Upload response did not include a media path");
+        }
       }
-      await api.post(`/post`, { titulo, contenido, imagenes: imagePath ? [imagePath] : [] });
+      await api.post(`/post`, {
+        titulo,
+        contenido,
+        media: uploadedMedia ? [uploadedMedia] : [],
+        imagenes: imagePath ? [imagePath] : [],
+      });
       setTitulo("");
       setContenido("");
       setImagen(null);
       setPreview(null);
+      setMediaError("");
       setModalAbierto(false);
       fetchPosts();
     } catch (err) {
       console.error("❌ Error al subir post:", err);
+      setMediaError("No pudimos subir la publicación.");
     }
   };
 
@@ -1288,12 +1349,37 @@ export default function PostPage() {
               "&:hover": { bgcolor: "var(--color-amber-primary)", color: "var(--color-text-dark)" },
             }}
           >
-            📷 Subir Imagen
-            <input type="file" hidden accept="image/*" onChange={(e) => setImagen(e.target.files?.[0] || null)} />
+            📷 Subir foto o video
+            <input
+              type="file"
+              hidden
+              accept="image/*,video/*"
+              onChange={(e) => void handleMediaSelected(e.target.files?.[0] || null)}
+            />
           </Button>
+          {mediaError ? (
+            <Typography sx={{ mt: 1.5, color: "var(--color-amber-primary)", fontSize: "0.92rem" }}>
+              {mediaError}
+            </Typography>
+          ) : null}
           {preview && (
             <Box mt={2}>
-              <Image src={preview} alt="preview" width={400} height={250} style={{ width: "100%", height: "auto", borderRadius: 8, objectFit: "cover" }} />
+              {imagen?.type.startsWith("video/") ? (
+                <video
+                  src={preview}
+                  controls
+                  className="w-full rounded-lg"
+                  style={{ maxHeight: 320, objectFit: "cover" }}
+                />
+              ) : (
+                <Image
+                  src={preview}
+                  alt="preview"
+                  width={400}
+                  height={250}
+                  style={{ width: "100%", height: "auto", borderRadius: 8, objectFit: "cover" }}
+                />
+              )}
             </Box>
           )}
           <Button

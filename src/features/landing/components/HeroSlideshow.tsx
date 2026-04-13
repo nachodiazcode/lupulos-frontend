@@ -111,31 +111,10 @@ function generateBubbles(count: number): Bubble[] {
    Animation Variants
    ═══════════════════════════════════ */
 
-const textVariants: Variants = {
-  enter: { opacity: 0, y: 40 },
-  center: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1], staggerChildren: 0.12 },
-  },
-  exit: { opacity: 0, y: -25, transition: { duration: 0.35 } },
-};
-
 const childVariants: Variants = {
   enter: { opacity: 0, y: 24 },
   center: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
   exit: { opacity: 0, transition: { duration: 0.2 } },
-};
-
-const imageVariants: Variants = {
-  enter: { opacity: 0, scale: 0.85, x: 80 },
-  center: {
-    opacity: 1,
-    scale: 1,
-    x: 0,
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
-  },
-  exit: { opacity: 0, scale: 0.92, x: -50, transition: { duration: 0.35 } },
 };
 
 /* 3D carousel: the active slide rotates in/out on the Y axis */

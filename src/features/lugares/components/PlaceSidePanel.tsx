@@ -15,7 +15,6 @@ interface Props {
   favoritos: string[];
   onSelect: (id: string) => void;
   onToggleFavorito: (id: string) => void;
-  onNavigate: (id: string) => void;
 }
 
 export default function PlaceSidePanel({
@@ -24,7 +23,6 @@ export default function PlaceSidePanel({
   favoritos,
   onSelect,
   onToggleFavorito,
-  onNavigate,
 }: Props) {
   return (
     <Box

@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { persistAuthSession } from "@/lib/auth-storage";
+import { normalizeProfilePayload, normalizeStoredAuthUser } from "@/lib/auth-user";
+import useAuth from "@/hooks/useAuth";
 
 const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
   try {
@@ -28,12 +30,13 @@ const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
 export default function LoginSuccessClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setToken, setUser } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get("token");
 
     if (!token) {
-      router.push("/auth/login");
+      router.replace("/auth/login");
       return;
     }
 
@@ -41,7 +44,7 @@ export default function LoginSuccessClient() {
     const userId = (payload?.userId || payload?.id || payload?._id) as string | undefined;
 
     if (!userId) {
-      router.push("/auth/login");
+      router.replace("/auth/login");
       return;
     }
 
@@ -51,29 +54,26 @@ export default function LoginSuccessClient() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Guardar el objeto completo tal como viene del perfil
-        const perfilData = data.user ?? data;
-        const usuario = {
-          _id: perfilData?.id ?? perfilData?._id ?? userId,
-          username: perfilData?.username ?? perfilData?.name ?? perfilData?.nombre,
-          name: perfilData?.name ?? perfilData?.nombre,
-          email: perfilData?.email,
-          fotoPerfil: perfilData?.fotoPerfil ?? perfilData?.photo ?? perfilData?.profilePicture,
-          // Guardar también el objeto completo por si tiene más campos útiles
-          ...perfilData,
-        };
+        const profilePayload = normalizeProfilePayload(data, userId);
+        const usuario = normalizeStoredAuthUser(profilePayload.user, userId);
+
+        if (!usuario) {
+          router.replace("/auth/login");
+          return;
+        }
 
         persistAuthSession({ token, user: usuario, justLoggedIn: true });
-        localStorage.setItem("user", JSON.stringify(usuario));
+        setToken(token);
+        setUser(usuario);
 
-        router.push("/cervezas");
+        router.replace("/");
       } catch {
-        router.push("/auth/login");
+        router.replace("/auth/login");
       }
     };
 
     run();
-  }, [router, searchParams]);
+  }, [router, searchParams, setToken, setUser]);
 
   return (
     <div className="bg-surface-card-alt flex min-h-screen items-center justify-center text-white">
