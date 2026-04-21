@@ -1,18 +1,25 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { CircularProgress } from "@mui/material";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import HeroSection from "@/features/landing/components/HeroSection";
-import CommunitySection from "@/features/landing/components/CommunitySection";
-import CtaSection from "@/features/landing/components/CtaSection";
-import NewsletterBanner from "@/features/landing/components/NewsletterBanner";
-import GoldenParticles from "@/features/landing/components/GoldenParticles";
-import TrendsSidenav from "@/features/landing/components/TrendsSidenav";
 import useAuth from "@/hooks/useAuth";
+import { HOME_FEED_MAX_WIDTH } from "./homeFeed.constants";
 
 const LoggedInHome = dynamic(() => import("./LoggedInHome"), {
   loading: () => <HomeLoadingState />,
+});
+
+const Footer = dynamic(() => import("@/components/Footer"));
+const CommunitySection = dynamic(() => import("@/features/landing/components/CommunitySection"));
+const CtaSection = dynamic(() => import("@/features/landing/components/CtaSection"));
+const NewsletterBanner = dynamic(() => import("@/features/landing/components/NewsletterBanner"));
+const GoldenParticles = dynamic(() => import("@/features/landing/components/GoldenParticles"), {
+  ssr: false,
+});
+const TrendsSidenav = dynamic(() => import("@/features/landing/components/TrendsSidenav"), {
+  ssr: false,
 });
 
 function PublicHome() {
@@ -35,24 +42,28 @@ function HomeLoadingState() {
     <>
       <GoldenParticles count={16} />
       <Navbar />
-      <main className="relative min-h-[70vh] px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <div
-            className="overflow-hidden rounded-[2rem] border p-6 sm:p-8"
-            style={{
-              background:
-                "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 92%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 88%, transparent))",
-              borderColor: "color-mix(in srgb, var(--color-border-amber) 32%, transparent)",
-              boxShadow: "var(--shadow-card)",
-            }}
-          >
-            <div className="h-5 w-40 animate-pulse rounded-full bg-white/10" />
-            <div className="mt-6 grid gap-5 xl:grid-cols-[280px_minmax(0,1fr)_300px]">
-              <div className="h-48 animate-pulse rounded-[1.5rem] bg-white/8" />
-              <div className="h-[34rem] animate-pulse rounded-[2rem] bg-white/8" />
-              <div className="h-56 animate-pulse rounded-[1.5rem] bg-white/8" />
-            </div>
-          </div>
+      <main className="relative flex min-h-[70vh] items-center justify-center px-4 py-10 sm:px-6">
+        <div
+          className="flex w-full flex-col items-center gap-3 rounded-[2rem] border px-6 py-10 text-center sm:px-8"
+          style={{
+            maxWidth: HOME_FEED_MAX_WIDTH,
+            background:
+              "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 92%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 88%, transparent))",
+            borderColor: "color-mix(in srgb, var(--color-border-amber) 32%, transparent)",
+            boxShadow: "var(--shadow-card)",
+          }}
+        >
+          <CircularProgress
+            size={34}
+            sx={{ color: "var(--color-amber-primary)" }}
+            aria-label="Cargando inicio"
+          />
+          <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+            Cargando inicio...
+          </p>
+          <p className="max-w-sm text-xs" style={{ color: "var(--color-text-muted)" }}>
+            Estamos preparando tu experiencia en Lúpulos.
+          </p>
         </div>
       </main>
     </>

@@ -12,7 +12,7 @@ import {
   animate as fmAnimate,
   type Variants,
 } from "framer-motion";
-import { Snackbar, Alert, Rating } from "@mui/material";
+import { Snackbar, Alert, Rating, CircularProgress } from "@mui/material";
 import Slide from "@mui/material/Slide";
 import type { SlideProps } from "@mui/material/Slide";
 
@@ -310,38 +310,6 @@ const fadeUp: Variants = {
     transition: { duration: 0.5, delay: i * 0.1, ease: "easeOut" as const },
   }),
 };
-
-/* ═══════════════════════════════════
-   Skeleton Card
-   ═══════════════════════════════════ */
-
-function SkeletonCard() {
-  return (
-    <div
-      className="animate-pulse overflow-hidden rounded-2xl border"
-      style={{
-        background: "var(--color-surface-card)",
-        borderColor: "var(--color-border-subtle)",
-      }}
-    >
-      <div className="aspect-[5/3]" style={{ background: "var(--color-surface-card-alt)" }} />
-      <div className="space-y-3 p-5">
-        <div className="h-5 w-3/4 rounded" style={{ background: "var(--color-border-light)" }} />
-        <div className="h-4 w-1/2 rounded" style={{ background: "var(--color-border-subtle)" }} />
-        <div className="flex gap-1">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="h-4 w-4 rounded-full"
-              style={{ background: "var(--color-border-subtle)" }}
-            />
-          ))}
-        </div>
-        <div className="h-3 w-2/3 rounded" style={{ background: "var(--color-border-subtle)" }} />
-      </div>
-    </div>
-  );
-}
 
 /* ═══════════════════════════════════
    Beer Card
@@ -999,10 +967,24 @@ export default function CervezasPage() {
           {/* Beer grid */}
           <div className="min-w-0">
             {isLoading ? (
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {[...Array(4)].map((_, i) => (
-                  <SkeletonCard key={i} />
-                ))}
+              <div
+                className="flex min-h-[18rem] flex-col items-center justify-center gap-3 rounded-[1.75rem] border px-6 py-10 text-center"
+                style={{
+                  background: "color-mix(in srgb, var(--color-surface-card) 72%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--color-border-light) 65%, transparent)",
+                }}
+              >
+                <CircularProgress
+                  size={30}
+                  sx={{ color: "var(--color-amber-primary)" }}
+                  aria-label="Cargando cervezas"
+                />
+                <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+                  Cargando cervezas...
+                </p>
+                <p className="max-w-sm text-xs" style={{ color: "var(--color-text-muted)" }}>
+                  Estamos sirviendo el listado para ti.
+                </p>
               </div>
             ) : cervezas.length === 0 ? (
               <motion.div

@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { getImageUrl } from "@/lib/constants";
-import { Rating, Snackbar, Alert, Avatar } from "@mui/material";
+import { Rating, Snackbar, Alert, Avatar, CircularProgress } from "@mui/material";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -141,25 +141,24 @@ export default function DetalleCervezaPage() {
     }
   };
 
-  /* ─── Loading skeleton ─── */
+  /* ─── Loading state ─── */
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
         <Navbar />
         <div className="flex flex-1 items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div
-              className="h-16 w-16 animate-pulse rounded-2xl"
-              style={{ background: "var(--color-surface-card)" }}
+          <div className="flex flex-col items-center gap-3 text-center">
+            <CircularProgress
+              size={34}
+              sx={{ color: "var(--color-amber-primary)" }}
+              aria-label="Cargando cerveza"
             />
-            <div
-              className="h-3 w-40 animate-pulse rounded"
-              style={{ background: "var(--color-surface-card)" }}
-            />
-            <div
-              className="h-2 w-28 animate-pulse rounded"
-              style={{ background: "var(--color-surface-card)" }}
-            />
+            <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+              Cargando cerveza...
+            </p>
+            <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+              Estamos preparando los detalles.
+            </p>
           </div>
         </div>
         <Footer />

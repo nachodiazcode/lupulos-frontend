@@ -5,7 +5,6 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import {
   motion,
   AnimatePresence,
-  Reorder,
   useMotionValue,
   useTransform,
   animate as fmAnimate,
@@ -693,8 +692,6 @@ const LUGARES_WIDGET_REGISTRY = [
 ] as const;
 
 type LugarWidgetId = (typeof LUGARES_WIDGET_REGISTRY)[number]["id"];
-const DEFAULT_LUGAR_WIDGETS: LugarWidgetId[] = ["busqueda", "mapa", "spotlight"];
-const LUGARES_SIDEBAR_KEY = "lugares_sidebar_widgets_v1";
 
 export default function LugaresPage() {
   const [lugares, setLugares] = useState<Place[]>([]);
@@ -710,10 +707,8 @@ export default function LugaresPage() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [lugaresLoading, setLugaresLoading] = useState(true);
   const [usuario, setUsuario] = useState<{ _id: string; username: string } | null>(null);
-  const [sidebarDismissed, setSidebarDismissed] = useState(false);
-  const [enabledWidgets, setEnabledWidgets] = useState<LugarWidgetId[]>(DEFAULT_LUGAR_WIDGETS);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -722,20 +717,7 @@ export default function LugaresPage() {
     const user = localStorage.getItem("user");
     if (user) setUsuario(JSON.parse(user));
     fetchLugares();
-    const stored = localStorage.getItem(LUGARES_SIDEBAR_KEY);
-    if (stored) {
-      try { setEnabledWidgets(JSON.parse(stored) as LugarWidgetId[]); } catch {}
-    }
   }, []);
-
-  const toggleWidget = (id: LugarWidgetId) => {
-    setEnabledWidgets((prev) => {
-      const next = prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id];
-      localStorage.setItem(LUGARES_SIDEBAR_KEY, JSON.stringify(next));
-      if (next.length === LUGARES_WIDGET_REGISTRY.length) setPickerOpen(false);
-      return next;
-    });
-  };
 
   const renderLugarWidget = (id: LugarWidgetId): React.ReactNode => {
     const meta = LUGARES_WIDGET_REGISTRY.find((w) => w.id === id)!;
@@ -965,11 +947,68 @@ export default function LugaresPage() {
       }
 
       case "spotlight":
+        if (lugaresLoading) {
+          return (
+            <div className="flex flex-col p-0" style={{ minHeight: 396 }}>
+              <div
+                className="h-48 animate-pulse rounded-t-[inherit]"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(120,53,15,0.38), rgba(18,18,18,0.7))",
+                }}
+              />
+              <div className="flex flex-1 flex-col p-4">
+                <div
+                  className="h-3 w-28 animate-pulse rounded-full"
+                  style={{ background: "rgba(255,255,255,0.08)" }}
+                />
+                <div
+                  className="mt-3 h-7 w-40 animate-pulse rounded-full"
+                  style={{ background: "rgba(255,255,255,0.12)" }}
+                />
+                <div className="mt-4 space-y-2">
+                  <div
+                    className="h-3 w-full animate-pulse rounded-full"
+                    style={{ background: "rgba(255,255,255,0.08)" }}
+                  />
+                  <div
+                    className="h-3 w-5/6 animate-pulse rounded-full"
+                    style={{ background: "rgba(255,255,255,0.08)" }}
+                  />
+                  <div
+                    className="h-3 w-2/3 animate-pulse rounded-full"
+                    style={{ background: "rgba(255,255,255,0.08)" }}
+                  />
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[1, 2, 3].map((pill) => (
+                    <div
+                      key={pill}
+                      className="h-7 w-24 animate-pulse rounded-full"
+                      style={{ background: "rgba(251,191,36,0.08)" }}
+                    />
+                  ))}
+                </div>
+                <div className="mt-auto flex gap-2 pt-4">
+                  <div
+                    className="h-10 flex-1 animate-pulse rounded-full"
+                    style={{ background: "rgba(251,191,36,0.16)" }}
+                  />
+                  <div
+                    className="h-10 w-24 animate-pulse rounded-full"
+                    style={{ background: "rgba(255,255,255,0.08)" }}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        }
+
         if (!spotlightPlace) {
           return (
-            <div className="px-4 py-3">
+            <div className="flex flex-col px-4 py-3" style={{ minHeight: 396 }}>
               {widgetHeader}
-              <div className="flex flex-col items-center justify-center py-6 text-center">
+              <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
                 <span className="text-3xl">⭐</span>
                 <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin lugar destacado aún</p>
               </div>
@@ -977,7 +1016,7 @@ export default function LugaresPage() {
           );
         }
         return (
-          <div className="p-0">
+          <div className="flex flex-col p-0" style={{ minHeight: 396 }}>
             <div className="relative h-48 overflow-hidden rounded-t-[inherit]">
               {spotlightPlace.coverImage ? (
                 <Image
@@ -1013,7 +1052,7 @@ export default function LugaresPage() {
                 <h3 className="mt-1 text-2xl font-extrabold text-white">{spotlightPlace.name}</h3>
               </div>
             </div>
-            <div className="p-4">
+            <div className="flex flex-1 flex-col p-4">
               <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>{getPlaceSnippet(spotlightPlace)}</p>
               <p className="mt-3 text-[13px] leading-relaxed" style={{ color: "var(--color-text-primary)" }}>{spotlightEmotionalLine}</p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -1042,7 +1081,7 @@ export default function LugaresPage() {
                   {spotlightAverageRating.toFixed(1)} · {spotlightReviewCount} reseña{spotlightReviewCount === 1 ? "" : "s"}
                 </p>
               </div>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-auto flex gap-2 pt-4">
                 <button
                   onClick={() => handleNavigateToPlace(spotlightPlace._id)}
                   className="flex-1 rounded-full px-4 py-2 text-sm font-bold transition-all"
@@ -1213,6 +1252,7 @@ export default function LugaresPage() {
   };
 
   const fetchLugares = async () => {
+    setLugaresLoading(true);
     try {
       const res = await api.get(`/location`);
       const lugaresData = Array.isArray(res.data.data) ? res.data.data : [];
@@ -1220,6 +1260,8 @@ export default function LugaresPage() {
     } catch (error) {
       console.error("❌ Error al obtener lugares:", error);
       setLugares([]);
+    } finally {
+      setLugaresLoading(false);
     }
   };
 
@@ -1608,95 +1650,63 @@ export default function LugaresPage() {
         </div>
       </main>
 
-      {/* ─── Fixed Sidebar Widgets ─── */}
-      <AnimatePresence>
-        {!sidebarDismissed && (
-          <motion.aside
-            className="fixed z-40 hidden xl:flex flex-col"
-            style={{ top: 120, right: 16, width: 280, bottom: 16 }}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 32, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.3 }}
+      {/* ─── Featured Place Sidebar ─── */}
+      <motion.aside
+        className="fixed z-40 hidden xl:flex flex-col"
+        style={{ top: 120, right: 16, width: 280, bottom: 16 }}
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.3 }}
+      >
+        <div
+          className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden flex-1 pr-1"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(251,191,36,0.2) transparent" }}
+        >
+          <div className="px-1.5">
+            <span
+              className="text-[10px] font-bold uppercase tracking-[0.18em]"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              Lugar destacado
+            </span>
+            <p className="mt-1 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+              Dejamos una sola recomendación principal para que el foco esté en el spot más fuerte.
+            </p>
+          </div>
+
+          <div
+            className="relative overflow-hidden rounded-[1.5rem]"
+            style={{
+              background:
+                "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)",
+              backdropFilter: "blur(18px) saturate(1.15)",
+              WebkitBackdropFilter: "blur(18px) saturate(1.15)",
+              border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
+              boxShadow:
+                "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 6%, transparent), var(--shadow-elevated)",
+            }}
           >
-            <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden flex-1 pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(251,191,36,0.2) transparent" }}>
-              {/* Header */}
-              <div className="flex items-center justify-between px-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
-                <button type="button" onClick={() => setSidebarDismissed(true)} className="flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all" style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 75%, white 25%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }} aria-label="Cerrar panel">×</button>
-              </div>
-
-              {/* Reorderable widget cards */}
-              <Reorder.Group axis="y" values={enabledWidgets} onReorder={(newOrder) => { setEnabledWidgets(newOrder); localStorage.setItem(LUGARES_SIDEBAR_KEY, JSON.stringify(newOrder)); }} className="flex flex-col gap-2.5 list-none m-0 p-0">
-                <AnimatePresence initial={false} mode="popLayout">
-                  {enabledWidgets.map((id) => (
-                    <Reorder.Item key={id} value={id} initial={{ opacity: 0, scale: 0.95, y: -10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -10 }} transition={{ type: "spring", stiffness: 280, damping: 26 }} className="group/widget relative overflow-hidden rounded-[1.5rem] cursor-grab active:cursor-grabbing" style={{ background: "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)", backdropFilter: "blur(18px) saturate(1.15)", WebkitBackdropFilter: "blur(18px) saturate(1.15)", border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)", boxShadow: "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 6%, transparent), var(--shadow-elevated)", listStyle: "none" }}>
-                      <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
-                      <div className="pointer-events-none absolute inset-x-5 bottom-[1px] h-px" style={{ background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-light) 40%, transparent), transparent)", opacity: 0.6 }} aria-hidden="true" />
-                      <motion.button whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }} onClick={() => toggleWidget(id)} className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] opacity-0 group-hover/widget:opacity-100 transition-opacity duration-150" style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)", backdropFilter: "blur(8px)" }} aria-label="Quitar widget">{"\u2212"}</motion.button>
-                      {renderLugarWidget(id)}
-                    </Reorder.Item>
-                  ))}
-                </AnimatePresence>
-              </Reorder.Group>
-
-              {/* Empty state */}
-              {enabledWidgets.length === 0 && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center" style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}>
-                  <span className="text-3xl">📍</span>
-                  <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin widgets activos</p>
-                </motion.div>
-              )}
-
-              {/* Agregar widget button */}
-              {LUGARES_WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
-                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={() => setPickerOpen((v) => !v)} className="flex w-full items-center justify-center gap-2 rounded-2xl border py-2.5 text-[11px] font-semibold transition-all" style={{ borderColor: pickerOpen ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)", color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)", background: pickerOpen ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.03)" }}>
-                  <span className="text-base leading-none">{pickerOpen ? "\u2212" : "+"}</span>
-                  Agregar widget
-                </motion.button>
-              )}
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-
-      {/* ─── Widget Picker Card ─── */}
-      <AnimatePresence>
-        {!sidebarDismissed && pickerOpen && (
-          <motion.div className="fixed z-[60] hidden xl:block" style={{ top: 120, right: 304, width: 248 }} initial={{ opacity: 0, x: -16, scale: 0.96 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: -16, scale: 0.96 }} transition={{ type: "spring", stiffness: 260, damping: 24 }}>
-            <div className="relative overflow-hidden rounded-[1.75rem]" style={{ background: "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-deepest) 6%)", backdropFilter: "blur(22px) saturate(1.2)", WebkitBackdropFilter: "blur(22px) saturate(1.2)", border: "1px solid color-mix(in srgb, var(--color-border-amber) 38%, var(--color-border-light))", boxShadow: "inset 0 1px 0 color-mix(in srgb, white 18%, transparent), var(--shadow-elevated), 0 0 0 1px color-mix(in srgb, var(--color-amber-primary) 8%, transparent)" }}>
-              <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
-                  <p className="text-[9px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca para agregar al panel</p>
-                </div>
-                <button type="button" onClick={() => setPickerOpen(false)} className="flex h-7 w-7 items-center justify-center rounded-full border text-sm" style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}>×</button>
-              </div>
-              <div className="p-3 space-y-2">
-                <AnimatePresence mode="popLayout">
-                  {LUGARES_WIDGET_REGISTRY.filter((w) => !enabledWidgets.includes(w.id)).map((w) => (
-                    <motion.div key={w.id} layout initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.15 } }} transition={{ type: "spring", stiffness: 300, damping: 26 }} className="flex items-center gap-3 rounded-2xl p-3" style={{ background: "color-mix(in srgb, var(--color-surface-card-alt) 60%, transparent)", border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)" }}>
-                      <span className="text-xl leading-none">{w.emoji}</span>
-                      <span className="min-w-0 flex-1 text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>{w.label}</span>
-                      <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }} onClick={() => toggleWidget(w.id)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold" style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }} aria-label={`Agregar ${w.label}`}>+</motion.button>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                {LUGARES_WIDGET_REGISTRY.every((w) => enabledWidgets.includes(w.id)) && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-4 text-center">
-                    <span className="text-2xl">✨</span>
-                    <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Todos los widgets activos</p>
-                  </motion.div>
-                )}
-              </div>
-              <div className="pb-3 text-center">
-                <span className="text-[9px]" style={{ color: "var(--color-text-muted)", opacity: 0.45 }}>Los cambios se guardan automáticamente</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div
+              className="pointer-events-none absolute inset-0 rounded-[inherit]"
+              style={{
+                border:
+                  "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))",
+              }}
+              aria-hidden="true"
+            />
+            <div
+              className="pointer-events-none absolute inset-x-5 bottom-[1px] h-px"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-light) 40%, transparent), transparent)",
+                opacity: 0.6,
+              }}
+              aria-hidden="true"
+            />
+            {renderLugarWidget("spotlight")}
+          </div>
+        </div>
+      </motion.aside>
 
       <Footer />
 

@@ -1,148 +1,133 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 
 const LOADER_SESSION_KEY = "lupulos-loader-seen";
-const LOADER_MIN_DURATION_MS = 280;
+const LOADER_BADGE_DURATION_MS = process.env.NODE_ENV === "development" ? 0 : 1100;
+const LOADER_FADE_OUT_MS = 220;
 
-/* ─── Hop flower SVG ─── */
-function HopFlower() {
-  return (
-    <motion.svg
-      viewBox="0 0 60 60"
-      width="68"
-      height="68"
-      style={{ transformOrigin: "center" }}
-      animate={{ rotate: 360 }}
-      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-    >
-      {[0, 60, 120, 180, 240, 300].map((deg) => (
-        <g key={deg} transform={`rotate(${deg}, 30, 30)`}>
-          <ellipse
-            cx="30"
-            cy="17"
-            rx="5"
-            ry="11"
-            fill="var(--color-amber-primary, #fbbf24)"
-            fillOpacity={0.78}
-          />
-        </g>
-      ))}
-      <circle cx="30" cy="30" r="5.5" fill="var(--color-amber-primary, #fbbf24)" />
-    </motion.svg>
-  );
+const LOADER_MESSAGES = [
+  { language: "Español", message: "Sirviendo algo especial..." },
+  { language: "English", message: "Pouring something special..." },
+  { language: "Français", message: "On prépare quelque chose de bon." },
+  { language: "Italiano", message: "Sta arrivando qualcosa di buono." },
+  { language: "Deutsch", message: "Etwas Gutes kommt gleich ins Glas." },
+  { language: "Português", message: "Estamos servindo algo especial." },
+] as const;
+
+function getRandomMessageIndex() {
+  return Math.floor(Math.random() * LOADER_MESSAGES.length);
 }
 
-/* ─── Expanding ripple ring ─── */
-function Ripple({ delay }: { delay: number }) {
-  return (
-    <motion.span
-      className="absolute rounded-full"
-      style={{
-        inset: 0,
-        border: "1px solid color-mix(in srgb, var(--color-amber-primary) 28%, transparent)",
-      }}
-      animate={{ scale: [1, 2.5], opacity: [0.65, 0] }}
-      transition={{ duration: 2.4, repeat: Infinity, delay, ease: "easeOut" }}
-    />
-  );
-}
-
-/* ─── Main loader ─── */
 export default function AppLoader({ children }: { children: React.ReactNode }) {
-  const [done, setDone] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const messageIndex = useMemo(getRandomMessageIndex, []);
 
   useEffect(() => {
+    if (LOADER_BADGE_DURATION_MS === 0) return;
+
     try {
       if (sessionStorage.getItem(LOADER_SESSION_KEY) === "1") {
-        setDone(true);
         return;
       }
+
+      sessionStorage.setItem(LOADER_SESSION_KEY, "1");
     } catch {
-      // noop: sessionStorage can fail in restricted environments
+      return;
     }
 
-    const t = setTimeout(() => {
-      try {
-        sessionStorage.setItem(LOADER_SESSION_KEY, "1");
-      } catch {
-        // noop
-      }
-      setDone(true);
-    }, LOADER_MIN_DURATION_MS);
+    setIsVisible(true);
 
-    return () => clearTimeout(t);
+    const hideTimer = window.setTimeout(() => {
+      setIsLeaving(true);
+    }, LOADER_BADGE_DURATION_MS);
+
+    const unmountTimer = window.setTimeout(() => {
+      setIsVisible(false);
+      setIsLeaving(false);
+    }, LOADER_BADGE_DURATION_MS + LOADER_FADE_OUT_MS);
+
+    return () => {
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(unmountTimer);
+    };
   }, []);
+
+  const activeMessage = LOADER_MESSAGES[messageIndex];
 
   return (
     <>
-      <AnimatePresence>
-        {!done && (
-          <motion.div
-            key="app-loader"
-            className="fixed inset-0 flex flex-col items-center justify-center gap-8"
+      {children}
+
+      {isVisible ? (
+        <div
+          className={`pointer-events-none fixed inset-x-0 bottom-5 z-[99999] flex justify-center px-4 transition-all duration-200 ${
+            isLeaving ? "translate-y-2 opacity-0" : "translate-y-0 opacity-100"
+          }`}
+          aria-live="polite"
+          role="status"
+        >
+          <div
+            className="flex w-full max-w-sm items-center gap-4 rounded-[1.75rem] border px-4 py-3 shadow-2xl backdrop-blur-xl"
             style={{
-              background: "var(--gradient-hero)",
-              color: "var(--color-text-primary)",
-              zIndex: 99999,
+              background: "color-mix(in srgb, var(--color-surface-card) 88%, transparent)",
+              borderColor: "color-mix(in srgb, var(--color-border-light) 84%, transparent)",
+              boxShadow:
+                "0 24px 60px color-mix(in srgb, black 32%, transparent), inset 0 1px 0 color-mix(in srgb, white 12%, transparent)",
             }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div
-              className="flex flex-col items-center gap-8 rounded-[32px] px-10 py-10 backdrop-blur-2xl"
+            <span
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
               style={{
                 background:
-                  "color-mix(in srgb, var(--color-surface-card) 88%, transparent)",
-                border:
-                  "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
-                boxShadow:
-                  "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), var(--shadow-elevated)",
+                  "radial-gradient(circle, color-mix(in srgb, var(--color-amber-primary) 24%, transparent) 0%, transparent 72%)",
               }}
             >
-              {/* Spinner: hop flower + ripple rings */}
-              <div
-                className="relative flex items-center justify-center"
-                style={{ width: 112, height: 112 }}
+              <span
+                className="absolute inset-0 animate-ping rounded-full"
+                style={{
+                  animationDuration: "1.6s",
+                  border: "1px solid color-mix(in srgb, var(--color-amber-primary) 30%, transparent)",
+                }}
+              />
+              <span
+                className="block h-3.5 w-3.5 rounded-full"
+                style={{
+                  background: "var(--gradient-button-primary)",
+                  boxShadow:
+                    "0 0 18px color-mix(in srgb, var(--color-amber-primary) 66%, transparent)",
+                }}
+              />
+            </span>
+
+            <div className="min-w-0 flex-1">
+              <p
+                className="text-[0.7rem] font-black tracking-[0.28em] uppercase"
+                style={{ color: "var(--color-text-muted)" }}
               >
-                <Ripple delay={0} />
-                <Ripple delay={0.8} />
-                <Ripple delay={1.6} />
-                <HopFlower />
-              </div>
-
-              {/* Wordmark */}
-              <div className="flex flex-col items-center gap-2">
-                <motion.p
-                  className="text-[2rem] font-black tracking-[0.35em] uppercase"
-                  style={{
-                    background: "var(--gradient-heading, var(--gradient-button-primary))",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  LÚPULOS
-                </motion.p>
-                <motion.span
-                  className="text-[9px] tracking-[0.3em] uppercase"
-                  style={{ color: "var(--color-text-muted)" }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                >
-                  cargando…
-                </motion.span>
-              </div>
+                LUPULOS
+              </p>
+              <p
+                className="mt-1 truncate text-sm font-semibold"
+                style={{ color: "var(--color-text-primary)" }}
+              >
+                {activeMessage.message}
+              </p>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {children}
+            <span
+              className="hidden rounded-full px-2 py-1 text-[0.65rem] font-semibold tracking-[0.16em] uppercase sm:inline-flex"
+              style={{
+                background: "color-mix(in srgb, var(--color-amber-primary) 16%, transparent)",
+                color: "var(--color-amber-primary)",
+              }}
+            >
+              {activeMessage.language}
+            </span>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

@@ -1,28 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Outfit } from "next/font/google";
 import ThemeRegistry from "@/theme/ThemeRegistry";
 import { ReactQueryProvider } from "@/components/ReactQueryProvider";
 import AppLoader from "@/components/AppLoader";
 import { AuthProvider } from "@/context/AuthContext";
-import "leaflet/dist/leaflet.css";
 import "./globals.scss";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
 
 export const metadata: Metadata = {
   title: "Lúpulos App 🍺",
@@ -47,9 +28,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
-      >
+      <body className="antialiased">
         <AuthProvider>
           <ReactQueryProvider>
             <ThemeRegistry>

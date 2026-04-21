@@ -5,11 +5,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { Snackbar, Alert } from "@mui/material";
+import { Snackbar, Alert, CircularProgress } from "@mui/material";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { api, API_URL } from "@/lib/api";
+import useAuth from "@/hooks/useAuth";
+import { persistAuthSession, type StoredAuthUser } from "@/lib/auth-storage";
+import { normalizeStoredAuthUser } from "@/lib/auth-user";
+import { getImageUrl } from "@/lib/constants";
+import { api } from "@/lib/api";
 
 /* ═══════════════════════════════════════════
    Validation Schema
@@ -279,12 +284,126 @@ const fadeUp: Variants = {
   }),
 };
 
+type AuthLikeUser = Partial<StoredAuthUser> & {
+  id?: string;
+  city?: string;
+  country?: string;
+  sitioWeb?: string;
+  bio?: string;
+  pronombres?: string;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const pickFirstString = (...values: unknown[]): string | undefined => {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+
+  return undefined;
+};
+
+const resolveUserId = (user: AuthLikeUser | null | undefined): string | null =>
+  pickFirstString(user?._id, user?.id) ?? null;
+
+const extractProfileUser = (payload: unknown): Record<string, unknown> | null => {
+  if (!isRecord(payload)) return null;
+
+  const data = isRecord(payload.data) ? payload.data : payload;
+  if (isRecord(data.user)) return data.user;
+  return data;
+};
+
+const buildProfileFromPayload = (
+  payload: unknown,
+  fallbackUser: AuthLikeUser | null,
+): UserProfile | null => {
+  const source = extractProfileUser(payload);
+  const normalizedUser = normalizeStoredAuthUser(
+    { ...(fallbackUser ?? {}), ...(source ?? {}) },
+    resolveUserId(fallbackUser) ?? undefined,
+  );
+
+  if (!normalizedUser) return null;
+
+  return {
+    _id: normalizedUser._id,
+    username: pickFirstString(source?.username, normalizedUser.username, normalizedUser.name) ?? "",
+    email: pickFirstString(source?.email, normalizedUser.email) ?? "",
+    ciudad:
+      pickFirstString(
+        source?.ciudad,
+        source?.city,
+        fallbackUser?.ciudad,
+        fallbackUser?.city,
+      ) ?? "",
+    pais:
+      pickFirstString(
+        source?.pais,
+        source?.country,
+        fallbackUser?.pais,
+        fallbackUser?.country,
+      ) ?? "",
+    sitioWeb: pickFirstString(source?.sitioWeb, fallbackUser?.sitioWeb) ?? "",
+    bio: pickFirstString(source?.bio, fallbackUser?.bio) ?? "",
+    pronombres: pickFirstString(source?.pronombres, fallbackUser?.pronombres) ?? "",
+    fotoPerfil:
+      pickFirstString(
+        source?.fotoPerfil,
+        source?.photo,
+        source?.profilePicture,
+        normalizedUser.fotoPerfil,
+        normalizedUser.photo,
+        normalizedUser.profilePicture,
+      ) ?? "",
+  };
+};
+
+const toStoredUser = (
+  profile: UserProfile,
+  fallbackUser: AuthLikeUser | null,
+): StoredAuthUser & Record<string, unknown> => {
+  const normalized = normalizeStoredAuthUser(
+    {
+      ...(fallbackUser ?? {}),
+      ...profile,
+      fotoPerfil: profile.fotoPerfil,
+      photo: profile.fotoPerfil,
+      profilePicture: profile.fotoPerfil,
+      ciudad: profile.ciudad,
+      city: profile.ciudad,
+      pais: profile.pais,
+      country: profile.pais,
+    },
+    profile._id,
+  );
+
+  return {
+    ...(normalized ?? { _id: profile._id, id: profile._id }),
+    username: profile.username,
+    email: profile.email,
+    fotoPerfil: profile.fotoPerfil,
+    photo: profile.fotoPerfil,
+    profilePicture: profile.fotoPerfil,
+    ciudad: profile.ciudad,
+    city: profile.ciudad,
+    pais: profile.pais,
+    country: profile.pais,
+    sitioWeb: profile.sitioWeb,
+    bio: profile.bio,
+    pronombres: profile.pronombres,
+  };
+};
+
 /* ═══════════════════════════════════════════
    Shared field input classes
    ═══════════════════════════════════════════ */
 
 const inputBase =
-  "w-full rounded-lg border px-3.5 py-2.5 text-sm text-white/90 placeholder-white/20 transition-all duration-300 focus:outline-none";
+  "w-full rounded-lg border px-3.5 py-2.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] transition-all duration-300 focus:outline-none";
 
 const inputNormal =
   "border-white/[0.06] bg-white/[0.03] hover:border-emerald-400/20 hover:bg-white/[0.04] focus:border-emerald-400/50 focus:bg-white/[0.05] focus:shadow-[0_0_20px_rgba(52,211,153,0.12),0_0_4px_rgba(52,211,153,0.15)]";
@@ -297,6 +416,8 @@ const inputError =
    ═══════════════════════════════════════════ */
 
 export default function PerfilPage() {
+  const router = useRouter();
+  const { user: authUser, token, isAuthReady, setUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -312,6 +433,7 @@ export default function PerfilPage() {
     severity: "success",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const currentUser = (authUser as AuthLikeUser | null) ?? null;
 
   const {
     register,
@@ -326,47 +448,59 @@ export default function PerfilPage() {
 
   const bioValue = watch("bio");
 
+  const syncAuthSession = useCallback(
+    (nextProfile: UserProfile) => {
+      if (!token) return;
+
+      const nextUser = toStoredUser(nextProfile, currentUser);
+      persistAuthSession({ token, user: nextUser });
+      setUser(nextUser);
+    },
+    [currentUser, setUser, token],
+  );
+
   /* ─── Fetch profile ─── */
   useEffect(() => {
+    if (!isAuthReady) return;
+
+    const userId = resolveUserId(currentUser);
+    if (!userId || !token) {
+      setLoading(false);
+      router.replace("/auth/login");
+      return;
+    }
+
+    let alive = true;
+
     const fetchProfile = async () => {
       try {
-        const userStr = localStorage.getItem("user");
-        const token = localStorage.getItem("authToken");
-        if (!userStr || !token) return;
+        const { data } = await api.get(`/auth/perfil/${userId}`);
+        const nextProfile = buildProfileFromPayload(data, currentUser);
 
-        const user = JSON.parse(userStr);
-        const { data } = await api.get(`/auth/perfil/${user._id}`);
+        if (!alive || !nextProfile) return;
 
-        if (data.success) {
-          const u: UserProfile = {
-            _id: data.user?.id ?? data.user?._id,
-            username: data.user?.username ?? "",
-            email: data.user?.email ?? "",
-            ciudad: data.user?.ciudad ?? "",
-            pais: data.user?.pais ?? "",
-            sitioWeb: data.user?.sitioWeb ?? "",
-            bio: data.user?.bio ?? "",
-            pronombres: data.user?.pronombres ?? "",
-            fotoPerfil: data.user?.photo ?? "",
-          };
-          setProfile(u);
-          reset({
-            username: u.username,
-            ciudad: u.ciudad ?? "",
-            pais: u.pais ?? "",
-            sitioWeb: u.sitioWeb ?? "",
-            bio: u.bio ?? "",
-            pronombres: u.pronombres ?? "",
-          });
-        }
+        setProfile(nextProfile);
+        reset({
+          username: nextProfile.username,
+          ciudad: nextProfile.ciudad ?? "",
+          pais: nextProfile.pais ?? "",
+          sitioWeb: nextProfile.sitioWeb ?? "",
+          bio: nextProfile.bio ?? "",
+          pronombres: nextProfile.pronombres ?? "",
+        });
       } catch {
-        showToast("Error al cargar el perfil", "error");
+        if (alive) showToast("Error al cargar el perfil", "error");
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     };
+
     fetchProfile();
-  }, [reset]);
+
+    return () => {
+      alive = false;
+    };
+  }, [currentUser, isAuthReady, reset, router, token]);
 
   /* ─── Helpers ─── */
   const showToast = (message: string, severity: "success" | "error") => {
@@ -376,9 +510,7 @@ export default function PerfilPage() {
   const getAvatarUrl = useCallback(() => {
     const foto = profile?.fotoPerfil;
     if (!foto) return null;
-    if (foto.startsWith("http")) return foto;
-    if (foto.startsWith("/uploads")) return `${API_URL.replace(/\/api$/, "")}${foto}`;
-    return foto;
+    return getImageUrl(foto);
   }, [profile?.fotoPerfil]);
 
   /* ─── Save profile ─── */
@@ -389,7 +521,7 @@ export default function PerfilPage() {
       await api.put(`/auth/perfil/${profile._id}`, formData);
       const updated = { ...profile, ...formData };
       setProfile(updated);
-      localStorage.setItem("user", JSON.stringify(updated));
+      syncAuthSession(updated);
       setEditMode(false);
       showToast("Perfil actualizado correctamente", "success");
     } catch {
@@ -422,7 +554,7 @@ export default function PerfilPage() {
         await api.put(`/auth/perfil/${profile._id}`, { fotoPerfil: ruta });
         const updated = { ...profile, fotoPerfil: ruta };
         setProfile(updated);
-        localStorage.setItem("user", JSON.stringify(updated));
+        syncAuthSession(updated);
         showToast("Foto actualizada", "success");
       }
     } catch {
@@ -449,13 +581,24 @@ export default function PerfilPage() {
   /* ─── Loading state ─── */
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col" style={{ background: "#111214" }}>
+      <div
+        className="flex min-h-screen flex-col"
+        style={{ background: "var(--color-surface-deepest)" }}
+      >
         <Navbar />
         <div className="flex flex-1 items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-16 w-16 animate-pulse rounded-full bg-white/5" />
-            <div className="h-3 w-40 animate-pulse rounded bg-white/5" />
-            <div className="h-2 w-28 animate-pulse rounded bg-white/5" />
+          <div className="flex flex-col items-center gap-3 text-center">
+            <CircularProgress
+              size={34}
+              sx={{ color: "var(--color-amber-primary)" }}
+              aria-label="Cargando perfil"
+            />
+            <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+              Cargando perfil...
+            </p>
+            <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+              Estamos preparando tu información.
+            </p>
           </div>
         </div>
       </div>
@@ -469,7 +612,10 @@ export default function PerfilPage() {
      ═══════════════════════════════════════════ */
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "#111214" }}>
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ background: "var(--color-surface-deepest)", color: "var(--color-text-primary)" }}
+    >
       <Navbar />
 
       <main className="flex-1 px-4 py-8 sm:py-12">
@@ -484,20 +630,22 @@ export default function PerfilPage() {
               transition={{ duration: 0.5 }}
               className="relative overflow-hidden rounded-2xl"
               style={{
-                boxShadow: "0 0 40px rgba(52,211,153,0.04), 0 16px 40px rgba(0,0,0,0.3)",
+                boxShadow:
+                  "var(--shadow-emerald-glow-sm), 0 16px 40px color-mix(in srgb, var(--color-surface-overlay) 65%, transparent)",
               }}
             >
               {/* Banner with neon glow */}
               <div
                 className="relative h-32 overflow-hidden sm:h-36"
                 style={{
-                  background: "linear-gradient(135deg, #1a1d20 0%, #16181c 50%, #1a1d20 100%)",
+                  background:
+                    "linear-gradient(135deg, var(--color-surface-card) 0%, var(--color-surface-card-alt) 50%, var(--color-surface-card) 100%)",
                 }}
               >
                 {/* Neon streak */}
                 <div
                   className="absolute -top-20 left-1/4 h-40 w-80 rotate-12 rounded-full opacity-30 blur-3xl"
-                  style={{ background: "linear-gradient(90deg, #34d399, #10b981, transparent)" }}
+                  style={{ background: "linear-gradient(90deg, var(--color-emerald), var(--color-emerald-dark), transparent)" }}
                 />
                 <div
                   className="absolute right-1/4 -bottom-10 h-32 w-64 -rotate-6 rounded-full opacity-20 blur-3xl"
@@ -529,7 +677,7 @@ export default function PerfilPage() {
               {/* Bottom section */}
               <div
                 className="flex flex-col gap-4 px-6 pb-5 sm:flex-row sm:items-end sm:justify-between sm:px-8"
-                style={{ background: "#1a1d20", marginTop: -1 }}
+                style={{ background: "var(--color-surface-card)", marginTop: -1 }}
               >
                 {/* Avatar + info */}
                 <div className="flex items-end gap-4">
@@ -538,10 +686,11 @@ export default function PerfilPage() {
                       <div
                         className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-[3px] sm:h-24 sm:w-24"
                         style={{
-                          borderColor: "#34d399",
-                          background: "linear-gradient(135deg, #1e2124, #16181c)",
+                          borderColor: "var(--color-emerald)",
+                          background:
+                            "linear-gradient(135deg, var(--color-surface-elevated), var(--color-surface-card-alt))",
                           boxShadow:
-                            "0 0 20px rgba(52,211,153,0.15), 0 0 0 4px #111214, 0 8px 24px rgba(0,0,0,0.5)",
+                            "var(--shadow-emerald-glow), 0 0 0 4px var(--color-surface-deepest), 0 8px 24px color-mix(in srgb, var(--color-surface-overlay) 76%, transparent)",
                         }}
                       >
                         {avatarUrl ? (
@@ -602,9 +751,9 @@ export default function PerfilPage() {
                       <div
                         className="absolute -right-0.5 -bottom-0.5 h-4 w-4 rounded-full border-[3px]"
                         style={{
-                          background: "#34d399",
-                          borderColor: "#111214",
-                          boxShadow: "0 0 8px rgba(52,211,153,0.5)",
+                          background: "var(--color-emerald)",
+                          borderColor: "var(--color-surface-deepest)",
+                          boxShadow: "var(--shadow-emerald-glow-sm)",
                         }}
                       />
                       <input
@@ -617,10 +766,15 @@ export default function PerfilPage() {
                     </div>
                   </div>
                   <div className="pb-1">
-                    <h1 className="text-lg font-bold text-white sm:text-xl">
+                    <h1
+                      className="text-lg font-bold sm:text-xl"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
                       {profile?.username || "Cervecero"}
                     </h1>
-                    <p className="text-xs text-white/35">{profile?.email}</p>
+                    <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                      {profile?.email}
+                    </p>
                   </div>
                 </div>
 
@@ -634,7 +788,14 @@ export default function PerfilPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         onClick={handleCancelEdit}
-                        className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white/50 transition-all hover:bg-white/10 hover:text-white/80"
+                        className="rounded-lg border px-4 py-2 text-xs font-medium transition-all hover:brightness-105"
+                        style={{
+                          borderColor:
+                            "color-mix(in srgb, var(--color-border-light) 78%, transparent)",
+                          background:
+                            "color-mix(in srgb, var(--color-surface-card-alt) 88%, transparent)",
+                          color: "var(--color-text-secondary)",
+                        }}
                       >
                         Cancelar edición
                       </motion.button>
@@ -645,10 +806,12 @@ export default function PerfilPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         onClick={() => setEditMode(true)}
-                        className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-all hover:brightness-110"
+                        className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-all hover:brightness-110"
                         style={{
-                          background: "linear-gradient(135deg, #059669, #10b981)",
-                          boxShadow: "0 0 12px rgba(52,211,153,0.25), 0 2px 8px rgba(0,0,0,0.3)",
+                          background: "var(--gradient-emerald)",
+                          color: "var(--color-text-dark)",
+                          boxShadow:
+                            "var(--shadow-emerald-glow-sm), 0 2px 8px color-mix(in srgb, var(--color-surface-overlay) 65%, transparent)",
                         }}
                       >
                         {icons.pen}
@@ -679,10 +842,11 @@ export default function PerfilPage() {
               <div
                 className="relative rounded-2xl border p-5 sm:p-7"
                 style={{
-                  background: "#1a1d20",
-                  borderColor: "rgba(52,211,153,0.08)",
+                  background:
+                    "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 96%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 92%, transparent))",
+                  borderColor: "color-mix(in srgb, var(--color-border-emerald) 90%, transparent)",
                   boxShadow:
-                    "0 0 30px rgba(52,211,153,0.03), 0 16px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03)",
+                    "0 0 30px color-mix(in srgb, var(--color-emerald) 12%, transparent), var(--shadow-card), inset 0 1px 0 color-mix(in srgb, var(--color-text-primary) 5%, transparent)",
                 }}
               >
                 {/* Header */}
@@ -697,8 +861,13 @@ export default function PerfilPage() {
                     {icons.hop}
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold text-white">Información personal</h2>
-                    <p className="text-xs text-white/30">
+                    <h2
+                      className="text-sm font-semibold"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      Información personal
+                    </h2>
+                    <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                       {editMode
                         ? "Los campos se validan automáticamente."
                         : "Tu perfil público en la comunidad cervecera."}
@@ -734,7 +903,7 @@ export default function PerfilPage() {
                                 className={`text-[10px] tabular-nums ${
                                   (value?.length ?? 0) > field.maxLength * 0.9
                                     ? "text-red-400/70"
-                                    : "text-white/15"
+                                    : "text-[var(--color-text-subtle)]"
                                 }`}
                               >
                                 {value?.length ?? 0}/{field.maxLength}
@@ -789,11 +958,15 @@ export default function PerfilPage() {
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.15 }}
                                 className={`rounded-lg border px-3.5 py-2.5 text-sm ${
-                                  value ? "text-white/80" : "text-white/20 italic"
+                                  value
+                                    ? "text-[var(--color-text-secondary)]"
+                                    : "text-[var(--color-text-subtle)] italic"
                                 }`}
                                 style={{
-                                  background: "rgba(255,255,255,0.02)",
-                                  borderColor: "rgba(255,255,255,0.04)",
+                                  background:
+                                    "color-mix(in srgb, var(--color-surface-card-alt) 82%, transparent)",
+                                  borderColor:
+                                    "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
                                 }}
                               >
                                 {value || "Sin especificar"}
@@ -819,9 +992,15 @@ export default function PerfilPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 8 }}
                         className="mt-6 flex flex-col-reverse items-stretch gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between"
-                        style={{ borderColor: "rgba(52,211,153,0.06)" }}
+                        style={{
+                          borderColor:
+                            "color-mix(in srgb, var(--color-border-emerald) 70%, transparent)",
+                        }}
                       >
-                        <div className="flex items-center gap-1.5 text-[11px] text-white/20">
+                        <div
+                          className="flex items-center gap-1.5 text-[11px]"
+                          style={{ color: "var(--color-text-subtle)" }}
+                        >
                           <span className="text-emerald-400/40">{icons.shield}</span>
                           Validación activa
                         </div>
@@ -829,7 +1008,14 @@ export default function PerfilPage() {
                           <button
                             type="button"
                             onClick={handleCancelEdit}
-                            className="rounded-lg border border-white/8 px-4 py-2 text-xs font-medium text-white/40 transition-all hover:bg-white/5 hover:text-white/70"
+                            className="rounded-lg border px-4 py-2 text-xs font-medium transition-all hover:brightness-105"
+                            style={{
+                              borderColor:
+                                "color-mix(in srgb, var(--color-border-light) 76%, transparent)",
+                              background:
+                                "color-mix(in srgb, var(--color-surface-card-alt) 84%, transparent)",
+                              color: "var(--color-text-secondary)",
+                            }}
                           >
                             Cancelar
                           </button>
@@ -841,11 +1027,13 @@ export default function PerfilPage() {
                             className="rounded-lg px-5 py-2 text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-30"
                             style={{
                               background: isDirty
-                                ? "linear-gradient(135deg, #34d399, #10b981)"
-                                : "rgba(255,255,255,0.06)",
-                              color: isDirty ? "#000" : "rgba(255,255,255,0.25)",
+                                ? "var(--gradient-emerald)"
+                                : "color-mix(in srgb, var(--color-surface-card-alt) 88%, transparent)",
+                              color: isDirty
+                                ? "var(--color-text-dark)"
+                                : "var(--color-text-subtle)",
                               boxShadow: isDirty
-                                ? "0 0 20px rgba(52,211,153,0.3), 0 4px 12px rgba(0,0,0,0.3)"
+                                ? "var(--shadow-emerald-glow), 0 4px 12px color-mix(in srgb, var(--color-surface-overlay) 65%, transparent)"
                                 : "none",
                             }}
                           >
@@ -896,9 +1084,11 @@ export default function PerfilPage() {
             <div
               className="rounded-2xl border p-5"
               style={{
-                background: "#1a1d20",
-                borderColor: "rgba(52,211,153,0.06)",
-                boxShadow: "0 0 20px rgba(52,211,153,0.02), 0 8px 24px rgba(0,0,0,0.15)",
+                background:
+                  "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 96%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 92%, transparent))",
+                borderColor: "color-mix(in srgb, var(--color-border-emerald) 72%, transparent)",
+                boxShadow:
+                  "0 0 20px color-mix(in srgb, var(--color-emerald) 10%, transparent), 0 8px 24px color-mix(in srgb, var(--color-surface-overlay) 58%, transparent)",
               }}
             >
               <div className="mb-3 flex items-center gap-2">
@@ -911,7 +1101,9 @@ export default function PerfilPage() {
                 >
                   {icons.shield}
                 </div>
-                <h3 className="text-xs font-semibold text-white/70">Seguridad</h3>
+                <h3 className="text-xs font-semibold" style={{ color: "var(--color-text-secondary)" }}>
+                  Seguridad
+                </h3>
               </div>
               <ul className="space-y-2.5">
                 {[
@@ -923,7 +1115,12 @@ export default function PerfilPage() {
                 ].map((item) => (
                   <li key={item.text} className="flex items-start gap-2">
                     <span className="mt-0.5 text-xs">{item.icon}</span>
-                    <span className="text-[11px] leading-relaxed text-white/30">{item.text}</span>
+                    <span
+                      className="text-[11px] leading-relaxed"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      {item.text}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -933,9 +1130,11 @@ export default function PerfilPage() {
             <div
               className="rounded-2xl border p-5"
               style={{
-                background: "#1a1d20",
-                borderColor: "rgba(251,191,36,0.06)",
-                boxShadow: "0 0 20px rgba(251,191,36,0.02), 0 8px 24px rgba(0,0,0,0.15)",
+                background:
+                  "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 96%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 92%, transparent))",
+                borderColor: "color-mix(in srgb, var(--color-border-amber) 68%, transparent)",
+                boxShadow:
+                  "0 0 20px color-mix(in srgb, var(--color-amber-primary) 10%, transparent), 0 8px 24px color-mix(in srgb, var(--color-surface-overlay) 58%, transparent)",
               }}
             >
               <div className="mb-3 flex items-center gap-2">
@@ -959,16 +1158,20 @@ export default function PerfilPage() {
                     <path d="M12 20V10M18 20V4M6 20v-4" />
                   </svg>
                 </div>
-                <h3 className="text-xs font-semibold text-white/70">Tu actividad</h3>
+                <h3 className="text-xs font-semibold" style={{ color: "var(--color-text-secondary)" }}>
+                  Tu actividad
+                </h3>
               </div>
               <div className="space-y-3">
                 {[
                   { label: "Cervezas reseñadas", value: "—", color: "var(--color-amber-primary)" },
                   { label: "Bares visitados", value: "—", color: "var(--color-amber-hover)" },
-                  { label: "Posts publicados", value: "—", color: "#34d399" },
+                  { label: "Posts publicados", value: "—", color: "var(--color-emerald)" },
                 ].map((stat) => (
                   <div key={stat.label} className="flex items-center justify-between">
-                    <span className="text-[11px] text-white/30">{stat.label}</span>
+                    <span className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+                      {stat.label}
+                    </span>
                     <span
                       className="text-sm font-bold"
                       style={{ color: stat.color, textShadow: `0 0 10px ${stat.color}40` }}
@@ -984,12 +1187,13 @@ export default function PerfilPage() {
             <div
               className="rounded-2xl border p-5"
               style={{
-                background: "linear-gradient(135deg, rgba(52,211,153,0.03), rgba(16,185,129,0.02))",
-                borderColor: "rgba(52,211,153,0.08)",
+                background:
+                  "linear-gradient(135deg, color-mix(in srgb, var(--color-emerald) 8%, transparent), color-mix(in srgb, var(--color-emerald-dark) 6%, transparent))",
+                borderColor: "color-mix(in srgb, var(--color-border-emerald) 78%, transparent)",
               }}
             >
-              <p className="text-[11px] leading-relaxed text-emerald-400/50">
-                💡 <span className="font-medium text-emerald-400/70">Tip:</span> Completa tu perfil
+              <p className="text-[11px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+                💡 <span className="font-medium" style={{ color: "var(--color-emerald)" }}>Tip:</span> Completa tu perfil
                 para aparecer en las recomendaciones de la comunidad y conectar con otros
                 cerveceros.
               </p>
@@ -1013,10 +1217,11 @@ export default function PerfilPage() {
             borderRadius: "10px",
             fontWeight: 600,
             fontSize: "0.8rem",
-            backgroundColor: toast.severity === "success" ? "#059669" : "#dc2626",
+            backgroundColor:
+              toast.severity === "success" ? "var(--color-emerald-darker)" : "#dc2626",
             boxShadow:
               toast.severity === "success"
-                ? "0 0 20px rgba(52,211,153,0.3)"
+                ? "var(--shadow-emerald-glow)"
                 : "0 0 20px rgba(220,38,38,0.3)",
           }}
         >

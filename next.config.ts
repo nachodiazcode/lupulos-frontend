@@ -7,11 +7,12 @@ const apiProxyTarget = normalizeApiTarget(process.env.API_PROXY_TARGET);
 const nextConfig: NextConfig = {
   reactStrictMode: false,
 
-  // Suppress Sass @import deprecation — Tailwind v4 requires `@import "tailwindcss"`
-  // which Sass flags as deprecated. This is harmless; the import is processed by
-  // PostCSS (Tailwind's plugin), not by Sass itself.
+  // Suppress Sass deprecations that are currently expected in our toolchain:
+  // - `import`: Tailwind v4 still uses `@import "tailwindcss"` in globals.scss
+  // - `legacy-js-api`: emitted by the Sass loader path Next/Webpack still uses
+  // Both are harmless for the app and just add noise to local dev/build logs.
   sassOptions: {
-    silenceDeprecations: ["import"],
+    silenceDeprecations: ["import", "legacy-js-api"],
   },
 
   experimental: {
@@ -20,7 +21,6 @@ const nextConfig: NextConfig = {
       "@mui/icons-material",
       "@emotion/react",
       "@emotion/styled",
-      "framer-motion",
     ],
   },
 

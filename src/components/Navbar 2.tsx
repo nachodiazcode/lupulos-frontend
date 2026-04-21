@@ -143,17 +143,61 @@ export default function Navbar() {
           boxShadow: scrolled ? "var(--navbar-shadow)" : "none",
         }}
       >
-        <div className="mx-auto hidden h-16 max-w-7xl items-center justify-between gap-3 px-6 xl:flex">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 lg:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <Link href="/" className="hidden items-center gap-2.5 xl:flex">
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Abrir menú de navegación"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border transition-all lg:hidden"
+              style={{
+                color: "var(--color-text-secondary)",
+                borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
+                background:
+                  "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 92%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 88%, transparent))",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
+              }}
+            >
+              <MenuRoundedIcon fontSize="small" />
+            </button>
+
+            <Link href="/" className="hidden items-center gap-2.5 lg:flex">
               <span className="text-text-primary text-base font-extrabold tracking-tight">
                 Lúpulos
                 <span className="text-amber-primary/80 ml-1">App</span>
               </span>
             </Link>
+
+            <div className="flex min-w-0 items-center gap-3 lg:hidden">
+              <Link
+                href="/"
+                aria-label="Ir al inicio"
+                className="flex h-10 w-10 items-center justify-center rounded-2xl border text-base font-black"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-border-amber) 62%, transparent)",
+                  background:
+                    "radial-gradient(circle at top, rgba(251,191,36,0.18), transparent 68%), color-mix(in srgb, var(--color-surface-card) 94%, transparent)",
+                  color: "var(--color-amber-primary)",
+                  boxShadow: "var(--shadow-amber-glow)",
+                }}
+              >
+                L
+              </Link>
+              <div className="min-w-0">
+                <p
+                  className="truncate text-sm font-bold"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {activeNavItem.text}
+                </p>
+                <p className="truncate text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+                  {activeNavItem.description}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="hidden items-center gap-1 xl:flex">
+          <div className="hidden items-center gap-1 lg:flex">
             {navItems.map((item) => {
               const isActive = isRouteActive(pathname, item.href);
 
@@ -221,31 +265,91 @@ export default function Navbar() {
             <ThemeSwitcher />
 
             {usuario ? (
-              <Tooltip title={usuario.username ?? "Usuario"}>
-                <button
-                  type="button"
-                  onClick={(e) => setAnchorEl(e.currentTarget)}
-                  className="hover:ring-amber-primary/30 relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full transition-all hover:ring-2"
-                  style={{
-                    border: "2px solid var(--color-border-amber)",
-                    boxShadow: "var(--shadow-amber-glow)",
+              <>
+                <Tooltip title={usuario.username ?? "Usuario"}>
+                  <button
+                    type="button"
+                    onClick={(e) => setAnchorEl(e.currentTarget)}
+                    className="hover:ring-amber-primary/30 relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full transition-all hover:ring-2"
+                    style={{
+                      border: "2px solid var(--color-border-amber)",
+                      boxShadow: "var(--shadow-amber-glow)",
+                    }}
+                  >
+                    {getAvatarSrc(usuario.fotoPerfil) ? (
+                      <Image
+                        src={getAvatarSrc(usuario.fotoPerfil)!}
+                        alt={usuario.username ?? "usuario"}
+                        width={40}
+                        height={40}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-amber-primary text-xs font-bold">
+                        {getInitial(usuario)}
+                      </span>
+                    )}
+                  </button>
+                </Tooltip>
+
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={() => setAnchorEl(null)}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        mt: 1,
+                        backgroundColor: "var(--color-surface-card)",
+                        border: "1px solid var(--color-border-amber)",
+                        borderRadius: "12px",
+                        boxShadow: "var(--shadow-elevated)",
+                        minWidth: 180,
+                      },
+                    },
                   }}
                 >
-                  {getAvatarSrc(usuario.fotoPerfil) ? (
-                    <Image
-                      src={getAvatarSrc(usuario.fotoPerfil)!}
-                      alt={usuario.username ?? "usuario"}
-                      width={40}
-                      height={40}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-amber-primary text-xs font-bold">
-                      {getInitial(usuario)}
-                    </span>
-                  )}
-                </button>
-              </Tooltip>
+                  <MenuItem
+                    onClick={() => {
+                      setAnchorEl(null);
+                      router.push("/auth/perfil");
+                    }}
+                    sx={{
+                      color: "var(--color-text-primary)",
+                      fontSize: "0.85rem",
+                      py: 1.2,
+                      "&:hover": { backgroundColor: "var(--color-border-subtle)" },
+                    }}
+                  >
+                    <ListItemIcon>
+                      <AccountCircleIcon
+                        sx={{ color: "var(--color-amber-primary)", fontSize: 20 }}
+                      />
+                    </ListItemIcon>
+                    Mi perfil
+                  </MenuItem>
+                  <Divider sx={{ borderColor: "var(--color-border-subtle)" }} />
+                  <MenuItem
+                    onClick={handleLogout}
+                    sx={{
+                      color: "var(--color-text-muted)",
+                      fontSize: "0.85rem",
+                      py: 1.2,
+                      "&:hover": {
+                        backgroundColor: "rgba(239,68,68,0.06)",
+                        color: "#ef4444",
+                      },
+                    }}
+                  >
+                    <ListItemIcon>
+                      <LogoutIcon sx={{ color: "var(--color-text-subtle)", fontSize: 20 }} />
+                    </ListItemIcon>
+                    Cerrar sesión
+                  </MenuItem>
+                </Menu>
+              </>
             ) : isAuthReady ? (
               <>
                 <Link
@@ -285,213 +389,6 @@ export default function Navbar() {
             ) : null}
           </div>
         </div>
-
-        <div className="mx-auto grid h-14 max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3.5 md:h-[3.75rem] md:px-4 xl:hidden">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(true)}
-              aria-label="Abrir menú de navegación"
-              className="flex h-9 w-9 items-center justify-center rounded-[1.1rem] border transition-all md:hidden"
-              style={{
-                color: "var(--color-text-secondary)",
-                borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
-                background:
-                  "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 92%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 88%, transparent))",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
-              }}
-            >
-              <MenuRoundedIcon fontSize="small" />
-            </button>
-
-            <Link
-              href="/"
-              aria-label="Ir al inicio"
-              className="hidden h-9 w-9 items-center justify-center rounded-[1.1rem] border text-[15px] font-black md:flex"
-              style={{
-                borderColor: "color-mix(in srgb, var(--color-border-amber) 62%, transparent)",
-                background:
-                  "radial-gradient(circle at top, rgba(251,191,36,0.18), transparent 68%), color-mix(in srgb, var(--color-surface-card) 94%, transparent)",
-                color: "var(--color-amber-primary)",
-                boxShadow: "var(--shadow-amber-glow)",
-              }}
-            >
-              L
-            </Link>
-          </div>
-
-          <div className="min-w-0">
-            <div className="mx-auto max-w-[17.5rem] text-center md:max-w-[24rem]">
-              <p
-                className="truncate text-[15px] font-bold md:text-[16px]"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                {activeNavItem.text}
-              </p>
-              <p
-                className="truncate text-[10px] md:text-[11px]"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                {activeNavItem.description}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-2">
-            <div className="h-9 w-9 md:hidden" aria-hidden="true" />
-
-            <div className="hidden items-center gap-2 md:flex">
-              <div
-                className="flex items-center gap-1 rounded-[1.2rem] border p-[4px]"
-                style={{
-                  background:
-                    "linear-gradient(180deg, color-mix(in srgb, var(--navbar-bg-scrolled) 94%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 92%, transparent))",
-                  borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.14)",
-                }}
-              >
-                {navItems.map((item) => {
-                  const isActive = isRouteActive(pathname, item.href);
-
-                  return (
-                    <Tooltip key={item.text} title={item.text}>
-                      <Link
-                        href={item.href}
-                        aria-current={isActive ? "page" : undefined}
-                        className="relative flex h-9 w-9 items-center justify-center rounded-[0.95rem] transition-all duration-200"
-                        style={{
-                          color: isActive
-                            ? "var(--color-amber-primary)"
-                            : "var(--color-text-secondary)",
-                        }}
-                      >
-                        {isActive ? (
-                          <motion.span
-                            layoutId="tablet-nav-active-pill"
-                            className="absolute inset-0 rounded-[0.95rem]"
-                            style={{
-                              background:
-                                "linear-gradient(180deg, color-mix(in srgb, var(--color-border-subtle) 100%, transparent), color-mix(in srgb, var(--color-border-subtle) 68%, transparent))",
-                              boxShadow:
-                                "inset 0 0 0 1px color-mix(in srgb, var(--color-border-amber) 76%, transparent), 0 0 18px rgba(251,191,36,0.14)",
-                            }}
-                            transition={{ type: "spring", stiffness: 360, damping: 32 }}
-                          />
-                        ) : null}
-
-                        <span className="relative z-10 flex items-center justify-center">
-                          {item.icon}
-                        </span>
-                      </Link>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-
-              <ThemeSwitcher />
-
-              {usuario ? (
-                <Tooltip title={usuario.username ?? "Usuario"}>
-                  <button
-                    type="button"
-                    onClick={(e) => setAnchorEl(e.currentTarget)}
-                    className="hover:ring-amber-primary/30 relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full transition-all hover:ring-2"
-                    style={{
-                      border: "2px solid var(--color-border-amber)",
-                      boxShadow: "var(--shadow-amber-glow)",
-                    }}
-                  >
-                    {getAvatarSrc(usuario.fotoPerfil) ? (
-                      <Image
-                        src={getAvatarSrc(usuario.fotoPerfil)!}
-                        alt={usuario.username ?? "usuario"}
-                        width={36}
-                        height={36}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-amber-primary text-xs font-bold">
-                        {getInitial(usuario)}
-                      </span>
-                    )}
-                  </button>
-                </Tooltip>
-              ) : isAuthReady ? (
-                <Link
-                  href="/auth/login"
-                  prefetch
-                  aria-label="Iniciar sesión"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border"
-                  style={{
-                    borderColor: "var(--color-border-light)",
-                    color: "var(--color-text-secondary)",
-                    background: "rgba(255,255,255,0.04)",
-                  }}
-                >
-                  <AccountCircleIcon fontSize="small" />
-                </Link>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        {usuario ? (
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={() => setAnchorEl(null)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
-            slotProps={{
-              paper: {
-                sx: {
-                  mt: 1,
-                  backgroundColor: "var(--color-surface-card)",
-                  border: "1px solid var(--color-border-amber)",
-                  borderRadius: "12px",
-                  boxShadow: "var(--shadow-elevated)",
-                  minWidth: 180,
-                },
-              },
-            }}
-          >
-            <MenuItem
-              onClick={() => {
-                setAnchorEl(null);
-                router.push("/auth/perfil");
-              }}
-              sx={{
-                color: "var(--color-text-primary)",
-                fontSize: "0.85rem",
-                py: 1.2,
-                "&:hover": { backgroundColor: "var(--color-border-subtle)" },
-              }}
-            >
-              <ListItemIcon>
-                <AccountCircleIcon sx={{ color: "var(--color-amber-primary)", fontSize: 20 }} />
-              </ListItemIcon>
-              Mi perfil
-            </MenuItem>
-            <Divider sx={{ borderColor: "var(--color-border-subtle)" }} />
-            <MenuItem
-              onClick={handleLogout}
-              sx={{
-                color: "var(--color-text-muted)",
-                fontSize: "0.85rem",
-                py: 1.2,
-                "&:hover": {
-                  backgroundColor: "rgba(239,68,68,0.06)",
-                  color: "#ef4444",
-                },
-              }}
-            >
-              <ListItemIcon>
-                <LogoutIcon sx={{ color: "var(--color-text-subtle)", fontSize: 20 }} />
-              </ListItemIcon>
-              Cerrar sesión
-            </MenuItem>
-          </Menu>
-        ) : null}
       </nav>
 
       <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
@@ -599,32 +496,6 @@ export default function Navbar() {
                   >
                     {activeNavItem.description}
                   </Box>
-                </Box>
-
-                <Box
-                  sx={{
-                    mt: 1.5,
-                    display: { xs: "block", md: "none" },
-                    borderRadius: "18px",
-                    px: 1.5,
-                    py: 1.35,
-                    border: "1px solid var(--color-border-subtle)",
-                    background: "rgba(255,255,255,0.03)",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      mb: 1,
-                      fontSize: "0.68rem",
-                      fontWeight: 800,
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      color: "var(--color-text-muted)",
-                    }}
-                  >
-                    Apariencia
-                  </Box>
-                  <ThemeSwitcher />
                 </Box>
               </Box>
             </Box>
@@ -830,9 +701,9 @@ export default function Navbar() {
         </Box>
       </Drawer>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.55rem)] md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
         <div
-          className="mx-auto flex max-w-2xl items-stretch gap-0.5 rounded-[1.55rem] border p-[5px] md:max-w-[38rem]"
+          className="mx-auto flex max-w-3xl items-stretch gap-1 rounded-[1.8rem] border p-1.5"
           style={{
             background:
               "linear-gradient(180deg, color-mix(in srgb, var(--navbar-bg-scrolled) 94%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 92%, transparent))",
@@ -850,7 +721,7 @@ export default function Navbar() {
                 key={item.text}
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-[1.15rem] px-1 py-1.5 text-center transition-all duration-200 md:px-1.5 md:py-1.5"
+                className="relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-[1.35rem] px-1.5 py-2 text-center transition-all duration-200"
                 style={{
                   color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)",
                 }}
@@ -858,7 +729,7 @@ export default function Navbar() {
                 {isActive && (
                   <motion.span
                     layoutId="mobile-app-nav-pill"
-                    className="absolute inset-0 rounded-[1.15rem]"
+                    className="absolute inset-0 rounded-[1.35rem]"
                     style={{
                       background:
                         "linear-gradient(180deg, color-mix(in srgb, var(--color-border-subtle) 100%, transparent), color-mix(in srgb, var(--color-border-subtle) 68%, transparent))",
@@ -870,7 +741,7 @@ export default function Navbar() {
                 )}
 
                 <span
-                  className="relative z-10 flex h-8 w-8 items-center justify-center rounded-[0.95rem] transition-all md:h-[2.15rem] md:w-[2.15rem]"
+                  className="relative z-10 flex h-9 w-9 items-center justify-center rounded-2xl transition-all"
                   style={{
                     color: isActive ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
                     background: isActive ? "rgba(251,191,36,0.10)" : "transparent",
@@ -878,7 +749,7 @@ export default function Navbar() {
                 >
                   {item.icon}
                 </span>
-                <span className="relative z-10 block w-full truncate text-[9px] font-semibold md:text-[9.5px]">
+                <span className="relative z-10 block w-full truncate text-[10px] font-semibold">
                   {item.text}
                 </span>
               </Link>
