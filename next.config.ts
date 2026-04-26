@@ -6,6 +6,7 @@ const apiProxyTarget = normalizeApiTarget(process.env.API_PROXY_TARGET);
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
+  devIndicators: false,
 
   // Suppress Sass deprecations that are currently expected in our toolchain:
   // - `import`: Tailwind v4 still uses `@import "tailwindcss"` in globals.scss

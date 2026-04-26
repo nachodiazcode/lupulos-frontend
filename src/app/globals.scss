@@ -1397,6 +1397,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body:has(.lupulos-sidebar) {
+  @media (min-width: 768px) {
+    padding-left: 76px;
+  }
+
+  @media (min-width: 1280px) {
+    padding-left: 240px;
+  }
+}
+
 .home-content-shell {
   width: 100%;
   max-width: 68rem;
@@ -1878,4 +1888,18 @@ select {
 [data-theme="dorado"] [style*="gradient-button-primary"] {
   background-size: 200% 200% !important;
   animation: doradoGoldShift 4s ease-in-out infinite !important;
+}
+
+/* Lúpulos logo — darker warm gradient for light themes */
+[data-theme="saintpatrick"] .lupulos-logo-text,
+[data-theme="haze"] .lupulos-logo-text {
+  background-image: linear-gradient(
+    100deg,
+    #3f2a10 0%,
+    #6b3e12 28%,
+    #92400e 50%,
+    #78350f 75%,
+    #2b1a08 100%
+  ) !important;
+  filter: drop-shadow(0 1px 4px rgba(120, 53, 15, 0.35)) !important;
 }

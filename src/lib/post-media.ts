@@ -109,6 +109,30 @@ export function extractUploadedMedia(payload: unknown): PostMedia | null {
   };
 }
 
+export function extractUploadedMediaList(payload: unknown): PostMedia[] {
+  if (!payload || typeof payload !== "object") return [];
+  const source = payload as Record<string, unknown>;
+
+  // Batch upload response: top-level `media` array
+  if (Array.isArray(source.media) && source.media.length > 0) {
+    const results = (source.media as unknown[])
+      .map((item) => extractUploadedMedia(item))
+      .filter((m): m is PostMedia => m !== null);
+    if (results.length > 0) return results;
+  }
+
+  // Batch upload response: `data` array
+  if (Array.isArray(source.data) && source.data.length > 0) {
+    const results = (source.data as unknown[])
+      .map((item) => extractUploadedMedia(item))
+      .filter((m): m is PostMedia => m !== null);
+    if (results.length > 0) return results;
+  }
+
+  const single = extractUploadedMedia(payload);
+  return single ? [single] : [];
+}
+
 export function readVideoDurationSeconds(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
     const objectUrl = URL.createObjectURL(file);

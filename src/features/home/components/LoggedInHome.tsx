@@ -28,8 +28,8 @@ import {
 } from "@/lib/auth-user";
 import {
   MAX_VIDEO_DURATION_SECONDS,
-  extractUploadedMedia,
-  getPrimaryPostMedia,
+  extractUploadedMediaList,
+  getPostMediaList,
   readVideoDurationSeconds,
   type PostMedia,
 } from "@/lib/post-media";
@@ -73,6 +73,7 @@ interface FeedSeed {
   body: string;
   image: string;
   mediaType: "image" | "video" | null;
+  mediaList: Array<{ url: string; type: "image" | "video" | null }>;
   author: string;
   likes: number;
   likedByUsers: string[];
@@ -332,6 +333,34 @@ type HomeWidgetId = (typeof HOME_WIDGET_REGISTRY)[number]["id"];
 const DEFAULT_HOME_WIDGETS: HomeWidgetId[] = ["style-pulse", "routes", "level"];
 const HOME_WIDGET_IDS = HOME_WIDGET_REGISTRY.map((widget) => widget.id);
 
+/* ── Right-side widgets ── */
+const RIGHT_WIDGET_REGISTRY = [
+  { id: "trending", label: "Tendencias", description: "Estilos que hoy están atrapando más miradas." },
+  { id: "rw-places", label: "Lugares", description: "Spots y rutas listos para salir del scroll." },
+  { id: "rw-level", label: "Mi nivel", description: "Tu rango y progreso en la comunidad." },
+  { id: "rw-pulse", label: "Pulso", description: "Actividad viva del muro en un vistazo." },
+] as const;
+
+type RightWidgetId = (typeof RIGHT_WIDGET_REGISTRY)[number]["id"];
+const RIGHT_WIDGET_IDS = RIGHT_WIDGET_REGISTRY.map((w) => w.id);
+const DEFAULT_RIGHT_WIDGETS: RightWidgetId[] = ["trending"];
+const RIGHT_WIDGET_STORAGE_KEY = "home_right_widgets_v1";
+const RIGHT_WIDGET_COLLAPSED_STORAGE_KEY = "home_right_widgets_collapsed_v1";
+
+function isRightWidgetId(value: unknown): value is RightWidgetId {
+  return typeof value === "string" && RIGHT_WIDGET_IDS.includes(value as RightWidgetId);
+}
+
+function sanitizeRightWidgetIds(value: unknown): RightWidgetId[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<RightWidgetId>();
+  return value.filter((id): id is RightWidgetId => {
+    if (!isRightWidgetId(id) || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
 const FEED_PAGE_SIZE = 8;
 const LOAD_MORE_THRESHOLD_PX = 1200;
 
@@ -405,27 +434,32 @@ function mapPostsToFeed(posts: Post[]): FeedSeed[] {
       const body =
         getPostContent(post) || "Una recomendación cervecera que merece un segundo vistazo.";
       const author = getPostUser(post)?.username || "Cervecero";
-      const primaryMedia = getPrimaryPostMedia(post);
-      const image = primaryMedia ? getImageUrl(primaryMedia.path) : "";
+      const mediaList = getPostMediaList(post)
+        .map((m) => ({ url: getImageUrl(m.path), type: m.type ?? null }))
+        .filter((m) => !!m.url);
+      const primary = mediaList[0] ?? null;
       const id = getPostId(post) || `post-${index}`;
 
       return {
         id,
         title,
         body,
-        image,
-        mediaType: primaryMedia?.type ?? null,
+        image: primary?.url ?? "",
+        mediaType: primary?.type ?? null,
+        mediaList,
         author,
         likes: getLikeCount(post),
         likedByUsers: post.reacciones?.meGusta?.usuarios || post.reactions?.like?.users || [],
         createdAt: post.createdAt || post.updatedAt || new Date().toISOString(),
         route: getPostId(post) ? `/posts/${getPostId(post)}` : "/posts",
         kicker:
-          primaryMedia?.type === "video"
+          primary?.type === "video"
             ? "Historia en video"
-            : image
-              ? "Historia visual"
-              : "Dato para guardar",
+            : mediaList.length > 1
+              ? `${mediaList.length} fotos`
+              : primary
+                ? "Historia visual"
+                : "Dato para guardar",
         mood: getFeedMood(index),
       };
     })
@@ -496,6 +530,153 @@ function buildSeedComments(item: FeedSeed, index: number): FeedComment[] {
     })),
     source: "seed",
   }));
+}
+
+function MediaSlideshow({
+  items,
+  headline,
+}: {
+  items: Array<{ url: string; type: "image" | "video" | null }>;
+  headline: string;
+}) {
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const [failedIdx, setFailedIdx] = useState<Set<number>>(new Set());
+
+  const goTo = (next: number) => {
+    setDirection(next > current ? 1 : -1);
+    setCurrent(next);
+  };
+
+  const item = items[current];
+  const failed = failedIdx.has(current);
+  const markFailed = () => setFailedIdx((prev) => new Set([...prev, current]));
+
+  const variants = {
+    enter: (dir: number) => ({ x: dir >= 0 ? "100%" : "-100%" }),
+    center: { x: "0%" },
+    exit: (dir: number) => ({ x: dir >= 0 ? "-100%" : "100%" }),
+  };
+
+  return (
+    <div className="relative w-full" style={{ background: "#0a0608" }}>
+      <AnimatePresence mode="wait" custom={direction} initial={false}>
+        <motion.div
+          key={current}
+          custom={direction}
+          variants={variants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.28, ease: "easeOut" }}
+          className="w-full"
+        >
+          {item.type === "video" && !failed ? (
+            <video
+              src={item.url}
+              className="relative z-10 h-auto max-h-[42vh] w-full bg-black object-contain sm:max-h-[520px]"
+              playsInline
+              preload="metadata"
+              controls
+              onError={markFailed}
+            />
+          ) : !failed ? (
+            <>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-0"
+                style={{
+                  backgroundImage: `url(${item.url})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  filter: "blur(40px) saturate(140%) brightness(0.6)",
+                  transform: "scale(1.2)",
+                }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-0"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(10,6,8,0.15) 0%, rgba(10,6,8,0.35) 100%)",
+                }}
+              />
+              <div className="relative z-10 mx-auto flex w-full items-center justify-center">
+                <Image
+                  src={item.url}
+                  alt={headline}
+                  width={1200}
+                  height={1500}
+                  unoptimized
+                  className="h-auto max-h-[42vh] w-auto max-w-full object-contain sm:max-h-[520px]"
+                  onError={markFailed}
+                />
+              </div>
+            </>
+          ) : (
+            <div
+              className="relative z-10 flex aspect-[4/5] flex-col items-center justify-center gap-3 px-6 text-center sm:aspect-[16/9]"
+              style={{
+                background:
+                  "linear-gradient(135deg, color-mix(in srgb, var(--color-surface-card-alt) 86%, transparent), color-mix(in srgb, var(--color-surface-card) 94%, transparent))",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              <span className="text-3xl">🖼️</span>
+              <p className="text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
+                No pudimos cargar esta imagen
+              </p>
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Prev arrow */}
+      {current > 0 && (
+        <button
+          onClick={() => goTo(current - 1)}
+          className="absolute left-3 top-1/2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-xl font-bold text-white"
+          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)" }}
+          aria-label="Imagen anterior"
+        >
+          ‹
+        </button>
+      )}
+
+      {/* Next arrow */}
+      {current < items.length - 1 && (
+        <button
+          onClick={() => goTo(current + 1)}
+          className="absolute right-3 top-1/2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-xl font-bold text-white"
+          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)" }}
+          aria-label="Imagen siguiente"
+        >
+          ›
+        </button>
+      )}
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5">
+        {items.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            aria-label={`Ir a imagen ${i + 1}`}
+            style={{
+              width: i === current ? 16 : 6,
+              height: 6,
+              borderRadius: 999,
+              background: i === current ? "#fff" : "rgba(255,255,255,0.42)",
+              transition: "all 0.22s ease",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function FeedCard({
@@ -712,37 +893,98 @@ function FeedCard({
           }}
         />
 
-        {hasMedia ? (
+        {item.mediaList.length > 1 ? (
           <div
             className="relative overflow-hidden border-b"
             style={{
               borderColor: "color-mix(in srgb, var(--color-border-light) 64%, transparent)",
-              background: "color-mix(in srgb, var(--color-surface-card-alt) 82%, transparent)",
+            }}
+          >
+            <MediaSlideshow items={item.mediaList} headline={headline} />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-center justify-between p-4">
+              <span
+                className="rounded-full border px-3 py-1 text-[10px] font-black tracking-[0.18em] uppercase"
+                style={{
+                  borderColor: "rgba(255,255,255,0.5)",
+                  background: "rgba(8,5,3,0.78)",
+                  color: "#fff",
+                  backdropFilter: "blur(14px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(14px) saturate(180%)",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                }}
+              >
+                {item.kicker}
+              </span>
+              <span
+                className="rounded-full border px-2.5 py-1 text-[11px] font-bold"
+                style={{
+                  borderColor: "rgba(255,255,255,0.3)",
+                  background: "rgba(8,5,3,0.78)",
+                  color: "#fff",
+                  backdropFilter: "blur(14px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(14px) saturate(180%)",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                }}
+              >
+                {timeAgo(item.createdAt)}
+              </span>
+            </div>
+          </div>
+        ) : hasMedia ? (
+          <div
+            className="relative overflow-hidden border-b"
+            style={{
+              borderColor: "color-mix(in srgb, var(--color-border-light) 64%, transparent)",
+              background: "#0a0608",
             }}
           >
             {!mediaFailed && item.mediaType === "video" ? (
               <video
                 src={item.image}
-                className="home-feed-media-aspect aspect-[4/5] h-full w-full bg-black object-cover sm:aspect-[16/9]"
+                className="relative z-10 h-auto max-h-[42vh] w-full bg-black object-contain sm:max-h-[520px]"
                 playsInline
                 preload="metadata"
                 controls
                 onError={() => setMediaFailed(true)}
               />
             ) : !mediaFailed ? (
-              <div className="home-feed-media-aspect relative aspect-[4/5] sm:aspect-[16/9]">
-                <Image
-                  src={item.image}
-                  alt={headline}
-                  fill
-                  unoptimized
-                  className="object-cover"
-                  onError={() => setMediaFailed(true)}
+              <>
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 z-0"
+                  style={{
+                    backgroundImage: `url(${item.image})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    filter: "blur(40px) saturate(140%) brightness(0.6)",
+                    transform: "scale(1.2)",
+                  }}
                 />
-              </div>
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 z-0"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(10,6,8,0.15) 0%, rgba(10,6,8,0.35) 100%)",
+                  }}
+                />
+                <div className="relative z-10 mx-auto flex w-full items-center justify-center">
+                  <Image
+                    src={item.image}
+                    alt={headline}
+                    width={1200}
+                    height={1500}
+                    unoptimized
+                    className="h-auto max-h-[42vh] w-auto max-w-full object-contain sm:max-h-[520px]"
+                    onError={() => setMediaFailed(true)}
+                  />
+                </div>
+              </>
             ) : (
               <div
-                className="home-feed-media-aspect flex aspect-[4/5] flex-col items-center justify-center gap-3 px-6 text-center sm:aspect-[16/9]"
+                className="relative z-10 flex aspect-[4/5] flex-col items-center justify-center gap-3 px-6 text-center sm:aspect-[16/9]"
                 style={{
                   background:
                     "linear-gradient(135deg, color-mix(in srgb, var(--color-surface-card-alt) 86%, transparent), color-mix(in srgb, var(--color-surface-card) 94%, transparent))",
@@ -761,24 +1003,31 @@ function FeedCard({
               </div>
             )}
 
-            <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
+            <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between p-4">
               <span
-                className="rounded-full border px-3 py-1 text-[10px] font-bold tracking-[0.18em] uppercase"
+                className="rounded-full border px-3 py-1 text-[10px] font-black tracking-[0.18em] uppercase"
                 style={{
-                  borderColor: "rgba(255,255,255,0.24)",
-                  background: "rgba(12,8,4,0.42)",
+                  borderColor: "rgba(255,255,255,0.5)",
+                  background: "rgba(8,5,3,0.78)",
                   color: "#fff",
-                  backdropFilter: "blur(10px)",
+                  backdropFilter: "blur(14px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(14px) saturate(180%)",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.5)",
                 }}
               >
                 {item.mediaType === "video" ? "Video" : "Publicación"}
               </span>
               <span
-                className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                className="rounded-full border px-2.5 py-1 text-[11px] font-bold"
                 style={{
-                  background: "rgba(12,8,4,0.42)",
-                  color: "rgba(255,255,255,0.88)",
-                  backdropFilter: "blur(10px)",
+                  borderColor: "rgba(255,255,255,0.3)",
+                  background: "rgba(8,5,3,0.78)",
+                  color: "#fff",
+                  backdropFilter: "blur(14px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(14px) saturate(180%)",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.5)",
                 }}
               >
                 {timeAgo(item.createdAt)}
@@ -787,11 +1036,11 @@ function FeedCard({
           </div>
         ) : null}
 
-        <div className="home-feed-card-body relative p-4 sm:p-[1.125rem]">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-3">
+        <div className="home-feed-card-body relative p-3 sm:p-[1.125rem]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
               <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.82rem] font-black"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[0.78rem] font-black sm:h-9 sm:w-9"
                 style={{
                   background: "var(--gradient-button-primary)",
                   color: "var(--color-text-dark)",
@@ -800,18 +1049,12 @@ function FeedCard({
               >
                 {authorInitial}
               </div>
-              <div className="min-w-0">
-                <p
-                  className="truncate text-[0.92rem] font-bold"
-                  style={{ color: "var(--color-text-primary)" }}
-                >
-                  @{item.author}
-                </p>
-                <p className="text-[11px] font-medium" style={{ color: "var(--color-text-muted)" }}>
-                  {hasMedia ? "Compartió una historia visual" : "Compartió una historia"} ·{" "}
-                  {timeAgo(item.createdAt)}
-                </p>
-              </div>
+              <p
+                className="truncate text-[0.88rem] font-bold sm:text-[0.92rem]"
+                style={{ color: "var(--color-text-primary)" }}
+              >
+                @{item.author}
+              </p>
             </div>
 
             <Link
@@ -827,101 +1070,108 @@ function FeedCard({
             </Link>
           </div>
 
-          <div className="mt-4">
-            <h2
-              className="text-[1.16rem] leading-tight font-black sm:text-[1.38rem]"
+          {supportingText ? (
+            <p
+              className="mt-2.5 line-clamp-2 text-[0.88rem] leading-snug sm:mt-4 sm:text-[0.95rem] sm:leading-relaxed"
               style={{ color: "var(--color-text-primary)" }}
             >
-              {headline}
-            </h2>
-            {supportingText ? (
-              <p
-                className="mt-2.5 text-[0.9rem] leading-relaxed"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                {supportingText}
-              </p>
-            ) : null}
-          </div>
+              {supportingText}
+            </p>
+          ) : null}
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span
-              className="rounded-full border px-2.5 py-1.5 text-[11px] font-semibold"
-              style={{
-                borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
-                background: "rgba(255,255,255,0.03)",
-                color: "var(--color-text-secondary)",
-              }}
-            >
-              {likedCount} votos
-            </span>
-            <span
-              className="rounded-full border px-2.5 py-1.5 text-[11px] font-semibold"
-              style={{
-                borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
-                background: "rgba(255,255,255,0.03)",
-                color: "var(--color-text-secondary)",
-              }}
-            >
-              {commentCount} comentarios
-            </span>
-          </div>
-
-          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+          <div className="mt-4 grid grid-cols-3 gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={handleLike}
-              className="flex items-center justify-between rounded-[1.1rem] border px-4 py-3 text-left transition-all"
+              aria-pressed={liked}
+              className="group flex h-11 items-center justify-center gap-1.5 rounded-[1rem] border px-2 transition-all active:scale-[0.97] sm:h-12 sm:gap-2 sm:px-4"
               style={{
                 borderColor: liked
-                  ? "color-mix(in srgb, var(--color-amber-primary) 42%, var(--color-border-light))"
+                  ? "color-mix(in srgb, var(--color-amber-primary) 55%, var(--color-border-light))"
                   : "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
                 background: liked
-                  ? "color-mix(in srgb, var(--color-amber-primary) 12%, transparent)"
+                  ? "color-mix(in srgb, var(--color-amber-primary) 14%, transparent)"
                   : "rgba(255,255,255,0.03)",
                 color: liked ? "var(--color-amber-primary)" : "var(--color-text-primary)",
               }}
             >
-              <span className="text-sm font-bold">{liked ? "Te gustó" : "Me gusta"}</span>
-              <span className="text-[12px] font-semibold">{likedCount}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleSharePanel}
-              className="flex items-center justify-between rounded-[1.1rem] border px-4 py-3 text-left transition-all"
-              style={{
-                borderColor: shareOpen
-                  ? "color-mix(in srgb, var(--color-amber-primary) 42%, var(--color-border-light))"
-                  : "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
-                background: shareOpen
-                  ? "color-mix(in srgb, var(--color-amber-primary) 10%, transparent)"
-                  : "rgba(255,255,255,0.03)",
-                color: "var(--color-text-primary)",
-              }}
-            >
-              <span className="text-sm font-bold">Compartir</span>
-              <span className="text-[12px] font-semibold">Meta</span>
+              <svg
+                className="h-[18px] w-[18px] transition-transform group-active:scale-125"
+                viewBox="0 0 24 24"
+                fill={liked ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span className="text-[13px] font-bold tabular-nums">{likedCount}</span>
             </button>
 
             <button
               type="button"
               onClick={toggleCommentsPanel}
-              className="flex items-center justify-between rounded-[1.1rem] border px-4 py-3 text-left transition-all"
+              aria-pressed={commentsOpen}
+              className="group flex h-11 items-center justify-center gap-1.5 rounded-[1rem] border px-2 transition-all active:scale-[0.97] sm:h-12 sm:gap-2 sm:px-4"
               style={{
                 borderColor: commentsOpen
-                  ? "color-mix(in srgb, var(--color-amber-primary) 42%, var(--color-border-light))"
+                  ? "color-mix(in srgb, var(--color-amber-primary) 55%, var(--color-border-light))"
                   : "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
                 background: commentsOpen
-                  ? "color-mix(in srgb, var(--color-amber-primary) 10%, transparent)"
+                  ? "color-mix(in srgb, var(--color-amber-primary) 12%, transparent)"
                   : "rgba(255,255,255,0.03)",
-                color: "var(--color-text-primary)",
+                color: commentsOpen ? "var(--color-amber-primary)" : "var(--color-text-primary)",
               }}
             >
-              <span className="text-sm font-bold">
-                {commentsOpen ? "Ocultar comentarios" : "Ver comentarios"}
-              </span>
-              <span className="text-[12px] font-semibold">{commentCount}</span>
+              <svg
+                className="h-[18px] w-[18px]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span className="text-[13px] font-bold tabular-nums">{commentCount}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleSharePanel}
+              aria-pressed={shareOpen}
+              className="group flex h-11 items-center justify-center gap-1.5 rounded-[1rem] border px-2 transition-all active:scale-[0.97] sm:h-12 sm:gap-2 sm:px-4"
+              style={{
+                borderColor: shareOpen
+                  ? "color-mix(in srgb, var(--color-amber-primary) 55%, var(--color-border-light))"
+                  : "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+                background: shareOpen
+                  ? "color-mix(in srgb, var(--color-amber-primary) 12%, transparent)"
+                  : "rgba(255,255,255,0.03)",
+                color: shareOpen ? "var(--color-amber-primary)" : "var(--color-text-primary)",
+              }}
+            >
+              <svg
+                className="h-[18px] w-[18px]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+              <span className="hidden text-[13px] font-bold sm:inline">Compartir</span>
             </button>
           </div>
 
@@ -1628,6 +1878,199 @@ function HomeWidgetCard({
 }
 
 /* ═══════════════════════════════════════════════
+   Right Widget Panel — Tahoe liquid-glass cards
+   ═══════════════════════════════════════════════ */
+
+function RightWidgetCard({
+  label,
+  collapsed,
+  onClose,
+  onToggleCollapse,
+  children,
+}: {
+  label: string;
+  collapsed: boolean;
+  onClose: () => void;
+  onToggleCollapse: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: 18, scale: 0.97 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 18, scale: 0.96 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="overflow-hidden rounded-[1.5rem] border"
+      style={{
+        background:
+          "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 95%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 90%, transparent))",
+        borderColor: "color-mix(in srgb, var(--color-border-light) 76%, transparent)",
+        boxShadow:
+          "0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 5%, transparent)",
+        backdropFilter: "blur(28px) saturate(180%)",
+        WebkitBackdropFilter: "blur(28px) saturate(180%)",
+      }}
+    >
+      <div className="px-4 pt-4 pb-4">
+        <div className="flex items-center justify-between gap-2">
+          <p
+            className="text-[10px] font-bold tracking-[0.2em] uppercase"
+            style={{ color: "var(--color-amber-primary)" }}
+          >
+            {label}
+          </p>
+          <div className="flex items-center gap-1">
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onToggleCollapse}
+              className="flex h-6 w-6 items-center justify-center rounded-full border text-[11px] transition-all"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-border-light) 65%, transparent)",
+                background: collapsed
+                  ? "color-mix(in srgb, var(--color-amber-primary) 10%, transparent)"
+                  : "rgba(255,255,255,0.04)",
+                color: collapsed ? "var(--color-amber-primary)" : "var(--color-text-muted)",
+              }}
+              aria-label={collapsed ? "Expandir" : "Minimizar"}
+            >
+              {collapsed ? "+" : "−"}
+            </motion.button>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="flex h-6 w-6 items-center justify-center rounded-full border text-[13px] transition-all"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-border-light) 65%, transparent)",
+                background: "rgba(255,255,255,0.04)",
+                color: "var(--color-text-muted)",
+              }}
+              aria-label="Cerrar widget"
+            >
+              ×
+            </motion.button>
+          </div>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {!collapsed ? (
+            <motion.div
+              key="rw-content"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="mt-3">{children}</div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+function RightWidgetPicker({
+  options,
+  onAdd,
+  onClose,
+}: {
+  options: ReadonlyArray<{ id: RightWidgetId; label: string; description: string }>;
+  onAdd: (id: RightWidgetId) => void;
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+      className="overflow-hidden rounded-[1.4rem] border p-3"
+      style={{
+        background:
+          "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 96%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 90%, transparent))",
+        borderColor: "color-mix(in srgb, var(--color-border-amber) 40%, var(--color-border-light))",
+        boxShadow:
+          "0 16px 40px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.14)",
+        backdropFilter: "blur(24px) saturate(180%)",
+        WebkitBackdropFilter: "blur(24px) saturate(180%)",
+      }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p
+          className="text-[10px] font-bold tracking-[0.2em] uppercase"
+          style={{ color: "var(--color-amber-primary)" }}
+        >
+          Agregar widget
+        </p>
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={onClose}
+          className="flex h-6 w-6 items-center justify-center rounded-full border text-[13px]"
+          style={{
+            borderColor: "color-mix(in srgb, var(--color-border-light) 65%, transparent)",
+            background: "rgba(255,255,255,0.04)",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          ×
+        </motion.button>
+      </div>
+
+      {options.length === 0 ? (
+        <p
+          className="mt-3 text-[11px] font-medium"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          Todos los widgets ya están activos.
+        </p>
+      ) : (
+        <div className="mt-2.5 space-y-1.5">
+          {options.map((opt) => (
+            <motion.button
+              key={opt.id}
+              type="button"
+              whileHover={{ scale: 1.01, y: -1 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => { onAdd(opt.id); onClose(); }}
+              className="flex w-full items-center gap-2.5 rounded-[1.1rem] border px-3 py-2.5 text-left"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                background: "rgba(255,255,255,0.03)",
+              }}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] font-bold" style={{ color: "var(--color-text-primary)" }}>
+                  {opt.label}
+                </p>
+                <p className="text-[10px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+                  {opt.description}
+                </p>
+              </div>
+              <span
+                className="flex h-6 shrink-0 items-center rounded-full px-2.5 text-[9px] font-bold tracking-[0.14em] uppercase"
+                style={{
+                  background: "var(--gradient-button-primary)",
+                  color: "var(--color-text-dark)",
+                }}
+              >
+                Agregar
+              </span>
+            </motion.button>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
    Magic Composer — Liquid-glass post creator
    ═══════════════════════════════════════════════ */
 
@@ -1784,26 +2227,23 @@ function MagicComposer({ onPostCreated }: { onPostCreated: () => void }) {
     setComposerError("");
 
     try {
-      const uploadedMediaItems: PostMedia[] = [];
-      const uploadedPaths: string[] = [];
-      for (const file of mediaFiles) {
+      let uploadedMediaItems: PostMedia[] = [];
+      let uploadedPaths: string[] = [];
+
+      if (mediaFiles.length > 0) {
         const formData = new FormData();
-        formData.append("media", file);
-        if (file.type.startsWith("video/")) {
-          const durationSeconds =
-            mediaDurations[getMediaFileKey(file)] ?? (await readVideoDurationSeconds(file));
-          formData.append("durationSeconds", String(durationSeconds));
+        for (const file of mediaFiles) {
+          formData.append("media", file);
         }
 
         const res = await api.post(`/post/muro-vikingo/upload`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        const uploadedMedia = extractUploadedMedia(res.data);
-        if (uploadedMedia?.path) {
-          uploadedMediaItems.push(uploadedMedia);
-          uploadedPaths.push(uploadedMedia.path);
-        } else {
-          throw new Error("Upload response did not include a media path");
+        uploadedMediaItems = extractUploadedMediaList(res.data);
+        uploadedPaths = uploadedMediaItems.map((m) => m.path);
+
+        if (uploadedMediaItems.length === 0) {
+          throw new Error("Upload response did not include any media paths");
         }
       }
 
@@ -1887,7 +2327,7 @@ function MagicComposer({ onPostCreated }: { onPostCreated: () => void }) {
 
         <div className="home-composer-content px-4 py-3.5">
           {/* ── Top row: avatar + placeholder/textarea ── */}
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             {/* Avatar */}
             <div
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[0.82rem] font-black"
@@ -2240,9 +2680,13 @@ export default function LoggedInHome() {
   const [enabledWidgets, setEnabledWidgets] = useState<HomeWidgetId[]>(DEFAULT_HOME_WIDGETS);
   const [collapsedWidgets, setCollapsedWidgets] = useState<HomeWidgetId[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [rightWidgets, setRightWidgets] = useState<RightWidgetId[]>(DEFAULT_RIGHT_WIDGETS);
+  const [collapsedRightWidgets, setCollapsedRightWidgets] = useState<RightWidgetId[]>([]);
+  const [rightPickerOpen, setRightPickerOpen] = useState(false);
   const extendLockRef = useRef(0);
   const feedRequestInFlightRef = useRef(false);
   const widgetPrefsHydratedRef = useRef(false);
+  const rightWidgetPrefsHydratedRef = useRef(false);
   const currentUserId = user?._id || (typeof user?.id === "string" ? user.id : "") || "";
   const currentUserAvatar = user?.fotoPerfil || user?.photo || user?.profilePicture || "";
 
@@ -2366,6 +2810,21 @@ export default function LoggedInHome() {
     } finally {
       widgetPrefsHydratedRef.current = true;
     }
+
+    try {
+      const storedRight = localStorage.getItem(RIGHT_WIDGET_STORAGE_KEY);
+      const storedRightCollapsed = localStorage.getItem(RIGHT_WIDGET_COLLAPSED_STORAGE_KEY);
+      const restoredRight = sanitizeRightWidgetIds(storedRight ? JSON.parse(storedRight) : null);
+      setRightWidgets(restoredRight.length > 0 ? restoredRight : DEFAULT_RIGHT_WIDGETS);
+      const restoredRightCollapsed = sanitizeRightWidgetIds(
+        storedRightCollapsed ? JSON.parse(storedRightCollapsed) : null,
+      );
+      setCollapsedRightWidgets(restoredRightCollapsed);
+    } catch {
+      // keep defaults
+    } finally {
+      rightWidgetPrefsHydratedRef.current = true;
+    }
   }, []);
 
   const feedPool = useMemo(() => {
@@ -2487,6 +2946,27 @@ export default function LoggedInHome() {
     setPickerOpen(false);
   };
 
+  const addRightWidget = (id: RightWidgetId) => {
+    setRightWidgets((current) => (current.includes(id) ? current : [...current, id]));
+    setCollapsedRightWidgets((current) => current.filter((wid) => wid !== id));
+  };
+
+  const removeRightWidget = (id: RightWidgetId) => {
+    setRightWidgets((current) => current.filter((wid) => wid !== id));
+    setCollapsedRightWidgets((current) => current.filter((wid) => wid !== id));
+  };
+
+  const toggleRightWidgetCollapsed = (id: RightWidgetId) => {
+    setCollapsedRightWidgets((current) =>
+      current.includes(id) ? current.filter((wid) => wid !== id) : [...current, id],
+    );
+  };
+
+  const availableRightWidgets = useMemo(
+    () => RIGHT_WIDGET_REGISTRY.filter((w) => !rightWidgets.includes(w.id)),
+    [rightWidgets],
+  );
+
   useEffect(() => {
     if (!widgetPrefsHydratedRef.current) return;
 
@@ -2507,6 +2987,16 @@ export default function LoggedInHome() {
 
     localStorage.setItem(HOME_WIDGET_COLLAPSED_STORAGE_KEY, JSON.stringify(nextCollapsed));
   }, [collapsedWidgets, enabledWidgets]);
+
+  useEffect(() => {
+    if (!rightWidgetPrefsHydratedRef.current) return;
+    localStorage.setItem(RIGHT_WIDGET_STORAGE_KEY, JSON.stringify(rightWidgets));
+  }, [rightWidgets]);
+
+  useEffect(() => {
+    if (!rightWidgetPrefsHydratedRef.current) return;
+    localStorage.setItem(RIGHT_WIDGET_COLLAPSED_STORAGE_KEY, JSON.stringify(collapsedRightWidgets));
+  }, [collapsedRightWidgets]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -2761,12 +3251,148 @@ export default function LoggedInHome() {
     }
   };
 
+  const renderRightWidget = (id: RightWidgetId) => {
+    switch (id) {
+      case "trending":
+        return (
+          <div className="space-y-2">
+            {trendingStyles.map((item, index) => (
+              <div
+                key={`${item.name}-${index}`}
+                className="rounded-[1.1rem] border px-3 py-2.5"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                  background: "rgba(255,255,255,0.03)",
+                }}
+              >
+                <p className="text-[12px] font-bold" style={{ color: "var(--color-text-primary)" }}>
+                  {item.icon} {item.name}
+                </p>
+                <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+                  {item.note}
+                </p>
+              </div>
+            ))}
+            <Link
+              href="/cervezas"
+              className="flex items-center justify-between rounded-[1rem] border px-3 py-2 transition-all hover:translate-y-[-1px]"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-border-amber) 40%, var(--color-border-light))",
+                background: "color-mix(in srgb, var(--color-amber-primary) 5%, transparent)",
+              }}
+            >
+              <span className="text-[11px] font-semibold" style={{ color: "var(--color-text-secondary)" }}>
+                Ver todas las cervezas
+              </span>
+              <span className="text-[11px]" style={{ color: "var(--color-amber-primary)" }}>→</span>
+            </Link>
+          </div>
+        );
+
+      case "rw-places":
+        return (
+          <div className="space-y-2">
+            {featuredRoutes.map((route) => (
+              <Link
+                key={route.title}
+                href="/lugares"
+                className="block rounded-[1.1rem] border px-3 py-2.5 transition-all hover:translate-y-[-1px]"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                  background: "rgba(255,255,255,0.03)",
+                }}
+              >
+                <p className="text-[12px] font-bold" style={{ color: "var(--color-text-primary)" }}>
+                  {route.icon} {route.title}
+                </p>
+                <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+                  {route.detail}
+                </p>
+              </Link>
+            ))}
+          </div>
+        );
+
+      case "rw-level": {
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-black" style={{ color: "var(--color-text-primary)" }}>
+                  Nivel {levelProgress.level}
+                </p>
+                <p className="text-[10px]" style={{ color: "var(--color-amber-primary)" }}>
+                  {levelProgress.rankName}
+                </p>
+              </div>
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-full text-base font-black"
+                style={{
+                  background: "var(--gradient-button-primary)",
+                  color: "var(--color-text-dark)",
+                  boxShadow: "var(--shadow-amber-glow-sm)",
+                }}
+              >
+                {levelProgress.level}
+              </div>
+            </div>
+            <div
+              className="h-1.5 w-full overflow-hidden rounded-full"
+              style={{ background: "rgba(255,255,255,0.08)" }}
+            >
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, var(--color-amber-primary), #f97316)" }}
+                initial={{ width: "0%" }}
+                animate={{ width: `${levelProgress.progressPercent}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+              />
+            </div>
+            <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+              {levelProgress.currentXp} / {levelProgress.targetXp} XP para nivel {levelProgress.level + 1}
+            </p>
+          </div>
+        );
+      }
+
+      case "rw-pulse":
+        return (
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              { value: formatCount(feedItemCount), label: "historias" },
+              { value: formatCount(totalLikes), label: "likes" },
+              { value: formatCount(projectedComments), label: "coment." },
+            ].map((metric) => (
+              <div
+                key={metric.label}
+                className="rounded-[0.9rem] border px-2 py-2 text-center"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-border-light) 60%, transparent)",
+                  background: "rgba(255,255,255,0.03)",
+                }}
+              >
+                <p className="text-sm font-black" style={{ color: "var(--color-text-primary)" }}>
+                  {metric.value}
+                </p>
+                <p className="mt-0.5 text-[9px] font-semibold tracking-[0.12em] uppercase" style={{ color: "var(--color-text-muted)" }}>
+                  {metric.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       <GoldenParticles count={22} />
       <Navbar />
 
-      <main className="home-laptop-viewport relative overflow-hidden pt-2 pb-24">
+      <main className="home-laptop-viewport relative overflow-hidden pt-0 pb-24">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -3287,9 +3913,17 @@ export default function LoggedInHome() {
             className={
               showHomeWidgets
                 ? "mx-auto mt-3 grid w-full max-w-[1120px] gap-4 xl:grid-cols-[290px_minmax(0,780px)] xl:justify-center xl:gap-8"
-                : "home-feed-shell mx-auto mt-4 w-full"
+                : rightWidgets.length > 0
+                  ? "home-feed-shell mx-auto mt-3 flex w-full items-start gap-6"
+                  : "home-feed-shell mx-auto w-full"
             }
-            style={showHomeWidgets ? undefined : { maxWidth: HOME_FEED_MAX_WIDTH }}
+            style={
+              showHomeWidgets
+                ? undefined
+                : rightWidgets.length > 0
+                  ? { maxWidth: `calc(${HOME_FEED_MAX_WIDTH} + 288px + 1.5rem)` }
+                  : { maxWidth: HOME_FEED_MAX_WIDTH }
+            }
           >
             {showHomeWidgets ? (
               <aside className="hidden min-h-0 xl:sticky xl:top-24 xl:flex xl:self-start">
@@ -3431,7 +4065,10 @@ export default function LoggedInHome() {
               </aside>
             ) : null}
 
-            <section className={`min-w-0 ${showHomeWidgets ? "xl:mx-auto xl:w-full" : ""}`}>
+            <section
+              className={`min-w-0 ${showHomeWidgets ? "xl:mx-auto xl:w-full" : ""} ${!showHomeWidgets && rightWidgets.length > 0 ? "flex-1" : ""}`}
+              style={!showHomeWidgets && rightWidgets.length > 0 ? { maxWidth: HOME_FEED_MAX_WIDTH } : undefined}
+            >
               {/* ── Magic Composer ── */}
               <div className="home-feed-stack space-y-6 md:space-y-8 xl:space-y-10">
                 {showFeedLeadCard ? (
@@ -3486,7 +4123,7 @@ export default function LoggedInHome() {
                   </section>
                 ) : null}
 
-                {user && <MagicComposer onPostCreated={fetchPosts} />}
+                {user && <div className="mb-2" style={{ marginTop: '8px' }}><MagicComposer onPostCreated={fetchPosts} /></div>}
 
                 {isLoading ? (
                   <div className="w-full py-4">
@@ -3647,6 +4284,86 @@ export default function LoggedInHome() {
                 )}
               </div>
             </section>
+
+            {/* ── Right widget panel ── */}
+            {!showHomeWidgets && (
+              <aside className="hidden w-72 shrink-0 xl:block xl:sticky xl:top-24 xl:self-start">
+                <div className="flex flex-col gap-3">
+                  {/* Add widget button */}
+                  <div className="flex items-center justify-end px-1">
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setRightPickerOpen((v) => !v)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border text-base transition-all"
+                      style={{
+                        borderColor: rightPickerOpen
+                          ? "var(--color-amber-primary)"
+                          : "color-mix(in srgb, var(--color-border-light) 68%, transparent)",
+                        background: rightPickerOpen
+                          ? "color-mix(in srgb, var(--color-amber-primary) 12%, transparent)"
+                          : "rgba(255,255,255,0.04)",
+                        color: rightPickerOpen
+                          ? "var(--color-amber-primary)"
+                          : "var(--color-text-muted)",
+                      }}
+                      aria-label="Agregar widget"
+                    >
+                      +
+                    </motion.button>
+                  </div>
+
+                  {/* Picker */}
+                  <AnimatePresence>
+                    {rightPickerOpen ? (
+                      <RightWidgetPicker
+                        options={availableRightWidgets}
+                        onAdd={addRightWidget}
+                        onClose={() => setRightPickerOpen(false)}
+                      />
+                    ) : null}
+                  </AnimatePresence>
+
+                  {/* Widget cards */}
+                  <AnimatePresence initial={false}>
+                    {rightWidgets.map((id) => {
+                      const meta = RIGHT_WIDGET_REGISTRY.find((w) => w.id === id);
+                      if (!meta) return null;
+                      return (
+                        <RightWidgetCard
+                          key={id}
+                          label={meta.label}
+                          collapsed={collapsedRightWidgets.includes(id)}
+                          onClose={() => removeRightWidget(id)}
+                          onToggleCollapse={() => toggleRightWidgetCollapsed(id)}
+                        >
+                          {renderRightWidget(id)}
+                        </RightWidgetCard>
+                      );
+                    })}
+                  </AnimatePresence>
+
+                  {/* Empty state */}
+                  {rightWidgets.length === 0 && !rightPickerOpen ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex flex-col items-center rounded-[1.4rem] border px-4 py-6 text-center"
+                      style={{
+                        borderColor: "color-mix(in srgb, var(--color-border-light) 55%, transparent)",
+                        background: "rgba(255,255,255,0.02)",
+                      }}
+                    >
+                      <span className="text-2xl">🪟</span>
+                      <p className="mt-2 text-[11px]" style={{ color: "var(--color-text-muted)" }}>
+                        Sin widgets activos. Toca + para agregar.
+                      </p>
+                    </motion.div>
+                  ) : null}
+                </div>
+              </aside>
+            )}
           </div>
         </div>
       </main>

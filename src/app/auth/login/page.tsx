@@ -23,13 +23,14 @@ const LOGIN_THEME = {
   headingGradient:
     "linear-gradient(118deg, #fff7d6 0%, #ffe6a3 18%, #ffc85a 40%, #f59e0b 62%, #ffb36b 82%, #fff0c2 100%)",
   buttonText: "var(--color-text-dark)",
-  panelGradient: "var(--gradient-card-glass)",
+  panelGradient:
+    "linear-gradient(145deg, rgba(38, 24, 6, 0.94) 0%, rgba(52, 33, 8, 0.90) 38%, rgba(28, 17, 3, 0.94) 72%, rgba(20, 12, 2, 0.96) 100%)",
   panelSurface:
-    "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-elevated) 6%)",
+    "color-mix(in srgb, #1c1103 92%, #3a2408 8%)",
   fieldSurface:
-    "color-mix(in srgb, var(--color-surface-card) 96%, var(--color-surface-elevated) 4%)",
+    "color-mix(in srgb, #0f0801 88%, #3a2408 12%)",
   buttonSurface:
-    "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-overlay) 6%)",
+    "color-mix(in srgb, #1a1002 90%, #3a2408 10%)",
   textPrimary: "var(--color-text-primary)",
   textSecondary: "var(--color-text-secondary)",
   textMuted: "var(--color-text-muted)",
@@ -40,7 +41,7 @@ const LOGIN_THEME = {
   glow: "var(--shadow-amber-glow)",
   glowLarge: "var(--shadow-amber-glow-lg)",
   headingStroke:
-    "0.35px color-mix(in srgb, var(--color-surface-overlay) 74%, var(--color-orange-cta) 26%)",
+    "1.8px color-mix(in srgb, #f59e0b 60%, #fde68a 40%)",
   headingShadow:
     "0 18px 36px rgba(0, 0, 0, 0.2), 0 0 24px rgba(251, 191, 36, 0.08)",
   errorBg: "color-mix(in srgb, var(--color-error) 12%, var(--color-surface-card) 88%)",
@@ -49,7 +50,20 @@ const LOGIN_THEME = {
 } as const;
 
 const LOGIN_BORDER_COLORS =
-  "var(--color-amber-primary), var(--color-orange-cta), var(--color-emerald), var(--color-amber-light), var(--color-amber-primary)";
+  "#fde68a, #fbbf24, #d4af37, #fcd34d, #f59e0b, #fef3c7, #fde68a";
+
+// Azul guardado:
+// "radial-gradient(ellipse at 18% 60%, #1e0a4a 0%, transparent 55%), " +
+// "radial-gradient(ellipse at 80% 20%, #0c1d6b 0%, transparent 50%), " +
+// "radial-gradient(ellipse at 55% 85%, #061040 0%, transparent 45%), " +
+// "linear-gradient(145deg, #0d0520 0%, #130b38 22%, #0f1d5e 50%, #091650 72%, #07102e 100%)"
+
+const LOGIN_BG =
+  "radial-gradient(ellipse at 20% 50%, #92340a 0%, transparent 48%), " +
+  "radial-gradient(ellipse at 78% 20%, #b45309 0%, transparent 44%), " +
+  "radial-gradient(ellipse at 55% 88%, #78200a 0%, transparent 40%), " +
+  "radial-gradient(ellipse at 40% 10%, #c2601a 0%, transparent 36%), " +
+  "linear-gradient(145deg, #0e0601 0%, #1c0e02 18%, #2d1604 36%, #3a1c06 52%, #1e0e02 72%, #0d0601 100%)";
 
 const LOGIN_SPACING = {
   titleToSubtitle: 8,
@@ -209,11 +223,11 @@ type InputStatus = "idle" | "focus" | "valid" | "invalid";
 const NEON_INPUT_COLORS: Record<InputStatus, string> = {
   idle: "var(--color-border-light)",
   focus:
-    "var(--color-amber-primary), var(--color-amber-light), var(--color-emerald), var(--color-amber-dark), var(--color-amber-primary)",
+    "#7c3aed, #4f46e5, #06b6d4, #f59e0b, #818cf8, #06b6d4, #7c3aed",
   valid:
-    "var(--color-emerald), var(--color-emerald-dark), var(--color-amber-light), var(--color-emerald), var(--color-emerald-dark)",
+    "#10b981, #34d399, #6ee7b7, #059669, #10b981",
   invalid:
-    "var(--color-error), var(--color-error-dark), var(--color-orange-cta), var(--color-error), var(--color-error-dark)",
+    "#ef4444, #f87171, #fca5a5, #dc2626, #ef4444",
 };
 
 function NeonInput({
@@ -266,7 +280,7 @@ function NeonInput({
                 borderWidth={2}
                 colors={NEON_INPUT_COLORS[status]}
                 glowIntensity={
-                  status === "invalid" ? "strong" : status === "valid" ? "medium" : "subtle"
+                  status === "invalid" ? "strong" : status === "valid" ? "medium" : "medium"
                 }
                 pulseSpeed={status === "invalid" ? 1.2 : 2.4}
               >
@@ -430,14 +444,14 @@ interface Particle {
 }
 
 const PARTICLE_COLORS = [
-  "color-mix(in srgb, var(--color-amber-primary) 32%, transparent)",
-  "color-mix(in srgb, var(--color-orange-cta) 26%, transparent)",
-  "color-mix(in srgb, var(--color-emerald) 22%, transparent)",
-  "color-mix(in srgb, var(--color-amber-light) 20%, transparent)",
-  "color-mix(in srgb, var(--color-text-primary) 10%, transparent)",
-  "color-mix(in srgb, var(--color-amber-dark) 24%, transparent)",
-  "color-mix(in srgb, var(--color-orange-cta-hover) 20%, transparent)",
-  "color-mix(in srgb, var(--color-emerald-dark) 18%, transparent)",
+  "rgba(124, 58, 237, 0.35)",
+  "rgba(79, 70, 229, 0.30)",
+  "rgba(37, 99, 235, 0.28)",
+  "rgba(6, 182, 212, 0.22)",
+  "rgba(129, 140, 248, 0.25)",
+  "rgba(167, 139, 250, 0.30)",
+  "rgba(56, 189, 248, 0.20)",
+  "rgba(99, 102, 241, 0.28)",
 ];
 
 function generateParticles(count: number): Particle[] {
@@ -774,7 +788,7 @@ export default function LoginPage() {
       style={{ color: LOGIN_THEME.textPrimary }}
     >
       {/* Fondo */}
-      <div className="absolute inset-0" style={{ background: "var(--gradient-hero)" }} />
+      <div className="absolute inset-0" style={{ background: LOGIN_BG }} />
 
       {/* Partículas flotantes */}
       {mounted && (
@@ -830,72 +844,80 @@ export default function LoginPage() {
         }}
       >
         <div className="w-full max-w-sm">
-          {/* Google OAuth with Neon Border — first */}
-          <motion.div
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            style={{ marginBottom: LOGIN_SPACING.primaryActionToSecondaryAction }}
-          >
-            <NeonGoogleButton />
-          </motion.div>
-
-          {/* Accordion: "o inicia con tu correo" */}
-          <button
-            type="button"
-            onClick={() => setFormOpen(!formOpen)}
-            className="relative flex w-full items-center gap-2 transition-colors"
-            style={{ marginBottom: LOGIN_SPACING.primaryActionToSecondaryAction }}
-          >
-            <div className="flex-1 border-t" style={{ borderColor: LOGIN_THEME.border }} />
-            <span
-              className="flex items-center gap-1.5 px-2 text-xs transition-opacity hover:opacity-80"
-              style={{ color: LOGIN_THEME.textMuted }}
+          <GradientBorder radius={24} borderWidth={1.5}>
+            <div
+              className="rounded-3xl px-6 py-7 shadow-2xl backdrop-blur-xl"
+              style={{
+                background: LOGIN_THEME.panelGradient,
+                boxShadow: `inset 0 1px 0 color-mix(in srgb, white 24%, transparent), ${LOGIN_THEME.glowLarge}`,
+              }}
             >
-              o inicia con tu correo
-              <motion.svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                animate={{ rotate: formOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </motion.svg>
-            </span>
-            <div className="flex-1 border-t" style={{ borderColor: LOGIN_THEME.border }} />
-          </button>
-
-          {/* Collapsible Form */}
-          <AnimatePresence>
-            {formOpen && (
+              {/* Google OAuth with Neon Border — first */}
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="overflow-hidden"
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                style={{ marginBottom: LOGIN_SPACING.primaryActionToSecondaryAction }}
               >
-                {renderForm("mobile", "space-y-3")}
+                <NeonGoogleButton />
               </motion.div>
-            )}
-          </AnimatePresence>
 
-          {/* Register link */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7, duration: 0.5 }}
-            className="text-center text-sm"
-            style={{
-              marginTop: LOGIN_SPACING.secondaryActionToFooter,
-              color: LOGIN_THEME.textMuted,
-            }}
+              {/* Accordion: "o inicia con tu correo" */}
+              <button
+                type="button"
+                onClick={() => setFormOpen(!formOpen)}
+                className="relative flex w-full items-center gap-2 transition-colors"
+                style={{ marginBottom: formOpen ? LOGIN_SPACING.primaryActionToSecondaryAction : 0 }}
+              >
+                <div className="flex-1 border-t" style={{ borderColor: LOGIN_THEME.border }} />
+                <span
+                  className="flex items-center gap-1.5 px-2 text-xs transition-opacity hover:opacity-80"
+                  style={{ color: LOGIN_THEME.textMuted }}
+                >
+                  o inicia con tu correo
+                  <motion.svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    animate={{ rotate: formOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </motion.svg>
+                </span>
+                <div className="flex-1 border-t" style={{ borderColor: LOGIN_THEME.border }} />
+              </button>
+
+              {/* Collapsible Form */}
+              <AnimatePresence>
+                {formOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    {renderForm("mobile", "space-y-3")}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Register link */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+                className="text-center text-sm"
+                style={{
+                  marginTop: LOGIN_SPACING.secondaryActionToFooter,
+                  color: LOGIN_THEME.textMuted,
+                }}
           >
             ¿No tienes cuenta?{" "}
             <Link
@@ -906,6 +928,8 @@ export default function LoginPage() {
               Regístrate aquí
             </Link>
           </motion.p>
+            </div>
+          </GradientBorder>
         </div>
       </motion.div>
 
