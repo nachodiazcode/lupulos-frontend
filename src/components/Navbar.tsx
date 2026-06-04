@@ -99,6 +99,7 @@ export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [footerMenuOpen, setFooterMenuOpen] = useState(false);
+  const isCollapsed = false;
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -138,7 +139,7 @@ export default function Navbar() {
     <>
       {showSidebar ? (
       <aside
-        className="lupulos-sidebar fixed top-0 left-0 z-50 hidden h-screen w-[76px] flex-col items-center gap-1 border-r py-4 md:flex xl:w-[240px] xl:items-stretch xl:px-4"
+        className={`lupulos-sidebar fixed top-0 left-0 z-50 hidden h-screen w-[76px] flex-col items-center gap-1 border-r py-4 md:flex ${isCollapsed ? "is-collapsed" : ""} ${!isCollapsed ? "xl:w-[240px] xl:items-stretch xl:px-4" : ""} transition-all duration-300`}
         style={{
           background: "var(--navbar-bg-scrolled)",
           backdropFilter: "blur(16px) saturate(180%)",
@@ -278,7 +279,11 @@ export default function Navbar() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 6, scale: 0.96 }}
                 transition={{ type: "spring", stiffness: 420, damping: 28 }}
-                className="absolute bottom-full left-full z-50 mb-0 ml-2 w-56 rounded-2xl border p-2 xl:static xl:mb-1 xl:ml-0 xl:w-full"
+                className={`absolute z-50 mb-0 ml-2 w-56 rounded-2xl border p-2 ${
+                  isCollapsed
+                    ? "bottom-0 left-full"
+                    : "bottom-full left-full xl:static xl:mb-1 xl:ml-0 xl:w-full"
+                }`}
                 style={{
                   background:
                     "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 96%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 98%, transparent))",

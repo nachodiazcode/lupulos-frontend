@@ -18,6 +18,7 @@ import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
+import PageContainer from "@/components/layouts/PageContainer";
 import MapView from "@/features/lugares/components/MapView";
 import PlaceDiscoveryGrid from "@/features/lugares/components/PlaceDiscoveryGrid";
 import PlaceFormModal from "@/features/lugares/components/LugarFormModal";
@@ -1473,7 +1474,7 @@ export default function LugaresPage() {
       <GoldenBackground />
       <Navbar />
 
-      <main className="relative z-[2] mx-auto w-full max-w-4xl flex-1 px-4 pt-6 pb-12 sm:px-6">
+      <PageContainer>
         <motion.div
           initial="hidden"
           animate="visible"
@@ -1648,7 +1649,7 @@ export default function LugaresPage() {
             </motion.div>
           </section>
         </div>
-      </main>
+      </PageContainer>
 
       {/* ─── Featured Place Sidebar ─── */}
       <motion.aside

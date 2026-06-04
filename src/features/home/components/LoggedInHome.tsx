@@ -3392,15 +3392,10 @@ export default function LoggedInHome() {
       <GoldenParticles count={22} />
       <Navbar />
 
-      <main className="home-laptop-viewport relative overflow-hidden pt-0 pb-24">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: "var(--gradient-home-backdrop)",
-          }}
-        />
+      <main className="home-laptop-viewport relative w-full min-h-screen py-6 flex flex-col justify-start items-center">
 
-        <div className="relative mx-auto flex max-w-[1340px] flex-col px-4 sm:px-6 lg:px-8">
+
+        <div className="relative mx-auto flex w-full flex-col px-4 sm:px-6 lg:px-8 items-center justify-center">
           {showHomeIntro ? (
             <>
               {/* ─── Welcome + Gamification Banner ─── */}
@@ -3910,13 +3905,11 @@ export default function LoggedInHome() {
           ) : null}
 
           <div
-            className={
+            className={`relative z-[2] mx-auto grid grid-cols-1 items-start justify-center gap-6 w-full max-w-[1024px] ${
               showHomeWidgets
-                ? "mx-auto mt-3 grid w-full max-w-[1120px] gap-4 xl:grid-cols-[290px_minmax(0,780px)] xl:justify-center xl:gap-8"
-                : rightWidgets.length > 0
-                  ? "home-feed-shell mx-auto mt-3 flex w-full items-start gap-6"
-                  : "home-feed-shell mx-auto w-full"
-            }
+                ? "xl:grid-cols-[1fr_minmax(auto,30.375rem)_1fr]"
+                : "xl:grid-cols-[1fr_340px]"
+            }`}
             style={
               showHomeWidgets
                 ? undefined
@@ -4070,7 +4063,7 @@ export default function LoggedInHome() {
               style={!showHomeWidgets && rightWidgets.length > 0 ? { maxWidth: HOME_FEED_MAX_WIDTH } : undefined}
             >
               {/* ── Magic Composer ── */}
-              <div className="home-feed-stack space-y-6 md:space-y-8 xl:space-y-10">
+              <div className="home-feed-stack space-y-2">
                 {showFeedLeadCard ? (
                   <section
                     className="overflow-hidden rounded-[1.7rem] border px-4 py-4 sm:px-5"

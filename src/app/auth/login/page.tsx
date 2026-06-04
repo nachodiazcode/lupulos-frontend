@@ -958,32 +958,29 @@ export default function LoginPage() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="hidden max-w-[34rem] flex-1 lg:block"
           >
-            <h1
-              className="text-5xl leading-[0.96] font-black tracking-[-0.045em] xl:text-6xl"
-              style={{
-                fontWeight: 950,
-                backgroundImage: LOGIN_THEME.headingGradient,
-                backgroundSize: "140% 140%",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-                WebkitTextFillColor: "transparent",
-                WebkitTextStroke: LOGIN_THEME.headingStroke,
-                textShadow: LOGIN_THEME.headingShadow,
-              }}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="text-5xl font-extrabold tracking-tight xl:text-[4.5rem]"
+              style={{ lineHeight: 1.1, color: LOGIN_THEME.textPrimary }}
             >
-              Bienvenido a Lúpulos
-            </h1>
-            <p
-              className="max-w-[28rem] text-lg leading-snug font-bold xl:text-[1.3rem]"
-              style={{
-                marginTop: LOGIN_SPACING.titleToSubtitle,
-                color: LOGIN_THEME.textSecondary,
-                textWrap: "balance",
-              }}
+              Bienvenido a <br />
+              <span style={{
+                  background: "linear-gradient(135deg, #fde047 0%, #f59e0b 50%, #b45309 100%)",
+                  WebkitBackgroundClip: "text", backgroundClip: "text",
+                  color: "transparent", WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0px 8px 16px rgba(245, 158, 11, 0.25))",
+                  display: "inline-block", paddingRight: "0.2em" }}>
+                Lúpulos
+              </span>
+            </motion.h1>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+              className="max-w-[28rem] text-lg leading-relaxed font-medium xl:text-xl opacity-90"
+              style={{ marginTop: LOGIN_SPACING.titleToSubtitle + 12, color: LOGIN_THEME.textSecondary, textWrap: "balance" }}
             >
-              La nueva red social para los amantes de la cerveza!
-            </p>
+              La nueva red social para los amantes de la cerveza.
+            </motion.p>
           </motion.div>
 
           <motion.div

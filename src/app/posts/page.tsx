@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
+import PageContainer from "@/components/layouts/PageContainer";
 
 /* ─── Types ─── */
 interface Usuario {
@@ -759,7 +760,7 @@ export default function PostPage() {
       <GoldenBackground />
       <Navbar />
 
-      <main className="relative z-[2] mx-auto w-full max-w-2xl flex-1 px-4 pt-6 pb-12 sm:px-6">
+      <PageContainer className="relative z-[2]">
         {/* ─── Header ─── */}
         <motion.div initial="hidden" animate="visible" className="mb-10 flex flex-col items-center text-center">
           <motion.span
@@ -1001,7 +1002,7 @@ export default function PostPage() {
             </motion.p>
           </>
         )}
-      </main>
+      </PageContainer>
 
       {/* ─── Fixed Sidebar Widgets (xl only) ─── */}
       <AnimatePresence>

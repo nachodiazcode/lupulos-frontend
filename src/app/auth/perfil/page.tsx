@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PageContainer from "@/components/layouts/PageContainer";
 import useAuth from "@/hooks/useAuth";
 import { persistAuthSession, type StoredAuthUser } from "@/lib/auth-storage";
 import { normalizeStoredAuthUser } from "@/lib/auth-user";
@@ -618,9 +619,9 @@ export default function PerfilPage() {
     >
       <Navbar />
 
-      <main className="flex-1 px-4 py-8 sm:py-12">
+      <PageContainer>
         {/* Layout: form + sidebar on xl */}
-        <div className="mx-auto flex max-w-6xl gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* ─── Main Column ─── */}
           <div className="min-w-0 flex-1">
             {/* Profile Header */}
@@ -1200,7 +1201,7 @@ export default function PerfilPage() {
             </div>
           </motion.aside>
         </div>
-      </main>
+      </PageContainer>
 
       <Footer />
 

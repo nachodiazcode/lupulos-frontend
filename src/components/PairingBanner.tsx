@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Beer } from "@/features/beers/model/types";
+import useAuth from "@/hooks/useAuth";
 
 type FeedItem = { icon: string; main: string; sub: string };
 
@@ -53,6 +54,7 @@ const INTERVAL_MS = 4500;
 const DOT_COUNT = 6;
 
 export default function PairingBanner({ beers = [] }: { beers?: Beer[] }) {
+  const { user } = useAuth();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -70,8 +72,9 @@ export default function PairingBanner({ beers = [] }: { beers?: Beer[] }) {
 
   return (
     <div
-      className="sticky top-16 z-40 w-full overflow-hidden"
+      className="sticky z-40 w-full overflow-hidden"
       style={{
+        top: user ? "0px" : "var(--header-height, 64px)",
         background: "color-mix(in srgb, var(--color-surface-card) 88%, var(--color-surface-deepest) 12%)",
         backdropFilter: "blur(14px) saturate(1.2)",
         WebkitBackdropFilter: "blur(14px) saturate(1.2)",

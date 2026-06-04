@@ -91,18 +91,30 @@ export default function PlaceDiscoveryGrid({
     return (
       <Box
         sx={{
-          borderRadius: 4,
-          border: "1px solid var(--color-border-subtle)",
-          background: "var(--color-surface-card)",
-          p: 4,
+          position: "relative",
+          display: "flex",
+          minHeight: "440px",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          borderRadius: "1.9rem",
+          border: "1px solid color-mix(in srgb, var(--color-border-light) 72%, transparent)",
+          background: "var(--gradient-feed-empty-state)",
+          boxShadow: "var(--shadow-card)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          px: 3,
+          py: 8,
           textAlign: "center",
         }}
       >
-        <Typography sx={{ fontSize: 18, fontWeight: 800, color: "var(--color-text-primary)" }}>
-          No encontramos un lugar con ese mood
+        <Typography sx={{ fontSize: 54 }}>📍</Typography>
+        <Typography sx={{ mt: 3, fontSize: 22, fontWeight: 900, color: "var(--color-text-primary)" }}>
+          El mapa sigue creciendo
         </Typography>
-        <Typography sx={{ mt: 1, fontSize: 13, color: "var(--color-text-secondary)" }}>
-          Prueba otra ciudad, cambia el filtro o vuelve al modo principal para seguir explorando.
+        <Typography sx={{ mt: 1.5, maxWidth: 380, fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+          No encontramos un lugar con ese mood. Prueba otra ciudad o vuelve al modo principal para seguir explorando.
         </Typography>
       </Box>
     );
