@@ -15,6 +15,9 @@ import {
   normalizeStoredAuthUser,
 } from "@/lib/auth-user";
 import { getErrorMessage } from "@/lib/errors";
+import { Cinzel } from "next/font/google";
+
+const brandFont = Cinzel({ weight: ["400", "700", "900"], subsets: ["latin"] });
 
 const LOGIN_THEME = {
   accent: "var(--color-amber-primary)",
@@ -52,23 +55,10 @@ const LOGIN_THEME = {
 const LOGIN_BORDER_COLORS =
   "#fde68a, #fbbf24, #d4af37, #fcd34d, #f59e0b, #fef3c7, #fde68a";
 
-// Azul guardado:
-// "radial-gradient(ellipse at 18% 60%, #1e0a4a 0%, transparent 55%), " +
-// "radial-gradient(ellipse at 80% 20%, #0c1d6b 0%, transparent 50%), " +
-// "radial-gradient(ellipse at 55% 85%, #061040 0%, transparent 45%), " +
-// "linear-gradient(145deg, #0d0520 0%, #130b38 22%, #0f1d5e 50%, #091650 72%, #07102e 100%)"
-
-const LOGIN_BG =
-  "radial-gradient(ellipse at 20% 50%, #92340a 0%, transparent 48%), " +
-  "radial-gradient(ellipse at 78% 20%, #b45309 0%, transparent 44%), " +
-  "radial-gradient(ellipse at 55% 88%, #78200a 0%, transparent 40%), " +
-  "radial-gradient(ellipse at 40% 10%, #c2601a 0%, transparent 36%), " +
-  "linear-gradient(145deg, #0e0601 0%, #1c0e02 18%, #2d1604 36%, #3a1c06 52%, #1e0e02 72%, #0d0601 100%)";
-
 const LOGIN_SPACING = {
   titleToSubtitle: 8,
   mobileHeaderToPrimaryAction: 18,
-  desktopHeaderToPrimaryAction: 22,
+  desktopHeaderToPrimaryAction: 20,
   primaryActionToSecondaryAction: 20,
   secondaryActionToFooter: 24,
 } as const;
@@ -444,14 +434,14 @@ interface Particle {
 }
 
 const PARTICLE_COLORS = [
-  "rgba(124, 58, 237, 0.35)",
-  "rgba(79, 70, 229, 0.30)",
-  "rgba(37, 99, 235, 0.28)",
-  "rgba(6, 182, 212, 0.22)",
-  "rgba(129, 140, 248, 0.25)",
-  "rgba(167, 139, 250, 0.30)",
-  "rgba(56, 189, 248, 0.20)",
-  "rgba(99, 102, 241, 0.28)",
+  "rgba(251, 191, 36, 0.32)",
+  "rgba(245, 158, 11, 0.28)",
+  "rgba(252, 211, 77, 0.26)",
+  "rgba(217, 119, 6, 0.24)",
+  "rgba(253, 230, 138, 0.22)",
+  "rgba(180, 83, 9, 0.26)",
+  "rgba(254, 243, 199, 0.18)",
+  "rgba(234, 88, 12, 0.24)",
 ];
 
 function generateParticles(count: number): Particle[] {
@@ -541,79 +531,66 @@ const EyeOffIcon = (
   </svg>
 );
 
-const HopIcon = (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 3c2.5 1.2 4 3.4 4 6s-1.5 4.8-4 6c-2.5-1.2-4-3.4-4-6s1.5-4.8 4-6Z" />
-    <path d="M12 5.5v11M8.4 7.8 12 9.6l3.6-1.8M8.1 11.5 12 13.4l3.9-1.9" />
-  </svg>
-);
-
 /* ═══════════════════════════════════════════
-   Brand badge — parity with register page
+   Gold-foil wordmark — shared between hero and card header
    ═══════════════════════════════════════════ */
-function LoginBadge({ children }: { children: React.ReactNode }) {
+function Wordmark({ size = "lg" }: { size?: "lg" | "sm" }) {
+  const isLg = size === "lg";
   return (
     <span
-      className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase backdrop-blur-sm"
+      className={`${brandFont.className} block`}
       style={{
-        borderColor: "rgba(251,191,36,0.28)",
-        background: "rgba(251,191,36,0.08)",
-        color: "var(--color-amber-primary)",
-      }}
-    >
-      <span
-        className="h-1.5 w-1.5 rounded-full"
-        style={{
-          background: "var(--color-amber-primary)",
-          boxShadow: "0 0 8px var(--color-amber-primary)",
-        }}
-      />
-      {children}
-    </span>
-  );
-}
-
-/* ─── Gradient wordmark (técnica inline — robusta en Tailwind v4) ─── */
-function GradientWord({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        backgroundImage: LOGIN_THEME.headingGradient,
-        backgroundSize: "140% 140%",
+        fontWeight: 900,
+        fontSize: isLg ? "1.5em" : "1.05em",
+        lineHeight: isLg ? 0.85 : 0.95,
+        letterSpacing: "0.04em",
+        background:
+          "linear-gradient(180deg, #ece0bd 0%, #d8c599 22%, #c0a673 42%, #a48a54 58%, #8d7444 67%, #bda66f 84%, #eaddb8 100%)",
         WebkitBackgroundClip: "text",
         backgroundClip: "text",
-        WebkitTextFillColor: "transparent",
         color: "transparent",
+        WebkitTextFillColor: "transparent",
+        WebkitTextStrokeWidth: isLg ? "1.5px" : "1px",
+        WebkitTextStrokeColor: "#bda66f",
+        paintOrder: "stroke",
+        filter: isLg
+          ? "drop-shadow(0 1px 0 rgba(60, 45, 18, 0.5)) drop-shadow(0 5px 16px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 24px rgba(214, 190, 138, 0.42)) drop-shadow(0 0 54px rgba(214, 190, 138, 0.2))"
+          : "drop-shadow(0 1px 0 rgba(60, 45, 18, 0.45)) drop-shadow(0 3px 12px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 18px rgba(214, 190, 138, 0.35))",
+        textTransform: "uppercase",
       }}
     >
-      {children}
+      Lupuløs
     </span>
   );
 }
 
-/* ─── Compact in-card header — shown on mobile & tablet, hidden at lg+
-   (the lg+ split layout already carries the heading on the left) ─── */
-function CardHeader({ subtitle, marginBottom }: { subtitle: string; marginBottom: number }) {
+/* ═══════════════════════════════════════════
+   Compact brand header — mobile & tablet card
+   (the lg+ hero column carries the full wordmark + tagline;
+   below that breakpoint the card is the only thing on screen,
+   so it needs its own brand identity)
+   ═══════════════════════════════════════════ */
+function CardBrandHeader({ marginBottom }: { marginBottom: number }) {
   return (
     <div className="text-center lg:hidden" style={{ marginBottom }}>
-      <h2
-        className="flex items-center justify-center gap-2 text-2xl font-bold tracking-tight"
-        style={{ color: LOGIN_THEME.textPrimary }}
+      <p className={`${brandFont.className} text-3xl`} style={{ lineHeight: 1.1 }}>
+        <Wordmark size="sm" />
+      </p>
+      <p
+        className={`${brandFont.className} mt-1.5 text-[0.65rem]`}
+        style={{
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          background: "linear-gradient(180deg, #ece0bd 0%, #c8b07a 55%, #a48a54 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          color: "transparent",
+          WebkitTextFillColor: "transparent",
+          filter:
+            "drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(214, 190, 138, 0.25))",
+        }}
       >
-        <span style={{ color: "var(--color-amber-primary)" }}>{HopIcon}</span>
-        Bienvenido a <GradientWord>Lúpulos</GradientWord>
-      </h2>
-      <p className="mt-1.5 text-sm" style={{ color: LOGIN_THEME.textMuted }}>
-        {subtitle}
+        Bienvenido de nuevo
       </p>
     </div>
   );
@@ -663,6 +640,19 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
+    let originalTheme: string | null = null;
+
+    const timer = setTimeout(() => {
+      originalTheme = document.documentElement.getAttribute("data-theme");
+      document.documentElement.setAttribute("data-theme", "stout");
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      if (originalTheme) {
+        document.documentElement.setAttribute("data-theme", originalTheme);
+      }
+    };
   }, []);
 
   const particles = useMemo(() => (mounted ? generateParticles(24) : []), [mounted]);
@@ -866,7 +856,16 @@ export default function LoginPage() {
       style={{ color: LOGIN_THEME.textPrimary }}
     >
       {/* Fondo */}
-      <div className="absolute inset-0" style={{ background: LOGIN_BG }} />
+      <div 
+        className="absolute inset-0" 
+        style={{
+          backgroundImage: `radial-gradient(ellipse 120% 80% at 62% 24%, rgba(255, 184, 92, 0.32) 0%, rgba(255, 138, 48, 0.12) 38%, transparent 62%), radial-gradient(ellipse 150% 130% at 50% 50%, transparent 50%, rgba(12, 6, 2, 0.6) 100%), linear-gradient(90deg, rgba(18, 9, 3, 0.78) 0%, rgba(18, 9, 3, 0.36) 34%, rgba(18, 9, 3, 0) 58%), linear-gradient(180deg, rgba(255, 150, 60, 0.1) 0%, rgba(40, 18, 6, 0.18) 55%, rgba(14, 7, 2, 0.5) 100%), url('/kattegat_bg.png')`,
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          filter: "sepia(0.45) saturate(1.5) hue-rotate(-8deg) contrast(1.05) brightness(1.05)"
+        }}
+      />
 
       {/* Partículas flotantes */}
       {mounted && (
@@ -930,16 +929,12 @@ export default function LoginPage() {
                 boxShadow: `inset 0 1px 0 color-mix(in srgb, white 24%, transparent), ${LOGIN_THEME.glowLarge}`,
               }}
             >
-              {/* Brand header */}
               <motion.div
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
-                <CardHeader
-                  subtitle="Inicia sesión para seguir explorando"
-                  marginBottom={LOGIN_SPACING.mobileHeaderToPrimaryAction}
-                />
+                <CardBrandHeader marginBottom={LOGIN_SPACING.mobileHeaderToPrimaryAction} />
               </motion.div>
 
               {/* Google OAuth with Neon Border — first */}
@@ -1048,33 +1043,38 @@ export default function LoginPage() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="hidden max-w-[34rem] flex-1 lg:block"
           >
-            <LoginBadge>Bienvenido de nuevo</LoginBadge>
-            <h1
-              className="mt-6 text-5xl leading-[0.96] font-black tracking-[-0.045em] xl:text-6xl"
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className={`${brandFont.className} text-[2.5rem] xl:text-[3rem]`}
+              style={{ lineHeight: 1.12, color: LOGIN_THEME.textPrimary }}
+            >
+              {/* Marca — dorado metálico (gold foil), glow que abraza las letras */}
+              <span className="relative block" style={{ paddingRight: "0.06em" }}>
+                <Wordmark size="lg" />
+              </span>
+            </motion.h1>
+            {/* Bajada — estilo "LOUNGE BEER": mayúsculas, tracking, dorado */}
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+              className={`${brandFont.className} mt-[2px] text-[0.95rem] xl:text-[1.1rem]`}
               style={{
-                fontWeight: 950,
-                backgroundImage: LOGIN_THEME.headingGradient,
-                backgroundSize: "140% 140%",
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                background:
+                  "linear-gradient(180deg, #ece0bd 0%, #c8b07a 55%, #a48a54 100%)",
                 WebkitBackgroundClip: "text",
                 backgroundClip: "text",
                 color: "transparent",
                 WebkitTextFillColor: "transparent",
-                WebkitTextStroke: LOGIN_THEME.headingStroke,
-                textShadow: LOGIN_THEME.headingShadow,
+                filter:
+                  "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 16px rgba(214, 190, 138, 0.28))",
               }}
             >
-              Bienvenido a Lúpulos
-            </h1>
-            <p
-              className="max-w-[28rem] text-lg leading-snug font-bold xl:text-[1.3rem]"
-              style={{
-                marginTop: LOGIN_SPACING.titleToSubtitle,
-                color: LOGIN_THEME.textSecondary,
-                textWrap: "balance",
-              }}
-            >
-              La nueva red social para los amantes de la cerveza!
-            </p>
+              Descubre ese brebaje que te faltaba
+            </motion.p>
           </motion.div>
 
           <motion.div
@@ -1091,16 +1091,12 @@ export default function LoginPage() {
                   boxShadow: `inset 0 1px 0 color-mix(in srgb, white 24%, transparent), ${LOGIN_THEME.glowLarge}`,
                 }}
               >
-                {/* Brand header — hidden at lg+, where the left hero already carries it */}
                 <motion.div
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
                 >
-                  <CardHeader
-                    subtitle="Inicia sesión para seguir explorando"
-                    marginBottom={LOGIN_SPACING.desktopHeaderToPrimaryAction}
-                  />
+                  <CardBrandHeader marginBottom={LOGIN_SPACING.desktopHeaderToPrimaryAction} />
                 </motion.div>
 
                 {/* Google OAuth with Neon Border */}
