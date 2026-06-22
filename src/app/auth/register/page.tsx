@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Snackbar, Alert } from "@mui/material";
 import api from "@/lib/api";
@@ -12,7 +11,6 @@ import useAuth from "@/hooks/useAuth";
 import { persistAuthSession } from "@/lib/auth-storage";
 import { extractAuthSession } from "@/lib/auth-user";
 import { getErrorMessage } from "@/lib/errors";
-import HeroIllustration from "@/components/ui/HeroIllustration";
 
 /* ─── Gradient Border ─── */
 function GradientBorder({
@@ -323,14 +321,16 @@ export default function RegisterPage() {
 
       {/* Layout */}
       <div className="relative z-10 flex w-full max-w-5xl items-center justify-center gap-8 px-4 py-8 lg:justify-between lg:gap-16 lg:px-8">
-        {/* Ilustración animada */}
+        {/* Tagline */}
         <motion.div
           initial={{ x: -60, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="hidden flex-1 items-center justify-center lg:flex"
         >
-          <HeroIllustration />
+          <h2 className="max-w-md text-center text-4xl font-bold tracking-tight text-amber-100 sm:text-5xl">
+            Se parte de la comunidad más cervecera del mundo
+          </h2>
         </motion.div>
 
         {/* Card */}
@@ -350,26 +350,13 @@ export default function RegisterPage() {
                 "0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(251,191,36,0.06), inset 0 1px 0 rgba(255,255,255,0.05)",
             }}
           >
-            {/* Logo */}
+            {/* Title */}
             <div className="mb-6 text-center">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <Image
-                  src="/assets/logo.gif"
-                  alt="Lúpulos App"
-                  width={70}
-                  height={70}
-                  className="mx-auto drop-shadow-lg"
-                />
-              </motion.div>
               <motion.h1
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                className="text-2xl font-bold tracking-tight text-white sm:text-3xl"
               >
                 Crea tu cuenta 🍺
               </motion.h1>
