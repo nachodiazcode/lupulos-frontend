@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { CircularProgress } from "@mui/material";
-import Navbar from "@/components/Navbar";
 import HeroSection from "@/features/landing/components/HeroSection";
 import useAuth from "@/hooks/useAuth";
 import { HOME_FEED_MAX_WIDTH } from "./homeFeed.constants";
@@ -26,7 +25,6 @@ function PublicHome() {
   return (
     <>
       <GoldenParticles count={25} />
-      <Navbar />
       <TrendsSidenav />
       <HeroSection />
       <CommunitySection />
@@ -41,7 +39,6 @@ function HomeLoadingState() {
   return (
     <>
       <GoldenParticles count={16} />
-      <Navbar />
       <main className="relative flex min-h-[70vh] items-center justify-center px-4 py-10 sm:px-6">
         <div
           className="flex w-full flex-col items-center gap-3 rounded-[2rem] border px-6 py-10 text-center sm:px-8"

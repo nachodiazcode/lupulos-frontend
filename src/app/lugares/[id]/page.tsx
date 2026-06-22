@@ -18,7 +18,6 @@ import {
   Avatar,
 } from "@mui/material";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 interface Usuario {
@@ -127,7 +126,7 @@ export default function LugarDetallePage() {
 
   return (
     <div className="min-h-screen text-white" style={{ backgroundColor: "#0f172a" }}>
-      <Navbar />
+
 
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={6} alignItems="flex-start">

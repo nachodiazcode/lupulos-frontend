@@ -230,7 +230,7 @@ export default function CommunitySection() {
           >
             <SectionBadge>Bienvenido a la tierra del lúpulo</SectionBadge>
 
-            <h2 className="text-text-primary mt-3 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+            <h2 className="text-text-primary mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
               La comunidad que vive
               <span className="block">
                 <GradientText>y respira cerveza artesanal</GradientText>
@@ -243,7 +243,7 @@ export default function CommunitySection() {
             >
               El lugar donde la comunidad vikinga escribe sus aventuras y Odín disfruta descubriendo brebajes jamás explorados. ¿Estás listo, guerrero?{" "}
               <span
-                className="font-black"
+                className="font-extrabold"
                 style={{
                   background:
                     "linear-gradient(135deg, var(--color-amber-primary), var(--color-orange-cta), #fbbf24, #c084fc, var(--color-amber-primary))",
@@ -265,57 +265,67 @@ export default function CommunitySection() {
         {/* ═══ Desktop: Infinite Marquee ═══ */}
         <DesktopMarquee />
 
-        {/* ═══ Mobile: Vertical feature list ═══ */}
-        <motion.div
-          className="mt-8 flex flex-col gap-3 px-1 lg:hidden"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-        >
-          {FEATURES.slice(0, 3).map((feat, i) => (
-            <motion.div
-              key={feat.label}
-              variants={fadeUp}
-              custom={i}
-              className="group flex items-start gap-3.5 rounded-2xl px-4 py-3.5"
-              style={{
-                background: "color-mix(in srgb, var(--color-surface-card) 60%, transparent)",
-                backdropFilter: "blur(12px)",
-                border: "1px solid var(--color-border-subtle)",
-              }}
-              whileInView={{
-                borderColor: [
-                  "var(--color-border-subtle)",
-                  "color-mix(in srgb, var(--color-amber-primary) 30%, transparent)",
-                  "var(--color-border-subtle)",
-                ],
-              }}
-              transition={{
-                borderColor: { duration: 3, repeat: Infinity, delay: i * 1, ease: "easeInOut" },
-              }}
-              viewport={{ once: false }}
-            >
-              <motion.span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[20px]"
+        {/* ═══ Mobile: Horizontal Snap-Scroll Carousel ═══ */}
+        <div className="mt-8 lg:hidden relative">
+          <motion.div
+            className="flex gap-4 overflow-x-auto pb-8 px-4 snap-x snap-mandatory"
+            style={{ 
+              scrollbarWidth: "none", 
+              WebkitOverflowScrolling: "touch",
+              WebkitMaskImage: "linear-gradient(to right, black 85%, transparent 100%)",
+              maskImage: "linear-gradient(to right, black 85%, transparent 100%)"
+            }}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-40px" }}
+          >
+            {FEATURES.map((feat, i) => (
+              <motion.div
+                key={feat.label}
+                variants={fadeUp}
+                custom={i}
+                className="group flex w-[260px] shrink-0 snap-center flex-col items-center justify-center gap-4 rounded-[2rem] px-6 py-8 text-center"
                 style={{
-                  background: "color-mix(in srgb, var(--color-amber-primary) 10%, var(--color-surface-card))",
-                  boxShadow: "0 2px 8px color-mix(in srgb, var(--color-amber-primary) 10%, transparent)",
+                  background: "color-mix(in srgb, var(--color-surface-card) 60%, transparent)",
+                  backdropFilter: "blur(20px)",
+                  border: "1px solid var(--color-border-subtle)",
                 }}
-                animate={{ rotate: [0, -6, 6, -3, 0], scale: [1, 1.08, 1] }}
-                transition={{ duration: 4, repeat: Infinity, delay: 1.5 + i * 0.8, ease: "easeInOut" }}
+                whileInView={{
+                  borderColor: [
+                    "var(--color-border-subtle)",
+                    "color-mix(in srgb, var(--color-amber-primary) 30%, transparent)",
+                    "var(--color-border-subtle)",
+                  ],
+                  scale: [0.98, 1, 0.98],
+                }}
+                transition={{
+                  borderColor: { duration: 3, repeat: Infinity, delay: i * 1, ease: "easeInOut" },
+                  scale: { duration: 4, repeat: Infinity, delay: i * 0.5, ease: "easeInOut" },
+                }}
+                viewport={{ once: false }}
               >
-                {feat.icon}
-              </motion.span>
-              <p
-                className="flex-1 pt-1.5 text-[13px] font-semibold leading-snug"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                {feat.label}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
+                <motion.span
+                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-[32px]"
+                  style={{
+                    background: "color-mix(in srgb, var(--color-amber-primary) 10%, var(--color-surface-card))",
+                    boxShadow: "0 4px 16px color-mix(in srgb, var(--color-amber-primary) 15%, transparent)",
+                  }}
+                  animate={{ rotate: [0, -4, 4, -2, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: 1.5 + i * 0.8, ease: "easeInOut" }}
+                >
+                  {feat.icon}
+                </motion.span>
+                <p
+                  className="mt-2 text-[14px] font-extrabold leading-snug tracking-tight"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {feat.label}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </div>
     </section>
   );

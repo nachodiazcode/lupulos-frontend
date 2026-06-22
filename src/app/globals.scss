@@ -1,4 +1,29 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Victor+Mono:ital,wght@1,400;1,500;1,600;1,700&family=Montserrat:wght@900&family=Poppins:wght@900&display=swap');
+
+.sidebar-cursive-text {
+  font-family: var(--font-sans, system-ui, sans-serif) !important;
+  font-style: normal !important;
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.3 !important;
+}
+
+.theme-switcher-pill {
+  border: 1px solid transparent;
+  outline: none;
+}
+
+.theme-switcher-pill:hover {
+  background: color-mix(in srgb, var(--color-amber-primary) 8%, transparent) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.theme-switcher-pill:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-amber-primary) 45%, transparent);
+  outline-offset: 2px;
+}
 
 /* ─── Prevent horizontal scroll on all viewports ─── */
 html,
@@ -7,7 +32,7 @@ body {
   max-width: 100vw;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   body {
     padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
@@ -162,17 +187,17 @@ body {
 
 /* Overrides light (saintpatrick) — Emerald aura liquid glass */
 [data-theme="saintpatrick"] .glass-card {
-  background: rgba(249, 255, 251, 0.76);
-  backdrop-filter: blur(44px) saturate(235%) brightness(1.05);
-  -webkit-backdrop-filter: blur(44px) saturate(235%) brightness(1.05);
-  border-color: rgba(167, 243, 208, 0.76);
+  background: rgba(253, 255, 250, 0.76);
+  backdrop-filter: blur(46px) saturate(230%) brightness(1.06);
+  -webkit-backdrop-filter: blur(46px) saturate(230%) brightness(1.06);
+  border-color: rgba(125, 222, 163, 0.62);
   box-shadow:
     inset 0 2px 0 rgba(252, 255, 253, 0.96),
-    inset 1.5px 0 0 rgba(220, 246, 231, 0.8),
-    inset 0 -1px 0 rgba(52, 211, 153, 0.14),
-    0 16px 48px rgba(11, 74, 52, 0.1),
-    0 6px 22px rgba(52, 211, 153, 0.1),
-    0 0 30px rgba(20, 184, 166, 0.05);
+    inset 1.5px 0 0 rgba(219, 249, 232, 0.78),
+    inset 0 -1px 0 rgba(216, 146, 20, 0.12),
+    0 16px 48px rgba(10, 79, 54, 0.1),
+    0 6px 22px rgba(22, 143, 95, 0.1),
+    0 0 30px rgba(216, 146, 20, 0.05);
   position: relative;
   isolation: isolate;
   transform: translateZ(0);
@@ -184,11 +209,11 @@ body {
 [data-theme="saintpatrick"] .glass-card:hover {
   box-shadow:
     inset 0 2px 0 rgba(252, 255, 253, 0.96),
-    inset 1.5px 0 0 rgba(220, 246, 231, 0.8),
-    inset 0 -1px 0 rgba(52, 211, 153, 0.2),
-    0 20px 58px rgba(11, 74, 52, 0.14),
-    0 8px 24px rgba(52, 211, 153, 0.12),
-    0 0 38px rgba(20, 184, 166, 0.06);
+    inset 1.5px 0 0 rgba(219, 249, 232, 0.8),
+    inset 0 -1px 0 rgba(216, 146, 20, 0.18),
+    0 20px 58px rgba(10, 79, 54, 0.14),
+    0 8px 24px rgba(22, 143, 95, 0.12),
+    0 0 38px rgba(216, 146, 20, 0.07);
   transform: translateY(-2px) translateZ(0);
 }
 
@@ -199,11 +224,11 @@ body {
   background: linear-gradient(
     108deg,
     transparent 8%,
-    rgba(167, 243, 208, 0.38) 22%,
-    rgba(52, 211, 153, 0.16) 38%,
-    rgba(163, 230, 53, 0.08) 52%,
+    rgba(187, 247, 208, 0.36) 22%,
+    rgba(34, 201, 131, 0.16) 38%,
+    rgba(216, 146, 20, 0.1) 52%,
     rgba(45, 212, 191, 0.1) 68%,
-    rgba(220, 252, 231, 0.3) 82%,
+    rgba(240, 253, 244, 0.32) 82%,
     transparent 92%
   );
   background-size: 340% 100%;
@@ -224,7 +249,7 @@ body {
     rgba(255, 255, 255, 0.56) 0%,
     rgba(255, 255, 255, 0) 38%,
     rgba(45, 212, 191, 0.03) 70%,
-    rgba(163, 230, 53, 0.02) 100%
+    rgba(216, 146, 20, 0.03) 100%
   );
   pointer-events: none;
   z-index: 0;
@@ -240,14 +265,14 @@ html:not([data-theme]) .glass-card {
 }
 
 [data-theme="saintpatrick"] .glass-pill {
-  background: rgba(250, 255, 252, 0.82);
-  backdrop-filter: blur(28px) saturate(220%) brightness(1.04);
-  -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(1.04);
-  border-color: rgba(167, 243, 208, 0.68);
+  background: rgba(254, 255, 250, 0.84);
+  backdrop-filter: blur(30px) saturate(220%) brightness(1.05);
+  -webkit-backdrop-filter: blur(30px) saturate(220%) brightness(1.05);
+  border-color: rgba(125, 222, 163, 0.62);
   box-shadow:
     inset 0 1.5px 0 rgba(252, 255, 253, 0.94),
-    0 8px 24px rgba(11, 74, 52, 0.08),
-    0 2px 10px rgba(52, 211, 153, 0.08);
+    0 8px 24px rgba(10, 79, 54, 0.08),
+    0 2px 10px rgba(216, 146, 20, 0.06);
 }
 
 /* Stout glass-card — dark purple liquid glass magic */
@@ -499,127 +524,132 @@ html:not([data-theme]) .glass-card {
    Celtic gold accents, and dreamy 3D floating aesthetic.
    ═══════════════════════════════════════════════════════════ */
 [data-theme="saintpatrick"] {
-  /* Primary — shamrock green → deeper on interaction */
-  --color-amber-primary: #2f8f63;
-  --color-amber-hover: #26744f;
-  --color-amber-dark: #174f37;
-  --color-amber-light: #67c79b;
-  --color-amber-muted: #c7ecd8;
+  /* Primary — polished shamrock with a celtic-gold counterpoint */
+  --color-amber-primary: #168f5f;
+  --color-amber-hover: #0f744d;
+  --color-amber-dark: #0a4f36;
+  --color-amber-light: #63d69e;
+  --color-amber-muted: #d8f7e7;
 
-  /* Surfaces — meadow cream + emerald mist */
-  --color-surface-deepest: #ebf8ef;
-  --color-surface-dark: #f5fcf7;
-  --color-surface-mid: #deefe4;
-  --color-surface-card: #fbfffc;
-  --color-surface-card-alt: #eef8f1;
+  /* Surfaces — luminous meadow glass */
+  --color-surface-deepest: #f0fbf4;
+  --color-surface-dark: #f9fefb;
+  --color-surface-mid: #dff4e7;
+  --color-surface-card: #fefffb;
+  --color-surface-card-alt: #edf9f2;
   --color-surface-elevated: #ffffff;
-  --color-surface-overlay: #d7ebde;
+  --color-surface-overlay: #d4ecd9;
 
   /* Green accents (navbar, drawer, etc.) */
-  --color-brown-navbar-start: #f3fbf6;
-  --color-brown-navbar-end: #deefe4;
-  --color-brown-drawer: #fbfffc;
-  --color-brown-modal: #f7fcf8;
-  --color-brown-barrel-start: #e7f5eb;
-  --color-brown-barrel-end: #dceee3;
+  --color-brown-navbar-start: #fbfffd;
+  --color-brown-navbar-end: #e4f5ea;
+  --color-brown-drawer: #fefffb;
+  --color-brown-modal: #fbfffd;
+  --color-brown-barrel-start: #edf9f2;
+  --color-brown-barrel-end: #d8efdf;
 
-  /* Accent colors — Celtic gold magic */
-  --color-gold-nav: #2f8f63;
-  --color-emerald: #2f8f63;
-  --color-emerald-dark: #26744f;
-  --color-emerald-darker: #174f37;
-  --color-orange-cta: #f0a500;
-  --color-orange-cta-hover: #d97706;
+  /* Accent colors — clover, gold, and a little taproom teal */
+  --color-gold-nav: #bf7f10;
+  --color-emerald: #168f5f;
+  --color-emerald-dark: #0f744d;
+  --color-emerald-darker: #0a4f36;
+  --color-orange-cta: #d89214;
+  --color-orange-cta-hover: #b96a0b;
   --color-error: #e53935;
   --color-error-dark: #c62828;
-  --color-info: #1565c0;
+  --color-info: #0f766e;
 
   /* Text — deep forest green, high contrast on meadow */
-  --color-text-primary: #0b1b13;
-  --color-text-secondary: rgba(11, 27, 19, 0.8);
-  --color-text-muted: rgba(11, 27, 19, 0.6);
-  --color-text-subtle: rgba(11, 27, 19, 0.36);
-  --color-text-ghost: rgba(11, 27, 19, 0.18);
+  --color-text-primary: #071b12;
+  --color-text-secondary: rgba(7, 27, 18, 0.82);
+  --color-text-muted: rgba(7, 27, 18, 0.6);
+  --color-text-subtle: rgba(7, 27, 18, 0.36);
+  --color-text-ghost: rgba(7, 27, 18, 0.18);
   --color-text-dark: #fbfffc;
 
   /* Borders — soft shamrock, defined */
-  --color-border-subtle: rgba(24, 88, 59, 0.09);
-  --color-border-light: rgba(24, 88, 59, 0.16);
-  --color-border-medium: rgba(18, 49, 32, 0.2);
-  --color-border-amber: rgba(47, 143, 99, 0.32);
-  --color-border-emerald: rgba(103, 199, 155, 0.24);
+  --color-border-subtle: rgba(10, 79, 54, 0.08);
+  --color-border-light: rgba(10, 79, 54, 0.15);
+  --color-border-medium: rgba(7, 27, 18, 0.2);
+  --color-border-amber: rgba(22, 143, 95, 0.34);
+  --color-border-emerald: rgba(99, 214, 158, 0.28);
 
-  /* Gradients — emerald aurora, meadow glow */
+  /* Gradients — emerald aurora, meadow glow, celtic-gold lift */
   --gradient-hero:
-    radial-gradient(ellipse at 12% 14%, rgba(52, 211, 153, 0.24) 0%, transparent 48%),
-    radial-gradient(ellipse at 86% 14%, rgba(163, 230, 53, 0.12) 0%, transparent 42%),
+    radial-gradient(ellipse at 14% 16%, rgba(22, 143, 95, 0.26) 0%, transparent 48%),
+    radial-gradient(ellipse at 84% 14%, rgba(216, 146, 20, 0.16) 0%, transparent 42%),
     radial-gradient(ellipse at 78% 80%, rgba(20, 184, 166, 0.12) 0%, transparent 48%),
-    radial-gradient(ellipse at 42% 54%, rgba(47, 143, 99, 0.18) 0%, transparent 54%),
-    linear-gradient(160deg, #fbfffd 0%, #f2fcf7 18%, #e1f5ea 46%, #edfdf4 72%, #fcfffd 100%);
-  --gradient-section-dark: linear-gradient(180deg, #e3f2e8 0%, #f4fbf6 52%, #dceee3 100%);
-  --gradient-section-darker: linear-gradient(180deg, #eef8f1 0%, #dceee3 100%);
+    radial-gradient(ellipse at 42% 54%, rgba(99, 214, 158, 0.18) 0%, transparent 54%),
+    linear-gradient(152deg, #fffffb 0%, #f4fff8 18%, #ddf4e6 46%, #f2fbea 72%, #fffaf1 100%);
+  --gradient-body:
+    radial-gradient(circle at 8% 14%, rgba(22, 143, 95, 0.16) 0%, transparent 42%),
+    radial-gradient(circle at 88% 8%, rgba(216, 146, 20, 0.1) 0%, transparent 34%),
+    radial-gradient(circle at 76% 86%, rgba(20, 184, 166, 0.1) 0%, transparent 42%),
+    linear-gradient(180deg, #fbfffd 0%, #edf9f1 45%, #d8efdf 100%);
+  --gradient-section-dark: linear-gradient(180deg, #e4f5ea 0%, #fbfffd 52%, #d8efdf 100%);
+  --gradient-section-darker: linear-gradient(180deg, #f0fbf4 0%, #d4ecd9 100%);
   --gradient-home-backdrop:
-    radial-gradient(circle at 12% 14%, rgba(52, 211, 153, 0.18) 0%, transparent 36%),
-    radial-gradient(circle at 86% 16%, rgba(163, 230, 53, 0.12) 0%, transparent 30%),
+    radial-gradient(circle at 12% 14%, rgba(22, 143, 95, 0.18) 0%, transparent 36%),
+    radial-gradient(circle at 86% 16%, rgba(216, 146, 20, 0.12) 0%, transparent 30%),
     radial-gradient(circle at 78% 80%, rgba(20, 184, 166, 0.1) 0%, transparent 40%),
     linear-gradient(
       180deg,
-      rgba(13, 79, 53, 0.04) 0%,
-      rgba(16, 102, 68, 0.14) 42%,
-      rgba(8, 54, 37, 0.28) 100%
+      rgba(7, 70, 48, 0.04) 0%,
+      rgba(16, 102, 68, 0.13) 42%,
+      rgba(8, 54, 37, 0.24) 100%
     );
   --gradient-feed-empty-state:
-    radial-gradient(circle at 18% 16%, rgba(52, 211, 153, 0.24) 0%, transparent 34%),
-    radial-gradient(circle at 82% 18%, rgba(163, 230, 53, 0.16) 0%, transparent 28%),
+    radial-gradient(circle at 18% 16%, rgba(22, 143, 95, 0.22) 0%, transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(216, 146, 20, 0.14) 0%, transparent 28%),
     radial-gradient(circle at 50% 82%, rgba(20, 184, 166, 0.1) 0%, transparent 40%),
     linear-gradient(
       180deg,
-      rgba(247, 255, 250, 0.78) 0%,
-      rgba(228, 247, 236, 0.9) 46%,
-      rgba(195, 236, 211, 0.97) 100%
+      rgba(251, 255, 253, 0.82) 0%,
+      rgba(231, 248, 238, 0.92) 46%,
+      rgba(202, 238, 214, 0.97) 100%
     );
-  --gradient-footer: linear-gradient(180deg, #e3f2e8 0%, #d2e8da 100%);
+  --gradient-footer: linear-gradient(180deg, #e4f5ea 0%, #cfe8d7 100%);
   --gradient-card-glass: linear-gradient(
     135deg,
-    rgba(251, 255, 252, 0.96) 0%,
-    rgba(241, 250, 244, 0.98) 100%
+    rgba(254, 255, 251, 0.96) 0%,
+    rgba(238, 249, 242, 0.98) 100%
   );
   --gradient-card-step: linear-gradient(
     135deg,
-    rgba(223, 242, 232, 0.6) 0%,
-    rgba(249, 255, 251, 0.78) 100%
+    rgba(216, 241, 226, 0.64) 0%,
+    rgba(255, 253, 246, 0.78) 100%
   );
 
-  /* Heading gradient — forest → emerald → mint */
-  --gradient-heading: linear-gradient(135deg, #050c08 0%, #0b1b13 18%, #123120 42%, #1a4f38 72%, #2f8f63 100%);
-  --shadow-login-heading: 0 20px 42px rgba(7, 22, 14, 0.14);
+  /* Heading gradient — forest → shamrock → celtic gold */
+  --gradient-heading: linear-gradient(135deg, #06130d 0%, #071b12 18%, #0a4f36 48%, #168f5f 76%, #bf7f10 100%);
+  --shadow-login-heading: 0 20px 42px rgba(7, 22, 14, 0.13);
 
-  /* Button — emerald neon to deep forest */
+  /* Button — emerald glass with gold finish */
   --gradient-button-primary: linear-gradient(
     135deg,
-    #7ee0b2 0%,
-    #34d399 22%,
-    #2f8f63 54%,
-    #26744f 76%,
-    #174f37 100%
+    #8bf0bd 0%,
+    #22c983 26%,
+    #168f5f 56%,
+    #0f744d 78%,
+    #d89214 100%
   );
 
   /* Shadows — emerald glow */
   --shadow-card:
-    0 8px 24px rgba(24, 88, 59, 0.1), 0 0 0 1px rgba(24, 88, 59, 0.04),
+    0 8px 24px rgba(10, 79, 54, 0.1), 0 0 0 1px rgba(10, 79, 54, 0.04),
     0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-elevated: 0 14px 44px rgba(24, 88, 59, 0.14), 0 0 34px rgba(103, 199, 155, 0.08);
-  --shadow-amber-glow: 0 10px 32px rgba(24, 88, 59, 0.22), 0 0 28px rgba(52, 211, 153, 0.12);
-  --shadow-amber-glow-lg: 0 20px 58px rgba(11, 74, 52, 0.16), 0 0 56px rgba(52, 211, 153, 0.12);
-  --shadow-emerald-glow: 0 0 24px rgba(52, 211, 153, 0.18);
-  --shadow-emerald-glow-sm: 0 0 16px rgba(52, 211, 153, 0.12);
+  --shadow-elevated: 0 14px 44px rgba(10, 79, 54, 0.14), 0 0 34px rgba(99, 214, 158, 0.08);
+  --shadow-amber-glow: 0 10px 32px rgba(10, 79, 54, 0.2), 0 0 28px rgba(216, 146, 20, 0.1);
+  --shadow-amber-glow-lg: 0 20px 58px rgba(11, 74, 52, 0.16), 0 0 56px rgba(99, 214, 158, 0.12);
+  --shadow-emerald-glow: 0 0 24px rgba(34, 201, 131, 0.18);
+  --shadow-emerald-glow-sm: 0 0 16px rgba(34, 201, 131, 0.12);
 
   /* Navbar — frosted mint glass, premium feel */
-  --navbar-bg: rgba(248, 255, 250, 0.76);
-  --navbar-bg-scrolled: rgba(248, 255, 250, 0.95);
-  --navbar-border: rgba(47, 143, 99, 0.09);
-  --navbar-border-scrolled: rgba(47, 143, 99, 0.2);
-  --navbar-shadow: 0 8px 28px rgba(24, 88, 59, 0.08), 0 1px 4px rgba(47, 143, 99, 0.05);
+  --navbar-bg: rgba(251, 255, 252, 0.82);
+  --navbar-bg-scrolled: rgba(251, 255, 252, 0.96);
+  --navbar-border: rgba(22, 143, 95, 0.1);
+  --navbar-border-scrolled: rgba(22, 143, 95, 0.2);
+  --navbar-shadow: 0 10px 30px rgba(10, 79, 54, 0.08), 0 1px 8px rgba(216, 146, 20, 0.06);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -813,70 +843,75 @@ html:not([data-theme]) .glass-card {
    Inspired by the hazy, ethereal glow of a Hazy IPA.
    ═══════════════════════════════════════════════════════════ */
 [data-theme="haze"] {
-  /* Primary — vivid violet-purple */
-  --color-amber-primary: #8457f7;
-  --color-amber-hover: #7241ef;
-  --color-amber-dark: #5e2ed4;
-  --color-amber-light: #b394ff;
-  --color-amber-muted: #e3d7ff;
+  /* Primary — saturated violet with pink-cyan haze notes */
+  --color-amber-primary: #7c3aed;
+  --color-amber-hover: #6d28d9;
+  --color-amber-dark: #4c1d95;
+  --color-amber-light: #b79cff;
+  --color-amber-muted: #eadfff;
 
-  /* Surfaces — pearly lavender, less gray and more aurora */
-  --color-surface-deepest: #f4eeff;
-  --color-surface-dark: #fbf8ff;
-  --color-surface-mid: #efe3ff;
-  --color-surface-card: #fffaff;
-  --color-surface-card-alt: #f7efff;
+  /* Surfaces — pearly lavender, cleaner and less gray */
+  --color-surface-deepest: #f7f2ff;
+  --color-surface-dark: #fefbff;
+  --color-surface-mid: #ecddff;
+  --color-surface-card: #fffafe;
+  --color-surface-card-alt: #f5ecff;
   --color-surface-elevated: #ffffff;
-  --color-surface-overlay: #e8dcff;
+  --color-surface-overlay: #e5d7ff;
 
   /* Warm lavender accents (navbar, drawer) */
-  --color-brown-navbar-start: #fbf7ff;
-  --color-brown-navbar-end: #efe3ff;
-  --color-brown-drawer: #fffaff;
-  --color-brown-modal: #fffaff;
-  --color-brown-barrel-start: #f4ebff;
-  --color-brown-barrel-end: #e8dcff;
+  --color-brown-navbar-start: #fcf8ff;
+  --color-brown-navbar-end: #ede3ff;
+  --color-brown-drawer: #fffafe;
+  --color-brown-modal: #fffafe;
+  --color-brown-barrel-start: #f3ebff;
+  --color-brown-barrel-end: #e4d6ff;
 
-  /* Accent colors — pink + cyan aurora */
-  --color-gold-nav: #8457f7;
-  --color-emerald: #19b9d8;
-  --color-emerald-dark: #0f96b4;
-  --color-emerald-darker: #0d788f;
-  --color-orange-cta: #ec4899;
-  --color-orange-cta-hover: #db2777;
+  /* Accent colors — violet, guava, cyan */
+  --color-gold-nav: #7c3aed;
+  --color-emerald: #0eb9cf;
+  --color-emerald-dark: #0891b2;
+  --color-emerald-darker: #0e7490;
+  --color-orange-cta: #e64891;
+  --color-orange-cta-hover: #c0266f;
   --color-error: #ef4444;
   --color-error-dark: #dc2626;
   --color-info: #3b82f6;
 
   /* Text — deep cosmic purple, high contrast on lavender */
-  --color-text-primary: #140a22;
-  --color-text-secondary: rgba(20, 10, 34, 0.82);
-  --color-text-muted: rgba(20, 10, 34, 0.6);
-  --color-text-subtle: rgba(20, 10, 34, 0.36);
-  --color-text-ghost: rgba(20, 10, 34, 0.18);
+  --color-text-primary: #12061f;
+  --color-text-secondary: rgba(18, 6, 31, 0.82);
+  --color-text-muted: rgba(18, 6, 31, 0.6);
+  --color-text-subtle: rgba(18, 6, 31, 0.36);
+  --color-text-ghost: rgba(18, 6, 31, 0.18);
   --color-text-dark: #fffaff;
 
   /* Borders — soft violet, crisp */
-  --color-border-subtle: rgba(132, 87, 247, 0.08);
-  --color-border-light: rgba(132, 87, 247, 0.16);
-  --color-border-medium: rgba(36, 18, 55, 0.16);
-  --color-border-amber: rgba(132, 87, 247, 0.3);
-  --color-border-emerald: rgba(25, 185, 216, 0.2);
+  --color-border-subtle: rgba(124, 58, 237, 0.08);
+  --color-border-light: rgba(124, 58, 237, 0.16);
+  --color-border-medium: rgba(36, 18, 55, 0.17);
+  --color-border-amber: rgba(124, 58, 237, 0.32);
+  --color-border-emerald: rgba(14, 185, 207, 0.2);
 
   /* Gradients — aurora holographic with pink-cyan crossover */
   --gradient-hero:
-    radial-gradient(ellipse at 12% 16%, rgba(168, 85, 247, 0.26) 0%, transparent 48%),
-    radial-gradient(ellipse at 86% 14%, rgba(236, 72, 153, 0.18) 0%, transparent 42%),
-    radial-gradient(ellipse at 78% 80%, rgba(25, 185, 216, 0.17) 0%, transparent 48%),
-    radial-gradient(ellipse at 44% 44%, rgba(132, 87, 247, 0.18) 0%, transparent 52%),
-    radial-gradient(ellipse at 18% 84%, rgba(179, 148, 255, 0.2) 0%, transparent 44%),
-    linear-gradient(155deg, #fffbff 0%, #f6f0ff 18%, #eddfff 44%, #f3e8ff 70%, #fff8fd 100%);
-  --gradient-section-dark: linear-gradient(180deg, #efe3ff 0%, #fbf7ff 52%, #eadcff 100%);
-  --gradient-section-darker: linear-gradient(180deg, #f4eeff 0%, #e8dcff 100%);
+    radial-gradient(ellipse at 12% 16%, rgba(124, 58, 237, 0.27) 0%, transparent 48%),
+    radial-gradient(ellipse at 86% 14%, rgba(230, 72, 145, 0.18) 0%, transparent 42%),
+    radial-gradient(ellipse at 78% 80%, rgba(14, 185, 207, 0.16) 0%, transparent 48%),
+    radial-gradient(ellipse at 44% 44%, rgba(183, 156, 255, 0.18) 0%, transparent 52%),
+    radial-gradient(ellipse at 18% 84%, rgba(245, 158, 11, 0.08) 0%, transparent 42%),
+    linear-gradient(155deg, #fffdfd 0%, #f7f0ff 18%, #ecdfff 44%, #f8e7fb 70%, #eff9ff 100%);
+  --gradient-body:
+    radial-gradient(circle at 10% 16%, rgba(124, 58, 237, 0.16) 0%, transparent 42%),
+    radial-gradient(circle at 88% 10%, rgba(230, 72, 145, 0.12) 0%, transparent 34%),
+    radial-gradient(circle at 78% 84%, rgba(14, 185, 207, 0.11) 0%, transparent 42%),
+    linear-gradient(180deg, #fffcff 0%, #f4ecff 48%, #e9dcff 100%);
+  --gradient-section-dark: linear-gradient(180deg, #ecddff 0%, #fefbff 52%, #e4d6ff 100%);
+  --gradient-section-darker: linear-gradient(180deg, #f7f2ff 0%, #e5d7ff 100%);
   --gradient-home-backdrop:
-    radial-gradient(circle at 12% 16%, rgba(168, 85, 247, 0.18) 0%, transparent 36%),
-    radial-gradient(circle at 86% 14%, rgba(236, 72, 153, 0.14) 0%, transparent 30%),
-    radial-gradient(circle at 78% 80%, rgba(25, 185, 216, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 12% 16%, rgba(124, 58, 237, 0.18) 0%, transparent 36%),
+    radial-gradient(circle at 86% 14%, rgba(230, 72, 145, 0.14) 0%, transparent 30%),
+    radial-gradient(circle at 78% 80%, rgba(14, 185, 207, 0.1) 0%, transparent 40%),
     linear-gradient(
       180deg,
       rgba(81, 42, 146, 0.08) 0%,
@@ -884,71 +919,71 @@ html:not([data-theme]) .glass-card {
       rgba(60, 26, 112, 0.28) 100%
     );
   --gradient-feed-empty-state:
-    radial-gradient(circle at 18% 16%, rgba(168, 85, 247, 0.24) 0%, transparent 34%),
-    radial-gradient(circle at 82% 18%, rgba(236, 72, 153, 0.18) 0%, transparent 28%),
-    radial-gradient(circle at 50% 82%, rgba(25, 185, 216, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 18% 16%, rgba(124, 58, 237, 0.23) 0%, transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(230, 72, 145, 0.17) 0%, transparent 28%),
+    radial-gradient(circle at 50% 82%, rgba(14, 185, 207, 0.12) 0%, transparent 40%),
     linear-gradient(
       180deg,
       rgba(248, 239, 255, 0.74) 0%,
       rgba(233, 216, 255, 0.88) 46%,
       rgba(214, 188, 255, 0.96) 100%
     );
-  --gradient-footer: linear-gradient(180deg, #efe3ff 0%, #e1d1ff 100%);
+  --gradient-footer: linear-gradient(180deg, #ecddff 0%, #d9c5ff 100%);
   --gradient-card-glass: linear-gradient(
     135deg,
-    rgba(255, 250, 255, 0.94) 0%,
-    rgba(245, 239, 255, 0.98) 100%
+    rgba(255, 250, 254, 0.95) 0%,
+    rgba(244, 236, 255, 0.98) 100%
   );
   --gradient-card-step: linear-gradient(
     135deg,
-    rgba(238, 226, 255, 0.62) 0%,
-    rgba(255, 249, 255, 0.78) 100%
+    rgba(236, 221, 255, 0.64) 0%,
+    rgba(239, 249, 255, 0.78) 100%
   );
 
   /* Heading gradient — violet → pink → cyan aurora */
-  --gradient-heading: linear-gradient(135deg, #09050f 0%, #140a22 16%, #241237 38%, #4b1f87 66%, #8457f7 100%);
-  --shadow-login-heading: 0 20px 46px rgba(28, 14, 48, 0.16);
+  --gradient-heading: linear-gradient(135deg, #080311 0%, #12061f 16%, #32145c 38%, #7c3aed 66%, #e64891 84%, #0eb9cf 100%);
+  --shadow-login-heading: 0 20px 46px rgba(28, 14, 48, 0.15);
 
   /* Button — aurora gradient: purple → pink → cyan */
   --gradient-button-primary: linear-gradient(
     135deg,
-    #8457f7 0%,
-    #b053f2 26%,
-    #ec4899 58%,
-    #19b9d8 100%
+    #7c3aed 0%,
+    #b453f4 28%,
+    #e64891 60%,
+    #0eb9cf 100%
   );
 
   /* Shadows — soft violet glow with holographic pink hints */
   --shadow-card:
-    0 8px 24px rgba(132, 87, 247, 0.1), 0 0 0 1px rgba(132, 87, 247, 0.04),
+    0 8px 24px rgba(124, 58, 237, 0.1), 0 0 0 1px rgba(124, 58, 237, 0.04),
     0 1px 3px rgba(0, 0, 0, 0.02);
-  --shadow-elevated: 0 16px 46px rgba(132, 87, 247, 0.14), 0 0 34px rgba(236, 72, 153, 0.06);
-  --shadow-amber-glow: 0 8px 30px rgba(132, 87, 247, 0.26), 0 2px 12px rgba(236, 72, 153, 0.12);
-  --shadow-amber-glow-lg: 0 20px 54px rgba(94, 46, 212, 0.15), 0 0 54px rgba(236, 72, 153, 0.08);
-  --shadow-emerald-glow: 0 0 24px rgba(25, 185, 216, 0.16);
-  --shadow-emerald-glow-sm: 0 0 16px rgba(25, 185, 216, 0.12);
+  --shadow-elevated: 0 16px 46px rgba(124, 58, 237, 0.14), 0 0 34px rgba(230, 72, 145, 0.06);
+  --shadow-amber-glow: 0 8px 30px rgba(124, 58, 237, 0.25), 0 2px 12px rgba(230, 72, 145, 0.12);
+  --shadow-amber-glow-lg: 0 20px 54px rgba(76, 29, 149, 0.15), 0 0 54px rgba(230, 72, 145, 0.08);
+  --shadow-emerald-glow: 0 0 24px rgba(14, 185, 207, 0.16);
+  --shadow-emerald-glow-sm: 0 0 16px rgba(14, 185, 207, 0.12);
 
   /* Navbar — frosted lavender with aurora tint */
-  --navbar-bg: rgba(250, 245, 255, 0.8);
-  --navbar-bg-scrolled: rgba(250, 245, 255, 0.95);
-  --navbar-border: rgba(132, 87, 247, 0.07);
-  --navbar-border-scrolled: rgba(132, 87, 247, 0.18);
-  --navbar-shadow: 0 8px 28px rgba(94, 46, 212, 0.08), 0 0 20px rgba(236, 72, 153, 0.05);
+  --navbar-bg: rgba(252, 248, 255, 0.84);
+  --navbar-bg-scrolled: rgba(252, 248, 255, 0.96);
+  --navbar-border: rgba(124, 58, 237, 0.08);
+  --navbar-border-scrolled: rgba(124, 58, 237, 0.2);
+  --navbar-shadow: 0 10px 30px rgba(76, 29, 149, 0.08), 0 0 22px rgba(230, 72, 145, 0.05);
 }
 
 /* Haze glass-card — Prismatic Holographic Liquid Glass */
 [data-theme="haze"] .glass-card {
-  background: rgba(255, 250, 255, 0.66);
-  backdrop-filter: blur(44px) saturate(235%) brightness(1.07);
-  -webkit-backdrop-filter: blur(44px) saturate(235%) brightness(1.07);
-  border-color: rgba(214, 188, 255, 0.78);
+  background: rgba(255, 251, 255, 0.72);
+  backdrop-filter: blur(46px) saturate(235%) brightness(1.08);
+  -webkit-backdrop-filter: blur(46px) saturate(235%) brightness(1.08);
+  border-color: rgba(196, 181, 253, 0.74);
   box-shadow:
     inset 0 2px 0 rgba(255, 252, 255, 0.96),
     inset 1.5px 0 0 rgba(243, 232, 255, 0.68),
-    inset 0 -1px 0 rgba(132, 87, 247, 0.1),
-    0 12px 42px rgba(94, 46, 212, 0.08),
-    0 4px 18px rgba(236, 72, 153, 0.06),
-    0 0 22px rgba(25, 185, 216, 0.04);
+    inset 0 -1px 0 rgba(14, 185, 207, 0.08),
+    0 14px 44px rgba(76, 29, 149, 0.09),
+    0 5px 20px rgba(230, 72, 145, 0.07),
+    0 0 24px rgba(14, 185, 207, 0.05);
   position: relative;
   isolation: isolate;
   transform: translateZ(0);
@@ -961,10 +996,10 @@ html:not([data-theme]) .glass-card {
   box-shadow:
     inset 0 2px 0 rgba(255, 252, 255, 0.96),
     inset 1.5px 0 0 rgba(243, 232, 255, 0.68),
-    inset 0 -1px 0 rgba(132, 87, 247, 0.14),
-    0 16px 54px rgba(94, 46, 212, 0.11),
-    0 6px 22px rgba(236, 72, 153, 0.08),
-    0 0 30px rgba(25, 185, 216, 0.05);
+    inset 0 -1px 0 rgba(14, 185, 207, 0.12),
+    0 18px 56px rgba(76, 29, 149, 0.12),
+    0 7px 24px rgba(230, 72, 145, 0.09),
+    0 0 32px rgba(14, 185, 207, 0.06);
   transform: translateY(-2px) translateZ(0);
 }
 
@@ -976,11 +1011,11 @@ html:not([data-theme]) .glass-card {
   background: linear-gradient(
     108deg,
     transparent 8%,
-    rgba(167, 139, 250, 0.22) 22%,
-    rgba(236, 72, 153, 0.12) 38%,
-    rgba(6, 182, 212, 0.1) 52%,
-    rgba(139, 92, 246, 0.18) 68%,
-    rgba(236, 72, 153, 0.08) 82%,
+    rgba(167, 139, 250, 0.24) 22%,
+    rgba(230, 72, 145, 0.13) 38%,
+    rgba(14, 185, 207, 0.11) 52%,
+    rgba(124, 58, 237, 0.18) 68%,
+    rgba(245, 158, 11, 0.06) 82%,
     transparent 92%
   );
   background-size: 350% 100%;
@@ -1000,22 +1035,22 @@ html:not([data-theme]) .glass-card {
     180deg,
     rgba(255, 255, 255, 0.55) 0%,
     rgba(255, 255, 255, 0) 35%,
-    rgba(6, 182, 212, 0.03) 70%,
-    rgba(236, 72, 153, 0.02) 100%
+    rgba(14, 185, 207, 0.03) 70%,
+    rgba(230, 72, 145, 0.025) 100%
   );
   pointer-events: none;
   z-index: 0;
 }
 
 [data-theme="haze"] .glass-pill {
-  background: rgba(255, 250, 255, 0.78);
-  backdrop-filter: blur(28px) saturate(225%) brightness(1.05);
-  -webkit-backdrop-filter: blur(28px) saturate(225%) brightness(1.05);
-  border-color: rgba(214, 188, 255, 0.72);
+  background: rgba(255, 251, 255, 0.8);
+  backdrop-filter: blur(30px) saturate(225%) brightness(1.06);
+  -webkit-backdrop-filter: blur(30px) saturate(225%) brightness(1.06);
+  border-color: rgba(196, 181, 253, 0.7);
   box-shadow:
     inset 0 1.5px 0 rgba(255, 252, 255, 0.92),
-    0 8px 24px rgba(94, 46, 212, 0.08),
-    0 2px 10px rgba(236, 72, 153, 0.05);
+    0 8px 24px rgba(76, 29, 149, 0.08),
+    0 2px 10px rgba(230, 72, 145, 0.05);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1112,6 +1147,30 @@ html:not([data-theme]) .glass-card {
   .bg-amber-400\/20 {
     background-color: rgba(185, 108, 14, 0.14) !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Light themes — nav contrast boost
+   ═══════════════════════════════════════════════════════════
+   El navbar usa íconos/textos con `var(--color-text-secondary|muted)`
+   vía estilos inline. En temas claros esos tokens quedan algo lavados
+   sobre el fondo claro del nav. Redefinimos los tokens SOLO dentro del
+   topbar/sidebar para subir el contraste sin tocar componentes
+   (los inline `var()` heredan el valor del ancestro). */
+[data-theme="saintpatrick"] .lupulos-topbar,
+[data-theme="saintpatrick"] .lupulos-sidebar {
+  --color-text-secondary: rgba(7, 27, 18, 0.92);
+  --color-text-muted: rgba(7, 27, 18, 0.7);
+}
+[data-theme="haze"] .lupulos-topbar,
+[data-theme="haze"] .lupulos-sidebar {
+  --color-text-secondary: rgba(18, 6, 31, 0.92);
+  --color-text-muted: rgba(18, 6, 31, 0.7);
+}
+[data-theme="lager"] .lupulos-topbar,
+[data-theme="lager"] .lupulos-sidebar {
+  --color-text-secondary: rgba(45, 42, 40, 0.92);
+  --color-text-muted: rgba(45, 42, 40, 0.7);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1348,6 +1407,43 @@ html:not([data-theme]) .glass-card {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   .on-media — opt-out for content layered over dark imagery
+   ═══════════════════════════════════════════════════════════
+   The light-theme contrast bridges above flatten every `.text-white`
+   utility to a dark ink so legacy cards stay readable on light
+   surfaces. But text that sits on top of a photo or a dark gradient
+   overlay is *meant* to be white. Wrap that content in `.on-media`
+   to restore the true white utilities — its extra class beats the
+   bridge specificity, so it wins the cascade in every light theme. */
+[data-theme="saintpatrick"] .on-media,
+[data-theme="haze"] .on-media,
+[data-theme="lager"] .on-media {
+  .text-white { color: #fff !important; }
+  .text-white\/95 { color: rgba(255, 255, 255, 0.95) !important; }
+  .text-white\/90 { color: rgba(255, 255, 255, 0.9) !important; }
+  .text-white\/80 { color: rgba(255, 255, 255, 0.8) !important; }
+  .text-white\/70 { color: rgba(255, 255, 255, 0.7) !important; }
+  .text-white\/60 { color: rgba(255, 255, 255, 0.6) !important; }
+  .text-white\/50 { color: rgba(255, 255, 255, 0.5) !important; }
+  .text-white\/45 { color: rgba(255, 255, 255, 0.45) !important; }
+  .text-white\/40 { color: rgba(255, 255, 255, 0.4) !important; }
+  .text-white\/35 { color: rgba(255, 255, 255, 0.35) !important; }
+  .text-white\/25 { color: rgba(255, 255, 255, 0.25) !important; }
+  .text-white\/15 { color: rgba(255, 255, 255, 0.15) !important; }
+
+  .border-white\/40 { border-color: rgba(255, 255, 255, 0.4) !important; }
+  .border-white\/25 { border-color: rgba(255, 255, 255, 0.25) !important; }
+  .border-white\/20 { border-color: rgba(255, 255, 255, 0.2) !important; }
+  .border-white\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
+  .border-white\/5 { border-color: rgba(255, 255, 255, 0.05) !important; }
+
+  .bg-white\/10 { background-color: rgba(255, 255, 255, 0.1) !important; }
+  .bg-white\/5 { background-color: rgba(255, 255, 255, 0.05) !important; }
+  .hover\:bg-white\/10:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
+  .hover\:bg-white\/5:hover { background-color: rgba(255, 255, 255, 0.05) !important; }
+}
+
 /* Haze magic: aurora holographic shift on gradient elements */
 @keyframes hazeAuroraShift {
   0%,
@@ -1411,7 +1507,36 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body.sidebar-transition {
+  transition:
+    background 0.3s ease,
+    color 0.3s ease,
+    padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 body:has(.lupulos-sidebar) {
+  @media (min-width: 768px) {
+    padding-left: 76px;
+    padding-top: 4rem; /* height of the top utility bar */
+  }
+
+  @media (min-width: 1280px) {
+    padding-left: 240px;
+  }
+}
+
+body:has(.lupulos-sidebar.is-collapsed) {
+  @media (min-width: 1280px) {
+    padding-left: 76px;
+  }
+}
+
+/* The top bar is position:fixed, so it escapes the body's padding-left that
+   reserves space for the sidebar rail. Mirror that exact offset here so the
+   top bar's 1140px grid lines up with the page content's 1140px grid. */
+.lupulos-topbar {
+  transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
   @media (min-width: 768px) {
     padding-left: 76px;
   }
@@ -1419,6 +1544,20 @@ body:has(.lupulos-sidebar) {
   @media (min-width: 1280px) {
     padding-left: 240px;
   }
+}
+
+body:has(.lupulos-sidebar.is-collapsed) .lupulos-topbar {
+  @media (min-width: 1280px) {
+    padding-left: 76px;
+  }
+}
+
+.lupulos-sidebar {
+  transition:
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .home-content-shell {
@@ -1476,16 +1615,21 @@ body:has(.lupulos-sidebar) {
   }
 }
 
-/* Heading typography — uses Outfit, extra black */
+/* Heading typography — uses Outfit, bold but not too bold */
 h1,
 h2,
-h3,
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
 h4,
 h5,
 h6 {
   font-family: var(--font-heading);
-  font-weight: 900;
-  letter-spacing: -0.025em;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 /* Paragraphs — larger base, semibold */
@@ -1508,12 +1652,16 @@ b {
 
 [data-theme="lager"] h1,
 [data-theme="lager"] h2,
-[data-theme="lager"] h3,
+[data-theme="lager"] h3 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
 [data-theme="lager"] h4,
 [data-theme="lager"] h5,
 [data-theme="lager"] h6 {
-  font-weight: 900;
-  letter-spacing: -0.025em;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 [data-theme="lager"] p,
@@ -1538,12 +1686,16 @@ b {
 
 [data-theme="haze"] h1,
 [data-theme="haze"] h2,
-[data-theme="haze"] h3,
+[data-theme="haze"] h3 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
 [data-theme="haze"] h4,
 [data-theme="haze"] h5,
 [data-theme="haze"] h6 {
-  font-weight: 900;
-  letter-spacing: -0.025em;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 [data-theme="haze"] p,
@@ -1744,13 +1896,12 @@ select {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Haze theme: form + input magic
+   Saint Patrick theme: form + input meadow glass
    ═══════════════════════════════════════════════════════════ */
 
-/* Haze: holographic aurora focus glow */
-[data-theme="haze"] {
+[data-theme="saintpatrick"] {
   .MuiTextField-root .MuiOutlinedInput-root {
-    background: rgba(250, 247, 255, 0.75) !important;
+    background: rgba(253, 255, 250, 0.76) !important;
     backdrop-filter: blur(18px) saturate(200%) !important;
     border-radius: 16px !important;
     transition:
@@ -1761,31 +1912,121 @@ select {
 
   .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
     box-shadow:
-      0 0 0 3px rgba(139, 92, 246, 0.14),
-      0 0 20px rgba(167, 139, 250, 0.1),
-      0 0 40px rgba(236, 72, 153, 0.05),
-      0 0 60px rgba(6, 182, 212, 0.03) !important;
+      0 0 0 3px rgba(22, 143, 95, 0.14),
+      0 0 20px rgba(99, 214, 158, 0.12),
+      0 0 42px rgba(216, 146, 20, 0.06) !important;
     transform: translateY(-1px) !important;
   }
 
   .MuiTextField-root .MuiOutlinedInput-root:hover:not(.Mui-focused) {
-    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.07) !important;
+    box-shadow: 0 4px 16px rgba(22, 143, 95, 0.07) !important;
   }
 
   input:focus,
   textarea:focus,
   select:focus {
     box-shadow:
-      0 0 0 3px rgba(139, 92, 246, 0.12),
-      0 0 16px rgba(167, 139, 250, 0.08),
-      0 0 32px rgba(236, 72, 153, 0.04);
+      0 0 0 3px rgba(22, 143, 95, 0.12),
+      0 0 16px rgba(99, 214, 158, 0.08),
+      0 0 32px rgba(216, 146, 20, 0.04);
+  }
+}
+
+[data-theme="saintpatrick"] .magic-input-wrapper input,
+[data-theme="saintpatrick"] .magic-input-wrapper textarea {
+  background: rgba(253, 255, 250, 0.68) !important;
+  backdrop-filter: blur(22px) saturate(200%);
+  -webkit-backdrop-filter: blur(22px) saturate(200%);
+  border-radius: 14px;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.35s ease;
+}
+
+[data-theme="saintpatrick"] .magic-input-wrapper input:focus,
+[data-theme="saintpatrick"] .magic-input-wrapper textarea:focus {
+  background: rgba(255, 255, 251, 0.86) !important;
+  box-shadow:
+    0 0 0 2px rgba(22, 143, 95, 0.14),
+    0 4px 24px rgba(99, 214, 158, 0.1),
+    0 0 40px rgba(216, 146, 20, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+}
+
+@keyframes saintPatrickMeadowShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+[data-theme="saintpatrick"] [style*="gradient-button-primary"] {
+  background-size: 220% 220% !important;
+  animation: saintPatrickMeadowShift 5.5s ease-in-out infinite !important;
+  box-shadow:
+    0 6px 24px rgba(22, 143, 95, 0.24),
+    0 2px 8px rgba(216, 146, 20, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34) !important;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.25s ease !important;
+}
+
+[data-theme="saintpatrick"] [style*="gradient-button-primary"]:hover {
+  box-shadow:
+    0 8px 32px rgba(22, 143, 95, 0.3),
+    0 4px 14px rgba(216, 146, 20, 0.16),
+    0 0 22px rgba(20, 184, 166, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Haze theme: form + input magic
+   ═══════════════════════════════════════════════════════════ */
+
+/* Haze: holographic aurora focus glow */
+[data-theme="haze"] {
+  .MuiTextField-root .MuiOutlinedInput-root {
+    background: rgba(255, 251, 255, 0.76) !important;
+    backdrop-filter: blur(18px) saturate(200%) !important;
+    border-radius: 16px !important;
+    transition:
+      box-shadow 0.35s ease,
+      transform 0.25s ease,
+      border-color 0.3s ease !important;
+  }
+
+  .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+    box-shadow:
+      0 0 0 3px rgba(124, 58, 237, 0.14),
+      0 0 20px rgba(183, 156, 255, 0.1),
+      0 0 40px rgba(230, 72, 145, 0.05),
+      0 0 60px rgba(14, 185, 207, 0.03) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .MuiTextField-root .MuiOutlinedInput-root:hover:not(.Mui-focused) {
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.07) !important;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    box-shadow:
+      0 0 0 3px rgba(124, 58, 237, 0.12),
+      0 0 16px rgba(183, 156, 255, 0.08),
+      0 0 32px rgba(230, 72, 145, 0.04);
   }
 }
 
 /* Haze-specific liquid glass inputs */
 [data-theme="haze"] .magic-input-wrapper input,
 [data-theme="haze"] .magic-input-wrapper textarea {
-  background: rgba(250, 247, 255, 0.65) !important;
+  background: rgba(255, 251, 255, 0.66) !important;
   backdrop-filter: blur(22px) saturate(200%);
   -webkit-backdrop-filter: blur(22px) saturate(200%);
   border-radius: 14px;
@@ -1796,19 +2037,19 @@ select {
 
 [data-theme="haze"] .magic-input-wrapper input:focus,
 [data-theme="haze"] .magic-input-wrapper textarea:focus {
-  background: rgba(252, 250, 255, 0.82) !important;
+  background: rgba(255, 253, 255, 0.84) !important;
   box-shadow:
-    0 0 0 2px rgba(139, 92, 246, 0.14),
-    0 4px 24px rgba(167, 139, 250, 0.1),
-    0 0 40px rgba(236, 72, 153, 0.05),
+    0 0 0 2px rgba(124, 58, 237, 0.14),
+    0 4px 24px rgba(183, 156, 255, 0.1),
+    0 0 40px rgba(230, 72, 145, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 /* Haze buttons: aurora holographic 3D depth */
 [data-theme="haze"] [style*="gradient-button-primary"] {
   box-shadow:
-    0 6px 24px rgba(139, 92, 246, 0.25),
-    0 2px 8px rgba(236, 72, 153, 0.12),
+    0 6px 24px rgba(124, 58, 237, 0.25),
+    0 2px 8px rgba(230, 72, 145, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   transition:
     box-shadow 0.3s ease,
@@ -1817,9 +2058,9 @@ select {
 
 [data-theme="haze"] [style*="gradient-button-primary"]:hover {
   box-shadow:
-    0 8px 32px rgba(139, 92, 246, 0.32),
-    0 4px 14px rgba(236, 72, 153, 0.16),
-    0 0 20px rgba(6, 182, 212, 0.08),
+    0 8px 32px rgba(124, 58, 237, 0.32),
+    0 4px 14px rgba(230, 72, 145, 0.16),
+    0 0 20px rgba(14, 185, 207, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   transform: translateY(-2px) !important;
 }
@@ -1904,16 +2145,272 @@ select {
   animation: doradoGoldShift 4s ease-in-out infinite !important;
 }
 
-/* Lúpulos logo — darker warm gradient for light themes */
-[data-theme="saintpatrick"] .lupulos-logo-text,
+.lupulos-logo-text {
+  font-family: 'Montserrat', 'Poppins', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 1.55rem !important; /* Extremely proportional to the nav and sidebar containers */
+  letter-spacing: -0.04em !important;
+  line-height: 1.1 !important;
+  text-transform: none !important;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* Shimmer / sparkle sweep animation on logo */
+.lupulos-logo-text::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 223, 120, 0.35) 42%,
+    rgba(255, 243, 200, 0.55) 48%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 243, 200, 0.55) 52%,
+    rgba(255, 223, 120, 0.35) 58%,
+    transparent 65%,
+    transparent 100%
+  );
+  animation: logo-shimmer 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+@keyframes logo-shimmer {
+  0% {
+    left: -100%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    left: 200%;
+    opacity: 1;
+  }
+  55% {
+    opacity: 0;
+  }
+  100% {
+    left: 200%;
+    opacity: 0;
+  }
+}
+
+/* Lúpulos logo — theme-aware gradients for light themes */
+[data-theme="saintpatrick"] .lupulos-logo-text {
+  background-image: linear-gradient(
+    100deg,
+    #062015 0%,
+    #0a4f36 28%,
+    #168f5f 50%,
+    #bf7f10 74%,
+    #5b3205 100%
+  ) !important;
+  filter: drop-shadow(0 1px 5px rgba(22, 143, 95, 0.28)) !important;
+}
+
 [data-theme="haze"] .lupulos-logo-text {
   background-image: linear-gradient(
     100deg,
-    #3f2a10 0%,
-    #6b3e12 28%,
-    #92400e 50%,
-    #78350f 75%,
-    #2b1a08 100%
+    #16072a 0%,
+    #4c1d95 26%,
+    #7c3aed 48%,
+    #e64891 72%,
+    #0e7490 100%
   ) !important;
-  filter: drop-shadow(0 1px 4px rgba(120, 53, 15, 0.35)) !important;
+  filter: drop-shadow(0 1px 5px rgba(124, 58, 237, 0.3)) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Leaflet Map Beautified Dark & Theme Adaptations
+   ═══════════════════════════════════════════════════════════ */
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) {
+  .leaflet-tile {
+    filter: invert(100%) hue-rotate(180deg) brightness(80%) contrast(90%) saturate(80%) !important;
+  }
+  .leaflet-container {
+    background: var(--color-surface-deepest) !important;
+  }
+  .leaflet-bar {
+    border: 1px solid var(--color-border-light) !important;
+    background-color: var(--color-surface-mid) !important;
+    a {
+      background-color: var(--color-surface-mid) !important;
+      color: var(--color-text-primary) !important;
+      border-bottom: 1px solid var(--color-border-subtle) !important;
+      &:hover {
+        background-color: var(--color-surface-light) !important;
+        color: var(--color-amber-primary) !important;
+      }
+    }
+  }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: var(--color-surface-deep) !important;
+    color: var(--color-text-primary) !important;
+    border: 1px solid var(--color-border-light) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 12px rgba(251, 191, 36, 0.08) !important;
+  }
+}
+
+html[data-theme="saintpatrick"], html[data-theme="haze"] {
+  .leaflet-bar {
+    border: 1px solid var(--color-border-medium) !important;
+    background-color: white !important;
+    a {
+      background-color: white !important;
+      color: var(--color-text-primary) !important;
+      &:hover {
+        background-color: var(--color-surface-mid) !important;
+      }
+    }
+  }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: white !important;
+    color: var(--color-text-primary) !important;
+    border: 1px solid var(--color-border-medium) !important;
+  }
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  padding: 4px !important;
+}
+
+.leaflet-popup-content {
+  font-family: var(--font-outfit), var(--font-ubuntu), sans-serif !important;
+  margin: 12px 14px !important;
+  line-height: 1.4 !important;
+}
+
+/* Premium floating cards styling for widgets */
+.premium-widget-card {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.premium-widget-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(251, 191, 36, 0.32) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28), 0 0 24px rgba(251, 191, 36, 0.06) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Social Media Icons — Neon animated gradient (dark themes)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Dark theme neon glow on social icons */
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon svg {
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.4))
+          drop-shadow(0 0 14px rgba(245, 158, 11, 0.2));
+  transition: filter 0.3s ease;
+}
+
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon:hover svg {
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))
+          drop-shadow(0 0 22px rgba(245, 158, 11, 0.35))
+          drop-shadow(0 0 40px rgba(217, 119, 6, 0.2));
+}
+
+/* The neon gradient color applied to the icon wrapper */
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon {
+  color: transparent;
+}
+
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon .social-icon-fill {
+  background: linear-gradient(
+    135deg,
+    #fbbf24 0%,
+    #f59e0b 20%,
+    #ff6b35 40%,
+    #fbbf24 60%,
+    #34d399 80%,
+    #fbbf24 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: neon-gradient-cycle 4s ease-in-out infinite;
+}
+
+/* SVG icons need a different approach — use CSS color animation */
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon svg {
+  animation: neon-icon-color 4s ease-in-out infinite;
+}
+
+@keyframes neon-icon-color {
+  0%, 100% {
+    color: #fbbf24;
+    fill: #fbbf24;
+  }
+  25% {
+    color: #f59e0b;
+    fill: #f59e0b;
+  }
+  50% {
+    color: #ff8c42;
+    fill: #ff8c42;
+  }
+  75% {
+    color: #fcd34d;
+    fill: #fcd34d;
+  }
+}
+
+@keyframes neon-gradient-cycle {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Light themes — vivid animated neon gradient */
+[data-theme="saintpatrick"] .social-icon-neon svg,
+[data-theme="haze"] .social-icon-neon svg {
+  animation: neon-icon-color-light 4s ease-in-out infinite !important;
+  filter: drop-shadow(0 0 5px rgba(180, 83, 9, 0.3))
+          drop-shadow(0 0 12px rgba(217, 119, 6, 0.15)) !important;
+}
+
+[data-theme="saintpatrick"] .social-icon-neon:hover svg,
+[data-theme="haze"] .social-icon-neon:hover svg {
+  filter: drop-shadow(0 0 8px rgba(180, 83, 9, 0.5))
+          drop-shadow(0 0 20px rgba(217, 119, 6, 0.3))
+          drop-shadow(0 0 36px rgba(146, 64, 14, 0.15)) !important;
+}
+
+@keyframes neon-icon-color-light {
+  0%, 100% {
+    color: #b45309;
+    fill: #b45309;
+  }
+  25% {
+    color: #d97706;
+    fill: #d97706;
+  }
+  50% {
+    color: #059669;
+    fill: #059669;
+  }
+  75% {
+    color: #ca8a04;
+    fill: #ca8a04;
+  }
+}
+
+@keyframes magic-gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

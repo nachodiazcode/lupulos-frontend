@@ -15,6 +15,8 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenParticles from "@/features/landing/components/GoldenParticles";
+import { HomeFeed } from "./HomeFeed";
+import { HomeDesktopLayout } from "./HomeDesktopLayout";
 import useAuth from "@/hooks/useAuth";
 import { api } from "@/lib/api";
 import { getImageUrl } from "@/lib/constants";
@@ -270,7 +272,7 @@ const QUICK_ACTIONS = [
   { icon: "🍺", label: "Descubrir una cerveza ahora", href: "/cervezas" },
   { icon: "📍", label: "Armar una salida cervecera", href: "/lugares" },
   { icon: "💬", label: "Meterme al ruido del muro", href: "/posts" },
-  { icon: "🤖", label: "Pedirle una recomendación a la IA", href: "/chat" },
+  { icon: "🤖", label: "Pedirle una recomendación a la IA", href: "/carrete" },
 ];
 
 const STYLE_PULSE = [
@@ -346,6 +348,7 @@ const RIGHT_WIDGET_IDS = RIGHT_WIDGET_REGISTRY.map((w) => w.id);
 const DEFAULT_RIGHT_WIDGETS: RightWidgetId[] = ["trending"];
 const RIGHT_WIDGET_STORAGE_KEY = "home_right_widgets_v1";
 const RIGHT_WIDGET_COLLAPSED_STORAGE_KEY = "home_right_widgets_collapsed_v1";
+const ENABLE_HOME_FEED = false;
 
 function isRightWidgetId(value: unknown): value is RightWidgetId {
   return typeof value === "string" && RIGHT_WIDGET_IDS.includes(value as RightWidgetId);
@@ -679,6 +682,7 @@ function MediaSlideshow({
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Retenido mientras el feed del home esta temporalmente apagado.
 function FeedCard({
   item,
   index,
@@ -1901,13 +1905,12 @@ function RightWidgetCard({
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 18, scale: 0.96 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="overflow-hidden rounded-[1.5rem] border"
+      className="overflow-hidden rounded-[1.5rem]"
       style={{
         background:
           "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 95%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 90%, transparent))",
-        borderColor: "color-mix(in srgb, var(--color-border-light) 76%, transparent)",
         boxShadow:
-          "0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 5%, transparent)",
+          "0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.06)",
         backdropFilter: "blur(28px) saturate(180%)",
         WebkitBackdropFilter: "blur(28px) saturate(180%)",
       }}
@@ -2100,6 +2103,7 @@ function formatMediaDuration(totalSeconds?: number | null) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Retenido mientras el feed del home esta temporalmente apagado.
 function MagicComposer({ onPostCreated }: { onPostCreated: () => void }) {
   const { user } = useAuth();
   const [focused, setFocused] = useState(false);
@@ -2666,6 +2670,8 @@ function MagicComposer({ onPostCreated }: { onPostCreated: () => void }) {
 }
 
 export default function LoggedInHome() {
+  const getAvatarSrc = (foto?: string) => (foto ? getImageUrl(foto) : undefined);
+  const getInitial = (u: Usuario | null | undefined) => (u?.username?.[0] ?? "U").toUpperCase();
   const { user, setUser } = useAuth();
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -2691,6 +2697,17 @@ export default function LoggedInHome() {
   const currentUserAvatar = user?.fotoPerfil || user?.photo || user?.profilePicture || "";
 
   const fetchPosts = async (page = 1, mode: "replace" | "append" = "replace") => {
+    if (!ENABLE_HOME_FEED) {
+      feedRequestInFlightRef.current = false;
+      setPosts([]);
+      setFeedPage(1);
+      setFeedTotal(0);
+      setHasMorePosts(false);
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      return;
+    }
+
     if (feedRequestInFlightRef.current) return;
 
     feedRequestInFlightRef.current = true;
@@ -2734,6 +2751,16 @@ export default function LoggedInHome() {
   };
 
   useEffect(() => {
+    if (!ENABLE_HOME_FEED) {
+      setPosts([]);
+      setFeedPage(1);
+      setFeedTotal(0);
+      setHasMorePosts(false);
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      return;
+    }
+
     void fetchPosts(1, "replace");
   }, []);
 
@@ -2831,14 +2858,6 @@ export default function LoggedInHome() {
     return mapPostsToFeed(posts);
   }, [posts]);
 
-  const visibleFeed = useMemo(() => {
-    return feedPool.map((base, index) => ({
-      ...base,
-      renderId: `${base.id}-${base.createdAt}-${index}`,
-      lap: Math.floor(index / FEED_PAGE_SIZE),
-    }));
-  }, [feedPool]);
-
   const totalLikes = useMemo(() => feedPool.reduce((sum, item) => sum + item.likes, 0), [feedPool]);
   const feedItemCount = feedTotal ?? feedPool.length;
   const projectedComments = useMemo(
@@ -2902,23 +2921,8 @@ export default function LoggedInHome() {
 
     return `Tu home ya tiene ${formatCount(feedItemCount)} historias activas para mirar, comentar o convertir en plan.`;
   }, [feedItemCount, leadRoute, leadStyle]);
-  const feedIntroBadges = useMemo(() => {
-    const badges = [
-      `${formatCount(feedItemCount)} historias activas`,
-      `${formatCount(projectedComments)} comentarios en movimiento`,
-    ];
-
-    if (leadStyle) {
-      badges.push(`${leadStyle.name} está dando de qué hablar`);
-    } else {
-      badges.push(`${formatCount(projectedPlans)} planes listos para salir`);
-    }
-
-    return badges;
-  }, [feedItemCount, leadStyle, projectedComments, projectedPlans]);
   const showHomeIntro = false;
   const showHomeWidgets = false;
-  const showFeedLeadCard = false;
 
   const addWidget = (id: HomeWidgetId) => {
     setEnabledWidgets((current) => (current.includes(id) ? current : [...current, id]));
@@ -2999,6 +3003,8 @@ export default function LoggedInHome() {
   }, [collapsedRightWidgets]);
 
   useEffect(() => {
+    if (!ENABLE_HOME_FEED) return;
+
     const handleScroll = () => {
       if (isLoading || isLoadingMore || !hasMorePosts) return;
 
@@ -3256,35 +3262,75 @@ export default function LoggedInHome() {
       case "trending":
         return (
           <div className="space-y-2">
-            {trendingStyles.map((item, index) => (
-              <div
+            {trendingStyles.slice(0, 3).map((item, index) => (
+              <Link
                 key={`${item.name}-${index}`}
-                className="rounded-[1.1rem] border px-3 py-2.5"
+                href={`/cervezas?estilo=${encodeURIComponent(item.name)}`}
+                className="block group"
+              >
+                <motion.div
+                  whileHover={{ y: -2, backgroundColor: "rgba(255,255,255,0.05)", borderColor: "rgba(251,191,36,0.3)", boxShadow: "0 4px 20px rgba(251,191,36,0.04)" }}
+                  whileTap={{ scale: 0.98 }}
+                  className="rounded-xl border px-3 py-2.5 flex items-start gap-3 transition-all duration-200"
+                  style={{
+                    borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
+                    background: "rgba(255,255,255,0.02)",
+                  }}
+                >
+                  {/* Emoji inside styled container */}
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-[15px] border border-white/[0.02] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] group-hover:scale-110 group-hover:bg-white/[0.06] transition-all duration-200">
+                    {item.icon}
+                  </span>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className="text-[11.5px] font-bold text-white group-hover:text-[var(--color-amber-primary)] transition-colors truncate">
+                        {item.name}
+                      </span>
+                      {/* Status pill based on rank */}
+                      <span className="text-[8px] font-extrabold text-[var(--color-amber-primary)] px-1 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 select-none">
+                        {index === 0 ? "🔥 Hot" : index === 1 ? "📈 +12%" : index === 2 ? "⚡ Top" : "⭐ Neo"}
+                      </span>
+                    </div>
+                    
+                    <p className="mt-1 text-[10px] leading-relaxed text-[var(--color-text-secondary)] line-clamp-2">
+                      {item.note}
+                    </p>
+                    
+                    {/* Progress indicator */}
+                    <div className="mt-2 w-full h-[2.5px] bg-white/[0.03] rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${92 - index * 12}%` }}
+                        transition={{ duration: 0.8, delay: index * 0.1 }}
+                        className="h-full rounded-full"
+                        style={{
+                          background: index === 0 
+                            ? "linear-gradient(90deg, #f59e0b, #ef4444)" 
+                            : "linear-gradient(90deg, var(--color-amber-primary), #f59e0b)"
+                        }}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+            
+            <Link href="/cervezas" className="block mt-1">
+              <motion.div
+                whileHover={{ scale: 1.02, backgroundColor: "rgba(251,191,36,0.06)", borderColor: "var(--color-amber-primary)" }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center justify-between rounded-xl border px-3 py-2 transition-all duration-200 cursor-pointer"
                 style={{
-                  borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)",
-                  background: "rgba(255,255,255,0.03)",
+                  borderColor: "color-mix(in srgb, var(--color-border-amber) 32%, transparent)",
+                  background: "rgba(251,191,36,0.02)",
                 }}
               >
-                <p className="text-[12px] font-bold" style={{ color: "var(--color-text-primary)" }}>
-                  {item.icon} {item.name}
-                </p>
-                <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-                  {item.note}
-                </p>
-              </div>
-            ))}
-            <Link
-              href="/cervezas"
-              className="flex items-center justify-between rounded-[1rem] border px-3 py-2 transition-all hover:translate-y-[-1px]"
-              style={{
-                borderColor: "color-mix(in srgb, var(--color-border-amber) 40%, var(--color-border-light))",
-                background: "color-mix(in srgb, var(--color-amber-primary) 5%, transparent)",
-              }}
-            >
-              <span className="text-[11px] font-semibold" style={{ color: "var(--color-text-secondary)" }}>
-                Ver todas las cervezas
-              </span>
-              <span className="text-[11px]" style={{ color: "var(--color-amber-primary)" }}>→</span>
+                <span className="text-[10px] font-bold tracking-wider uppercase text-[var(--color-text-secondary)]">
+                  Ver todas las cervezas
+                </span>
+                <span className="text-[11px] font-bold text-[var(--color-amber-primary)]">→</span>
+              </motion.div>
             </Link>
           </div>
         );
@@ -3390,12 +3436,43 @@ export default function LoggedInHome() {
   return (
     <>
       <GoldenParticles count={22} />
-      <Navbar />
 
-      <main className="home-laptop-viewport relative w-full min-h-screen py-6 flex flex-col justify-start items-center">
+      <main className="home-laptop-viewport relative w-full min-h-screen pt-2 pb-0 md:pt-2 md:pb-6 flex flex-col justify-start items-center overflow-x-hidden">
+        {/* ── Background Aurora Orbs ── */}
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <motion.div
+            className="absolute rounded-full blur-[120px]"
+            style={{
+              width: "min(60vw, 800px)", height: "min(60vw, 800px)",
+              background: "radial-gradient(circle, color-mix(in srgb, var(--color-amber-primary) 12%, transparent) 0%, transparent 70%)",
+              top: "-10%", right: "-10%",
+            }}
+            animate={{ x: [0, -40, 20, 0], y: [0, 40, -20, 0], scale: [1, 1.15, 0.9, 1] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+            aria-hidden="true"
+          />
+          <motion.div
+            className="absolute rounded-full blur-[110px]"
+            style={{
+              width: "min(50vw, 700px)", height: "min(50vw, 700px)",
+              background: "radial-gradient(circle, color-mix(in srgb, var(--color-emerald) 6%, transparent) 0%, transparent 70%)",
+              bottom: "20%", left: "-15%",
+            }}
+            animate={{ x: [0, 40, -10, 0], y: [0, -30, 20, 0], scale: [1, 1.05, 0.95, 1] }}
+            transition={{ duration: 24, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            aria-hidden="true"
+          />
+        </div>
 
-
-        <div className="relative mx-auto flex w-full flex-col px-4 sm:px-6 lg:px-8 items-center justify-center">
+        <motion.div 
+          className="relative mx-auto flex w-full flex-col px-0 md:px-4 lg:px-8 items-center justify-center z-10"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.12 } }
+          }}
+        >
           {showHomeIntro ? (
             <>
               {/* ─── Welcome + Gamification Banner ─── */}
@@ -3905,16 +3982,18 @@ export default function LoggedInHome() {
           ) : null}
 
           <div
-            className={`relative z-[2] mx-auto grid grid-cols-1 items-start justify-center gap-6 w-full max-w-[1024px] ${
+            className={`relative z-[2] mx-auto grid grid-cols-1 items-start justify-center gap-10 w-full ${
               showHomeWidgets
                 ? "xl:grid-cols-[1fr_minmax(auto,30.375rem)_1fr]"
-                : "xl:grid-cols-[1fr_340px]"
+                : rightWidgets.length > 0
+                  ? "xl:grid-cols-[minmax(0,1fr)_300px]"
+                  : "xl:grid-cols-1"
             }`}
             style={
               showHomeWidgets
                 ? undefined
                 : rightWidgets.length > 0
-                  ? { maxWidth: `calc(${HOME_FEED_MAX_WIDTH} + 288px + 1.5rem)` }
+                  ? { maxWidth: "1140px" }
                   : { maxWidth: HOME_FEED_MAX_WIDTH }
             }
           >
@@ -4060,253 +4139,28 @@ export default function LoggedInHome() {
 
             <section
               className={`min-w-0 ${showHomeWidgets ? "xl:mx-auto xl:w-full" : ""} ${!showHomeWidgets && rightWidgets.length > 0 ? "flex-1" : ""}`}
-              style={!showHomeWidgets && rightWidgets.length > 0 ? { maxWidth: HOME_FEED_MAX_WIDTH } : undefined}
             >
-              {/* ── Magic Composer ── */}
-              <div className="home-feed-stack space-y-2">
-                {showFeedLeadCard ? (
-                  <section
-                    className="overflow-hidden rounded-[1.7rem] border px-4 py-4 sm:px-5"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 94%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 90%, transparent))",
-                      borderColor: "color-mix(in srgb, var(--color-border-light) 76%, transparent)",
-                      boxShadow: "var(--shadow-card)",
-                    }}
-                  >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="max-w-2xl">
-                        <p
-                          className="text-[11px] font-bold tracking-[0.24em] uppercase"
-                          style={{ color: "var(--color-amber-primary)" }}
-                        >
-                          Muro en vivo
-                        </p>
-                        <h2
-                          className="mt-2 text-[1.15rem] leading-tight font-black sm:text-[1.35rem]"
-                          style={{ color: "var(--color-text-primary)" }}
-                        >
-                          Lo último de la comunidad cervecera, al centro y sin ruido extra.
-                        </h2>
-                        <p
-                          className="mt-2 text-sm leading-relaxed"
-                          style={{ color: "var(--color-text-secondary)" }}
-                        >
-                          {heroSpotlight}
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {feedIntroBadges.map((badge) => (
-                          <span
-                            key={badge}
-                            className="rounded-full border px-3 py-1.5 text-[12px] font-semibold"
-                            style={{
-                              borderColor:
-                                "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
-                              background: "rgba(255,255,255,0.03)",
-                              color: "var(--color-text-secondary)",
-                            }}
-                          >
-                            {badge}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </section>
-                ) : null}
-
-                {user && <div className="mb-2" style={{ marginTop: '8px' }}><MagicComposer onPostCreated={fetchPosts} /></div>}
-
-                {isLoading ? (
-                  <div className="w-full py-4">
-                    <div
-                      className="relative mx-auto w-full overflow-hidden rounded-[1.8rem] border px-5 py-6"
-                      style={{
-                        maxWidth: HOME_FEED_MAX_WIDTH,
-                        background:
-                          "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 96%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 92%, transparent))",
-                        borderColor:
-                          "color-mix(in srgb, var(--color-border-light) 74%, transparent)",
-                        boxShadow: "var(--shadow-elevated)",
-                      }}
-                    >
-                      <div
-                        className="pointer-events-none absolute inset-x-[14%] top-0 h-24 rounded-full"
-                        style={{
-                          background:
-                            "radial-gradient(circle, color-mix(in srgb, var(--color-amber-primary) 18%, transparent) 0%, transparent 72%)",
-                          filter: "blur(34px)",
-                          opacity: 0.7,
-                        }}
-                      />
-                      <div className="relative animate-pulse">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="h-10 w-10 rounded-full"
-                            style={{ background: "rgba(255,255,255,0.09)" }}
-                          />
-                          <div className="min-w-0 flex-1 space-y-2">
-                            <div
-                              className="h-3 w-28 rounded-full"
-                              style={{ background: "rgba(255,255,255,0.12)" }}
-                            />
-                            <div
-                              className="h-2.5 w-40 rounded-full"
-                              style={{ background: "rgba(255,255,255,0.08)" }}
-                            />
-                          </div>
-                        </div>
-
-                        <div
-                          className="mt-5 aspect-[4/5] w-full rounded-[1.35rem] sm:aspect-[16/10]"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
-                          }}
-                        />
-
-                        <div className="mt-5 space-y-3">
-                          <div
-                            className="h-3 w-full rounded-full"
-                            style={{ background: "rgba(255,255,255,0.1)" }}
-                          />
-                          <div
-                            className="h-3 w-[82%] rounded-full"
-                            style={{ background: "rgba(255,255,255,0.08)" }}
-                          />
-                          <div
-                            className="h-3 w-[64%] rounded-full"
-                            style={{ background: "rgba(255,255,255,0.08)" }}
-                          />
-                        </div>
-                      </div>
-
-                      <p
-                        className="relative mt-5 text-center text-[0.92rem] font-medium"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
-                        Cargando muro...
-                      </p>
-                    </div>
-                  </div>
-                ) : visibleFeed.length === 0 ? (
-                  <div
-                    className="relative flex min-h-[440px] flex-col items-center justify-center overflow-hidden rounded-[1.9rem] border px-6 py-16 text-center"
-                    style={{
-                      background: "var(--gradient-feed-empty-state)",
-                      borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
-                      boxShadow: "var(--shadow-card)",
-                      backdropFilter: "blur(20px)",
-                      WebkitBackdropFilter: "blur(20px)",
-                    }}
-                  >
-                    <div
-                      className="pointer-events-none absolute inset-x-[16%] top-0 h-28 rounded-full"
-                      style={{
-                        background:
-                          "radial-gradient(circle, color-mix(in srgb, var(--color-amber-primary) 26%, transparent) 0%, transparent 72%)",
-                        filter: "blur(34px)",
-                        opacity: 0.85,
-                      }}
-                    />
-                    <div
-                      className="pointer-events-none absolute inset-x-[28%] bottom-8 h-24 rounded-full"
-                      style={{
-                        background:
-                          "radial-gradient(circle, color-mix(in srgb, var(--color-orange-cta) 18%, transparent) 0%, transparent 74%)",
-                        filter: "blur(32px)",
-                        opacity: 0.72,
-                      }}
-                    />
-
-                    <span className="relative z-10 text-5xl">🍺</span>
-                    <h3
-                      className="relative z-10 mt-4 text-lg font-bold"
-                      style={{ color: "var(--color-text-primary)" }}
-                    >
-                      El muro está esperando tu primera historia
-                    </h3>
-                    <p
-                      className="relative z-10 mt-2 max-w-md text-sm"
-                      style={{ color: "var(--color-text-secondary)" }}
-                    >
-                      Publica lo que estás tomando y súmate a la comunidad.
-                    </p>
-                    <Link
-                      href="/posts"
-                      className="relative z-10 mt-5 rounded-full px-6 py-2.5 text-sm font-bold"
-                      style={{
-                        background: "var(--gradient-button-primary)",
-                        color: "var(--color-text-dark)",
-                        boxShadow: "var(--shadow-amber-glow)",
-                      }}
-                    >
-                      Publicar ahora
-                    </Link>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex snap-y snap-proximity flex-col gap-8">
-                      {visibleFeed.map((item, index) => (
-                        <FeedCard key={item.renderId} item={item} index={index} />
-                      ))}
-                    </div>
-
-                    {isLoadingMore && (
-                      <div className="mt-6 flex justify-center">
-                        <p
-                          className="text-[0.88rem] font-medium"
-                          style={{ color: "var(--color-text-muted)" }}
-                        >
-                          Cargando más historias...
-                        </p>
-                      </div>
-                    )}
-
-                    {!hasMorePosts && visibleFeed.length > 0 && (
-                      <p
-                        className="mt-6 text-center text-sm font-medium"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
-                        Llegaste al final del muro por ahora. Vuelve en un rato para ver nuevas
-                        historias.
-                      </p>
-                    )}
-                  </>
-                )}
+              {/* ── Cinematic Desktop Layout ── */}
+              <div className="hidden md:block w-full max-w-[1000px]">
+                <HomeDesktopLayout />
+              </div>
+              
+              {/* ── TikTok-Style Full-Screen Feed (Mobile Only) ── */}
+              <div className="md:hidden">
+                <HomeFeed />
               </div>
             </section>
 
             {/* ── Right widget panel ── */}
             {!showHomeWidgets && (
-              <aside className="hidden w-72 shrink-0 xl:block xl:sticky xl:top-24 xl:self-start">
-                <div className="flex flex-col gap-3">
-                  {/* Add widget button */}
-                  <div className="flex items-center justify-end px-1">
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.08 }}
-                      whileTap={{ scale: 0.92 }}
-                      onClick={() => setRightPickerOpen((v) => !v)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border text-base transition-all"
-                      style={{
-                        borderColor: rightPickerOpen
-                          ? "var(--color-amber-primary)"
-                          : "color-mix(in srgb, var(--color-border-light) 68%, transparent)",
-                        background: rightPickerOpen
-                          ? "color-mix(in srgb, var(--color-amber-primary) 12%, transparent)"
-                          : "rgba(255,255,255,0.04)",
-                        color: rightPickerOpen
-                          ? "var(--color-amber-primary)"
-                          : "var(--color-text-muted)",
-                      }}
-                      aria-label="Agregar widget"
-                    >
-                      +
-                    </motion.button>
-                  </div>
-
+              <motion.aside 
+                variants={{
+                  hidden: { opacity: 0, x: 24 },
+                  visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 280, damping: 28 } }
+                }}
+                className="hidden w-full shrink-0 xl:block xl:self-start"
+              >
+                <div className="flex flex-col gap-3 xl:mt-10">
                   {/* Picker */}
                   <AnimatePresence>
                     {rightPickerOpen ? (
@@ -4337,6 +4191,32 @@ export default function LoggedInHome() {
                     })}
                   </AnimatePresence>
 
+                  {/* Add widget button at the bottom of the list */}
+                  {availableRightWidgets.length > 0 && (
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setRightPickerOpen((v) => !v)}
+                      className="flex w-full items-center justify-center gap-2 rounded-[1.2rem] border py-2.5 text-[11px] font-semibold transition-all"
+                      style={{
+                        borderColor: rightPickerOpen
+                          ? "var(--color-amber-primary)"
+                          : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
+                        color: rightPickerOpen
+                          ? "var(--color-amber-primary)"
+                          : "var(--color-text-secondary)",
+                        background: rightPickerOpen
+                          ? "rgba(251,191,36,0.08)"
+                          : "rgba(251,191,36,0.03)",
+                      }}
+                      aria-label="Agregar widget"
+                    >
+                      <span className="text-base leading-none">{rightPickerOpen ? "−" : "+"}</span>
+                      Agregar widget
+                    </motion.button>
+                  )}
+
                   {/* Empty state */}
                   {rightWidgets.length === 0 && !rightPickerOpen ? (
                     <motion.div
@@ -4350,15 +4230,16 @@ export default function LoggedInHome() {
                     >
                       <span className="text-2xl">🪟</span>
                       <p className="mt-2 text-[11px]" style={{ color: "var(--color-text-muted)" }}>
-                        Sin widgets activos. Toca + para agregar.
+                        Sin widgets activos.
                       </p>
                     </motion.div>
                   ) : null}
                 </div>
-              </aside>
+              </motion.aside>
             )}
           </div>
-        </div>
+          {/* Closing motion container wrapper */}
+        </motion.div>
       </main>
 
       <Footer />

@@ -20,7 +20,6 @@ import StarBorderIcon from "@mui/icons-material/StarBorder";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
 import PageContainer from "@/components/layouts/PageContainer";
@@ -112,7 +111,6 @@ export default function PlanesPage() {
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", pb: 10 }}>
       <GoldenBackground />
-      <Navbar />
 
       <PageContainer className="relative z-10 pt-12">
         <motion.div

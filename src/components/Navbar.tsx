@@ -24,14 +24,17 @@ import {
   ExpandLess,
   ExpandMore,
   Forum as ForumIcon,
-  Group as GroupIcon,
   Home as HomeIcon,
   LocationOn as LocationOnIcon,
   Logout as LogoutIcon,
   MenuRounded as MenuRoundedIcon,
   SportsBar as SportsBarIcon,
+  Favorite as FavoriteIcon,
+  Chat as ChatIcon,
+  MenuBook as MenuBookIcon,
 } from "@mui/icons-material";
 import { getImageUrl } from "@/lib/constants";
+import NavbarSearch from "@/components/NavbarSearch";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useBeerTheme, BEER_THEMES } from "@/theme/ThemeContext";
 import useAuth from "@/hooks/useAuth";
@@ -58,6 +61,12 @@ const navItems: NavItem[] = [
     icon: <HomeIcon fontSize="small" />,
   },
   {
+    text: "La Guía",
+    href: "/guia",
+    description: "Descubre los estilos de cerveza.",
+    icon: <MenuBookIcon fontSize="small" />,
+  },
+  {
     text: "Cervezas",
     href: "/cervezas",
     description: "Descubre botellas, estilos y hallazgos para guardar.",
@@ -76,10 +85,16 @@ const navItems: NavItem[] = [
     icon: <ForumIcon fontSize="small" />,
   },
   {
-    text: "Usuarios",
-    href: "/usuarios",
-    description: "Conecta con la gente detrás de cada pinta.",
-    icon: <GroupIcon fontSize="small" />,
+    text: "Favoritos",
+    href: "/favoritos",
+    description: "Tus cervezas y lugares favoritos guardados.",
+    icon: <FavoriteIcon fontSize="small" />,
+  },
+  {
+    text: "Carrete",
+    href: "/carrete",
+    description: "Chatea con la comunidad, IA o B2B.",
+    icon: <ChatIcon fontSize="small" />,
   },
 ];
 
@@ -98,8 +113,26 @@ export default function Navbar() {
   const activeBeerTheme = BEER_THEMES.find((t) => t.id === theme) ?? BEER_THEMES[0];
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [quickMenuAnchor, setQuickMenuAnchor] = useState<null | HTMLElement>(null);
+  const [isSidebarMenu, setIsSidebarMenu] = useState(false);
   const [footerMenuOpen, setFooterMenuOpen] = useState(false);
-  const isCollapsed = false;
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("sidebar_collapsed");
+    if (stored === "true") {
+      setIsCollapsed(true);
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed((v) => {
+      const next = !v;
+      localStorage.setItem("sidebar_collapsed", String(next));
+      return next;
+    });
+  };
+
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -119,6 +152,16 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      document.body.classList.add("sidebar-transition");
+    }, 150);
+    return () => {
+      clearTimeout(timer);
+      document.body.classList.remove("sidebar-transition");
+    };
+  }, []);
+
+  useEffect(() => {
     setDrawerOpen(false);
     setFooterMenuOpen(false);
     setAnchorEl(null);
@@ -133,13 +176,223 @@ export default function Navbar() {
 
   const getAvatarSrc = (foto?: string) => (foto ? getImageUrl(foto) : undefined);
 
-  const showSidebar = Boolean(user);
+  const isPublicLanding = pathname === "/" && !user;
+  const showSidebar = !pathname || (
+    !(pathname.startsWith("/auth/") && pathname !== "/auth/perfil") &&
+    !isPublicLanding
+  );
+
+  if (!showSidebar) {
+    if (isPublicLanding) {
+      return (
+        <header
+          className="sticky top-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-between px-6 border-b border-[var(--color-border-subtle)] backdrop-blur-md"
+          style={{
+            background: scrolled ? "var(--navbar-bg-scrolled)" : "var(--navbar-bg)",
+            borderColor: scrolled ? "var(--navbar-border-scrolled)" : "var(--navbar-border)",
+            boxShadow: scrolled
+              ? "var(--navbar-shadow)"
+              : "0 8px 28px color-mix(in srgb, var(--color-amber-primary) 8%, transparent)",
+            WebkitBackdropFilter: "blur(18px) saturate(190%)",
+            backdropFilter: "blur(18px) saturate(190%)",
+          }}
+        >
+          {/* Logo */}
+          <Link href="/" aria-label="Ir al inicio" className="flex items-center">
+            <span
+              className="lupulos-logo-text relative text-[1.75rem] font-[900] tracking-[-0.05em]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(100deg, #b45309 0%, #f59e0b 30%, #fbbf24 50%, #d97706 75%, #92400e 100%)",
+                backgroundSize: "220% auto",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                filter: "drop-shadow(0 1px 6px color-mix(in srgb, var(--color-amber-primary) 35%, transparent))",
+              }}
+            >
+              Lúpulos
+            </span>
+          </Link>
+
+          {/* Navigation Links */}
+          <nav className="hidden items-center gap-6 lg:flex">
+            {navItems.map((item) => {
+              const isActive = isRouteActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.text}
+                  href={item.href}
+                  className={`sidebar-cursive-text text-sm font-medium transition-colors hover:text-[var(--color-amber-primary)]`}
+                  style={{
+                    color: isActive ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
+                  }}
+                >
+                  {item.text}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right side: Theme + Social + Login */}
+          <div className="flex items-center gap-3">
+            {/* Theme Switcher */}
+            <ThemeSwitcher />
+
+            {/* Social Media Icons */}
+            <div className="hidden items-center gap-2 md:flex">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="social-icon-neon group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-[1.15]"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                </svg>
+              </a>
+              <a
+                href="https://x.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="X (Twitter)"
+                className="social-icon-neon group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-[1.15]"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+              <a
+                href="https://tiktok.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok"
+                className="social-icon-neon group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-[1.15]"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.51a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V9.05a8.27 8.27 0 0 0 4.76 1.51V7.12a4.83 4.83 0 0 1-1-.43z"/>
+                </svg>
+              </a>
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+                className="social-icon-neon group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-[1.15]"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </a>
+            </div>
+
+            {/* Divider */}
+            <div
+              className="hidden h-6 w-px md:block"
+              style={{ background: "color-mix(in srgb, var(--color-border-light) 40%, transparent)" }}
+            />
+
+            {/* Action button */}
+            <Link
+              href="/auth/login"
+              className="flex items-center justify-center px-4 py-2 rounded-full border text-xs font-bold transition-all hover:scale-[1.02]"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-border-amber) 54%, transparent)",
+                background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 50%, var(--color-amber-hover) 100%)",
+                color: "var(--color-text-dark)",
+                boxShadow: "var(--shadow-amber-glow)",
+              }}
+            >
+              Iniciar sesión
+            </Link>
+          </div>
+        </header>
+      );
+    }
+    return null;
+  }
 
   return (
     <>
-      {showSidebar ? (
-      <aside
-        className={`lupulos-sidebar fixed top-0 left-0 z-50 hidden h-screen w-[76px] flex-col items-center gap-1 border-r py-4 md:flex ${isCollapsed ? "is-collapsed" : ""} ${!isCollapsed ? "xl:w-[240px] xl:items-stretch xl:px-4" : ""} transition-all duration-300`}
+      {/* ── Top utility bar (logged-in desktop only) ── */}
+      <header
+        className="lupulos-topbar fixed top-0 left-0 right-0 z-[60] hidden h-16 items-center border-b md:flex"
+        style={{
+          background: "var(--navbar-bg-scrolled)",
+          backdropFilter: "blur(16px) saturate(180%)",
+          WebkitBackdropFilter: "blur(16px) saturate(180%)",
+          borderColor: "color-mix(in srgb, var(--color-border-light) 40%, transparent)",
+        }}
+      >
+        {/* Content wrapper — centered to the FULL viewport so it lines up with page content */}
+        <div className="w-full h-full px-4 lg:px-8 flex items-center justify-center">
+          <div className="w-full max-w-[1140px] flex items-center justify-between gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-10">
+
+            {/* Search bar column — buscador premium con autocompletado IA + memoria */}
+            <div className="flex-1 max-w-md xl:max-w-none flex items-center justify-start pl-6 xl:pl-0">
+              <NavbarSearch />
+            </div>
+
+            {/* Right utilities column */}
+            <div className="flex shrink-0 items-center justify-end gap-2 md:gap-3">
+              {/* Notificaciones */}
+              <button
+                type="button"
+                className="relative flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-white/6"
+                aria-label="Notificaciones"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span
+                  className="absolute right-[6px] top-[6px] flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black"
+                  style={{ background: "var(--color-amber-primary)", color: "var(--color-text-dark)" }}
+                >3</span>
+              </button>
+
+              {/* Mensajes */}
+              <Link
+                href="/carrete"
+                className="relative flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-white/6"
+                aria-label="Mensajes"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span
+                  className="absolute right-[6px] top-[6px] flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black"
+                  style={{ background: "var(--color-amber-primary)", color: "var(--color-text-dark)" }}
+                >5</span>
+              </Link>
+
+              {/* Menú Rápido */}
+              <button
+                type="button"
+                onClick={(e) => setQuickMenuAnchor(e.currentTarget)}
+                className="relative flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-white/6"
+                aria-label="Menú rápido"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <motion.aside
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className={`lupulos-sidebar fixed top-16 left-0 z-50 hidden h-[calc(100vh-4rem)] w-[76px] flex-col items-center gap-1 border-r py-4 md:flex ${isCollapsed ? "is-collapsed" : ""} ${!isCollapsed ? "xl:w-[240px] xl:items-stretch xl:px-4" : ""}`}
         style={{
           background: "var(--navbar-bg-scrolled)",
           backdropFilter: "blur(16px) saturate(180%)",
@@ -147,62 +400,75 @@ export default function Navbar() {
           borderColor: "color-mix(in srgb, var(--color-border-light) 60%, transparent)",
         }}
       >
-        <div className="mb-4 flex w-full shrink-0 items-center justify-center gap-2 xl:mb-6 xl:justify-start xl:px-1">
+        <div className={`mb-4 flex w-full shrink-0 items-center justify-center xl:mb-6 xl:px-1 ${isCollapsed ? "xl:justify-center gap-0" : "xl:justify-start gap-2"}`}>
           <button
             type="button"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Abrir menú"
+            onClick={toggleCollapse}
+            aria-label={isCollapsed ? "Expandir menú" : "Colapsar menú"}
             className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors xl:flex"
             style={{ color: "var(--color-text-secondary)" }}
           >
             <MenuRoundedIcon fontSize="medium" />
           </button>
 
-        <Link
-          href="/"
-          aria-label="Ir al inicio"
-          className="group flex shrink-0 items-center gap-2"
-        >
-          <motion.span
-            className="lupulos-logo-text relative text-[1.25rem] font-black tracking-[-0.02em]"
-            initial={{ backgroundPosition: "0% 50%" }}
-            animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-            transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
-            style={{
-              backgroundImage:
-                "linear-gradient(100deg, #b45309 0%, #f59e0b 30%, #fbbf24 50%, #d97706 75%, #92400e 100%)",
-              backgroundSize: "220% auto",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              filter: "drop-shadow(0 1px 6px color-mix(in srgb, var(--color-amber-primary) 35%, transparent))",
-            }}
+          <Link
+            href="/"
+            aria-label="Ir al inicio"
+            className={`group flex shrink-0 items-center ${isCollapsed ? "hidden" : ""}`}
           >
-            Lúpulos
-            <motion.span
-              aria-hidden
-              className="pointer-events-none absolute -top-1 -right-2 text-[0.6rem]"
-              initial={{ opacity: 0, scale: 0, rotate: -20 }}
+            <motion.div
               animate={{
-                opacity: [0, 1, 0],
-                scale: [0.4, 1.1, 0.4],
-                rotate: [-20, 15, 35],
+                width: isCollapsed ? 0 : "auto",
+                opacity: isCollapsed ? 0 : 1,
+                marginLeft: isCollapsed ? 0 : 8
               }}
-              transition={{
-                duration: 2.4,
-                ease: "easeInOut",
-                repeat: Infinity,
-                repeatDelay: 4.5,
-              }}
-              style={{ color: "var(--color-amber-primary)" }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="overflow-hidden whitespace-nowrap flex items-center"
             >
-              ✦
-            </motion.span>
-          </motion.span>
-        </Link>
+              <motion.span
+                className="lupulos-logo-text relative text-[1.75rem] font-[900] tracking-[-0.05em]"
+                initial={{ backgroundPosition: "0% 50%" }}
+                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
+                style={{
+                  backgroundImage:
+                    "linear-gradient(100deg, #b45309 0%, #f59e0b 30%, #fbbf24 50%, #d97706 75%, #92400e 100%)",
+                  backgroundSize: "220% auto",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  filter: "drop-shadow(0 1px 6px color-mix(in srgb, var(--color-amber-primary) 35%, transparent))",
+                }}
+              >
+                Lúpulos
+                <motion.span
+                  aria-hidden
+                  className="pointer-events-none absolute -top-1 -right-2 text-[0.6rem]"
+                  initial={{ opacity: 0, scale: 0, rotate: -20 }}
+                  animate={{
+                    opacity: [0, 1, 0],
+                    scale: [0.4, 1.1, 0.4],
+                    rotate: [-20, 15, 35],
+                  }}
+                  transition={{
+                    duration: 2.4,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                    repeatDelay: 4.5,
+                  }}
+                  style={{ color: "var(--color-amber-primary)" }}
+                >
+                  ✦
+                </motion.span>
+              </motion.span>
+            </motion.div>
+          </Link>
         </div>
 
-        <nav className="flex w-full flex-1 flex-col items-center gap-1 xl:items-stretch">
+        {/* Spacer que empuja el nav hacia abajo */}
+        <div className="hidden h-8 shrink-0 xl:block" />
+
+        <nav className={`flex w-full flex-col items-center gap-1 ${!isCollapsed ? "xl:items-stretch" : "xl:items-center"}`}>
           {navItems.map((item) => {
             const isActive = isRouteActive(pathname, item.href);
             return (
@@ -210,7 +476,9 @@ export default function Navbar() {
                 <Link
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
-                  className="relative flex h-12 w-12 items-center justify-center rounded-[1.1rem] transition-all duration-200 xl:h-auto xl:w-full xl:justify-start xl:gap-3 xl:px-3 xl:py-2.5"
+                  className={`relative flex h-12 w-12 items-center justify-center rounded-[1.1rem] transition-all duration-200 ${
+                    !isCollapsed ? "xl:h-auto xl:w-full xl:justify-start xl:items-start xl:px-3 xl:py-2.5" : ""
+                  }`}
                   style={{
                     color: isActive ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
                     background: isActive
@@ -229,21 +497,43 @@ export default function Navbar() {
                       transition={{ type: "spring", stiffness: 360, damping: 32 }}
                     />
                   )}
-                  <span className="relative z-10 flex items-center justify-center">{item.icon}</span>
-                  <span className="relative z-10 hidden text-[14px] font-semibold xl:inline">{item.text}</span>
+                  <span className={`relative z-10 flex shrink-0 items-center justify-center ${!isCollapsed ? "xl:mt-[2px]" : ""}`}>{item.icon}</span>
+                  <motion.div
+                    animate={{
+                      width: isCollapsed ? 0 : "auto",
+                      opacity: isCollapsed ? 0 : 1,
+                      marginLeft: isCollapsed ? 0 : 12,
+                    }}
+                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                    className="relative z-10 hidden flex-col min-w-0 xl:flex overflow-hidden max-h-[38px]"
+                  >
+                    <span className="sidebar-cursive-text text-[13.5px] font-bold leading-tight">{item.text}</span>
+                    <span
+                      className="text-[11px] font-normal leading-normal mt-0.5"
+                      style={{
+                        color: isActive
+                          ? "color-mix(in srgb, var(--color-amber-primary) 55%, var(--color-text-muted))"
+                          : "var(--color-text-muted)",
+                      }}
+                    >
+                      {item.description}
+                    </span>
+                  </motion.div>
                 </Link>
               </Tooltip>
             );
           })}
         </nav>
 
-        <div className="relative mt-auto flex w-full flex-col items-center gap-2 xl:items-stretch">
+        <div className={`relative mt-auto flex w-full flex-1 flex-col items-end justify-end gap-2 ${!isCollapsed ? "xl:items-stretch" : "xl:items-center"}`}>
           <Tooltip title="Cambiar tema" placement="right">
             <button
               type="button"
               onClick={() => setSidebarThemeOpen((v) => !v)}
               aria-expanded={sidebarThemeOpen}
-              className="relative flex h-12 w-12 items-center justify-center rounded-[1.1rem] transition-all duration-200 xl:h-auto xl:w-full xl:justify-start xl:gap-3 xl:px-3 xl:py-2.5"
+              className={`relative flex h-12 w-12 items-center justify-center rounded-[1.1rem] transition-all duration-200 ${
+                !isCollapsed ? "xl:h-auto xl:w-full xl:justify-start xl:px-3 xl:py-2.5" : ""
+              }`}
               style={{
                 color: sidebarThemeOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
                 background: sidebarThemeOpen
@@ -255,10 +545,25 @@ export default function Navbar() {
               }}
             >
               <span className="relative z-10 text-[20px] leading-none">{activeBeerTheme.icon}</span>
-              <span className="relative z-10 hidden flex-1 text-left text-[14px] font-semibold xl:inline">Tema</span>
-              <svg
+              <motion.span
+                animate={{
+                  width: isCollapsed ? 0 : "auto",
+                  opacity: isCollapsed ? 0 : 1,
+                  marginLeft: isCollapsed ? 0 : 12
+                }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className={`relative z-10 flex-1 text-left text-[14px] font-semibold overflow-hidden whitespace-nowrap ${isCollapsed ? "hidden" : "hidden xl:inline"}`}
+              >
+                Tema
+              </motion.span>
+              <motion.svg
+                animate={{
+                  opacity: isCollapsed ? 0 : 1,
+                  scale: isCollapsed ? 0 : 1
+                }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                 viewBox="0 0 24 24"
-                className="relative z-10 hidden h-4 w-4 transition-transform xl:inline"
+                className={`relative z-10 h-4 w-4 transition-transform ${isCollapsed ? "hidden" : "hidden xl:inline"}`}
                 style={{ transform: sidebarThemeOpen ? "rotate(180deg)" : "rotate(0deg)" }}
                 fill="none"
                 stroke="currentColor"
@@ -268,7 +573,7 @@ export default function Navbar() {
                 aria-hidden="true"
               >
                 <path d="M6 9l6 6 6-6" />
-              </svg>
+              </motion.svg>
             </button>
           </Tooltip>
 
@@ -369,46 +674,110 @@ export default function Navbar() {
           </AnimatePresence>
         </div>
 
-        {user ? (
-          <div className="flex w-full flex-col items-center gap-2 xl:items-stretch">
-            <Link
-              href="/auth/perfil"
-              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border xl:h-auto xl:w-full xl:justify-start xl:gap-3 xl:rounded-[1.1rem] xl:border-0 xl:px-2 xl:py-2"
-              style={{
-                borderColor: "color-mix(in srgb, var(--color-border-amber) 54%, transparent)",
-              }}
-            >
-              {getAvatarSrc(user.fotoPerfil) ? (
-                <Image
-                  src={getAvatarSrc(user.fotoPerfil) as string}
-                  alt={user.nombre || "Perfil"}
-                  width={44}
-                  height={44}
-                  unoptimized
-                  className="h-11 w-11 rounded-full object-cover xl:h-10 xl:w-10"
-                />
-              ) : (
-                <span
-                  className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-black xl:h-10 xl:w-10"
+        {isAuthReady ? (
+          user ? (
+            <div className={`flex w-full flex-col items-center gap-2 ${!isCollapsed ? "xl:items-stretch" : "xl:items-center"}`}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  setAnchorEl(e.currentTarget);
+                  setIsSidebarMenu(true);
+                }}
+                className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border text-left ${
+                  !isCollapsed ? "xl:h-auto xl:w-full xl:justify-start xl:rounded-[1.1rem] xl:border-0 xl:px-2 xl:py-2" : ""
+                }`}
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-border-amber) 54%, transparent)",
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                {getAvatarSrc(user.fotoPerfil) ? (
+                  <Image
+                    src={getAvatarSrc(user.fotoPerfil) as string}
+                    alt={user.nombre || "Perfil"}
+                    width={44}
+                    height={44}
+                    unoptimized
+                    className="h-11 w-11 rounded-full object-cover xl:h-10 xl:w-10"
+                  />
+                ) : (
+                  <span
+                    className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-extrabold xl:h-10 xl:w-10"
+                    style={{
+                      background: "var(--gradient-button-primary)",
+                      color: "var(--color-text-dark)",
+                    }}
+                  >
+                    {(user.nombre || "U").charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <motion.span
+                  animate={{
+                    width: isCollapsed ? 0 : "auto",
+                    opacity: isCollapsed ? 0 : 1,
+                    marginLeft: isCollapsed ? 0 : 12
+                  }}
+                  transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                  className={`hidden min-w-0 flex-1 truncate text-[13px] font-semibold xl:inline overflow-hidden whitespace-nowrap`}
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {user.nombre || "Tu perfil"}
+                </motion.span>
+              </button>
+            </div>
+          ) : (
+            <div className={`flex w-full flex-col items-center gap-2 ${!isCollapsed ? "xl:items-stretch" : "xl:items-center"}`}>
+              <Tooltip title="Iniciar sesión" placement="right">
+                <Link
+                  href="/auth/login"
+                  className={`group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border transition-all duration-200 ${
+                    !isCollapsed ? "xl:h-auto xl:w-full xl:justify-start xl:rounded-[1.1rem] xl:border-0 xl:px-2.5 xl:py-2.5" : ""
+                  }`}
                   style={{
+                    borderColor: "color-mix(in srgb, var(--color-border-amber) 54%, transparent)",
                     background: "var(--gradient-button-primary)",
                     color: "var(--color-text-dark)",
+                    boxShadow: "var(--shadow-amber-glow)",
                   }}
                 >
-                  {(user.nombre || "U").charAt(0).toUpperCase()}
-                </span>
-              )}
-              <span className="hidden min-w-0 flex-1 truncate text-[13px] font-semibold xl:inline" style={{ color: "var(--color-text-primary)" }}>
-                {user.nombre || "Tu perfil"}
-              </span>
-            </Link>
+                  <span className="relative z-10 flex shrink-0 items-center justify-center">
+                    <AccountCircleIcon fontSize="medium" className="h-5 w-5" />
+                  </span>
+                  <motion.span
+                    animate={{
+                      width: isCollapsed ? 0 : "auto",
+                      opacity: isCollapsed ? 0 : 1,
+                      marginLeft: isCollapsed ? 0 : 12
+                    }}
+                    transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                    className={`hidden min-w-0 flex-1 truncate text-[13px] font-bold xl:inline overflow-hidden whitespace-nowrap`}
+                  >
+                    Iniciar sesión
+                  </motion.span>
+                  <span
+                    className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-500 group-hover:translate-x-full"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent)",
+                    }}
+                  />
+                </Link>
+              </Tooltip>
+            </div>
+          )
+        ) : (
+          <div className={`flex w-full flex-col items-center gap-2 ${!isCollapsed ? "xl:items-stretch" : "xl:items-center"}`}>
+            <div
+              className={`h-11 w-11 rounded-full border border-dashed ${!isCollapsed ? "xl:h-10 xl:w-full xl:rounded-[1.1rem]" : ""}`}
+              style={{ borderColor: "rgba(255,255,255,0.08)" }}
+            />
           </div>
-        ) : null}
-      </aside>
-      ) : null}
+        )}
+      </motion.aside>
 
       <nav
-        className={`sticky top-0 z-50 w-full transition-all duration-300 ${showSidebar ? "hidden" : "hidden md:block"}`}
+        className="sticky top-0 z-50 w-full transition-all duration-300 xl:hidden"
         style={{
           paddingTop: "env(safe-area-inset-top)",
           background: scrolled ? "var(--navbar-bg-scrolled)" : "var(--navbar-bg)",
@@ -501,7 +870,10 @@ export default function Navbar() {
               <Tooltip title={usuario.username ?? "Usuario"}>
                 <button
                   type="button"
-                  onClick={(e) => setAnchorEl(e.currentTarget)}
+                  onClick={(e) => {
+                    setAnchorEl(e.currentTarget);
+                    setIsSidebarMenu(false);
+                  }}
                   className="hover:ring-amber-primary/30 relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full transition-all hover:ring-2"
                   style={{
                     border: "2px solid var(--color-border-amber)",
@@ -563,7 +935,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="mx-auto hidden h-14 max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3.5 md:grid md:h-[3.75rem] md:px-4 xl:hidden">
+        <div className="mx-auto grid h-14 max-w-7xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3.5 md:h-[3.75rem] md:px-4 xl:hidden">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -584,7 +956,7 @@ export default function Navbar() {
             <Link
               href="/"
               aria-label="Ir al inicio"
-              className="hidden h-9 w-9 items-center justify-center rounded-[1.1rem] border text-[15px] font-black md:flex"
+              className="hidden h-9 w-9 items-center justify-center rounded-[1.1rem] border text-[15px] font-extrabold md:flex"
               style={{
                 borderColor: "color-mix(in srgb, var(--color-border-amber) 62%, transparent)",
                 background:
@@ -606,7 +978,7 @@ export default function Navbar() {
                 {activeNavItem.text}
               </p>
               <p
-                className="truncate text-[10px] md:text-[11px]"
+                className="hidden md:block truncate text-[10px] md:text-[11px]"
                 style={{ color: "var(--color-text-muted)" }}
               >
                 {activeNavItem.description}
@@ -614,101 +986,53 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2">
-            <div className="h-9 w-9 md:hidden" aria-hidden="true" />
+          <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+            <ThemeSwitcher />
 
-            <div className="hidden items-center gap-2 md:flex">
-              <div
-                className="flex items-center gap-1 rounded-[1.2rem] border p-[4px]"
-                style={{
-                  background:
-                    "linear-gradient(180deg, color-mix(in srgb, var(--navbar-bg-scrolled) 94%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 92%, transparent))",
-                  borderColor: "color-mix(in srgb, var(--color-border-light) 72%, transparent)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.14)",
-                }}
-              >
-                {navItems.map((item) => {
-                  const isActive = isRouteActive(pathname, item.href);
-
-                  return (
-                    <Tooltip key={item.text} title={item.text}>
-                      <Link
-                        href={item.href}
-                        aria-current={isActive ? "page" : undefined}
-                        className="relative flex h-9 w-9 items-center justify-center rounded-[0.95rem] transition-all duration-200"
-                        style={{
-                          color: isActive
-                            ? "var(--color-amber-primary)"
-                            : "var(--color-text-secondary)",
-                        }}
-                      >
-                        {isActive ? (
-                          <motion.span
-                            layoutId="tablet-nav-active-pill"
-                            className="absolute inset-0 rounded-[0.95rem]"
-                            style={{
-                              background:
-                                "linear-gradient(180deg, color-mix(in srgb, var(--color-border-subtle) 100%, transparent), color-mix(in srgb, var(--color-border-subtle) 68%, transparent))",
-                              boxShadow:
-                                "inset 0 0 0 1px color-mix(in srgb, var(--color-border-amber) 76%, transparent), 0 0 18px rgba(251,191,36,0.14)",
-                            }}
-                            transition={{ type: "spring", stiffness: 360, damping: 32 }}
-                          />
-                        ) : null}
-
-                        <span className="relative z-10 flex items-center justify-center">
-                          {item.icon}
-                        </span>
-                      </Link>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-
-              <ThemeSwitcher />
-
-              {usuario ? (
-                <Tooltip title={usuario.username ?? "Usuario"}>
-                  <button
-                    type="button"
-                    onClick={(e) => setAnchorEl(e.currentTarget)}
-                    className="hover:ring-amber-primary/30 relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full transition-all hover:ring-2"
-                    style={{
-                      border: "2px solid var(--color-border-amber)",
-                      boxShadow: "var(--shadow-amber-glow)",
-                    }}
-                  >
-                    {getAvatarSrc(usuario.fotoPerfil) ? (
-                      <Image
-                        src={getAvatarSrc(usuario.fotoPerfil)!}
-                        alt={usuario.username ?? "usuario"}
-                        width={36}
-                        height={36}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-amber-primary text-xs font-bold">
-                        {getInitial(usuario)}
-                      </span>
-                    )}
-                  </button>
-                </Tooltip>
-              ) : isAuthReady ? (
-                <Link
-                  href="/auth/login"
-                  prefetch
-                  aria-label="Iniciar sesión"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border"
+            {usuario ? (
+              <Tooltip title={usuario.username ?? "Usuario"}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    setAnchorEl(e.currentTarget);
+                    setIsSidebarMenu(false);
+                  }}
+                  className="hover:ring-amber-primary/30 relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full transition-all hover:ring-2"
                   style={{
-                    borderColor: "var(--color-border-light)",
-                    color: "var(--color-text-secondary)",
-                    background: "rgba(255,255,255,0.04)",
+                    border: "2px solid var(--color-border-amber)",
+                    boxShadow: "var(--shadow-amber-glow)",
                   }}
                 >
-                  <AccountCircleIcon fontSize="small" />
-                </Link>
-              ) : null}
-            </div>
+                  {getAvatarSrc(usuario.fotoPerfil) ? (
+                    <Image
+                      src={getAvatarSrc(usuario.fotoPerfil)!}
+                      alt={usuario.username ?? "usuario"}
+                      width={36}
+                      height={36}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-amber-primary text-xs font-bold">
+                      {getInitial(usuario)}
+                    </span>
+                  )}
+                </button>
+              </Tooltip>
+            ) : isAuthReady ? (
+              <Link
+                href="/auth/login"
+                prefetch
+                aria-label="Iniciar sesión"
+                className="flex h-9 w-9 items-center justify-center rounded-full border"
+                style={{
+                  borderColor: "var(--color-border-light)",
+                  color: "var(--color-text-secondary)",
+                  background: "rgba(255,255,255,0.04)",
+                }}
+              >
+                <AccountCircleIcon fontSize="small" />
+              </Link>
+            ) : null}
           </div>
         </div>
 
@@ -717,8 +1041,16 @@ export default function Navbar() {
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={() => setAnchorEl(null)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
+            anchorOrigin={
+              isSidebarMenu
+                ? { vertical: "top", horizontal: "right" }
+                : { vertical: "bottom", horizontal: "right" }
+            }
+            transformOrigin={
+              isSidebarMenu
+                ? { vertical: "bottom", horizontal: "left" }
+                : { vertical: "top", horizontal: "right" }
+            }
             slotProps={{
               paper: {
                 sx: {
@@ -769,6 +1101,58 @@ export default function Navbar() {
             </MenuItem>
           </Menu>
         ) : null}
+
+        {/* Menú Rápido Dropdown */}
+        <Menu
+          anchorEl={quickMenuAnchor}
+          open={Boolean(quickMenuAnchor)}
+          onClose={() => setQuickMenuAnchor(null)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 1,
+                backgroundColor: "var(--color-surface-card)",
+                border: "1px solid var(--color-border-amber)",
+                borderRadius: "12px",
+                boxShadow: "var(--shadow-elevated)",
+                minWidth: 190,
+              },
+            },
+          }}
+        >
+          <MenuItem
+            onClick={() => {
+              setQuickMenuAnchor(null);
+              router.push("/cervezas/nueva");
+            }}
+            sx={{
+              color: "var(--color-text-primary)",
+              fontSize: "0.85rem",
+              py: 1.2,
+              "&:hover": { backgroundColor: "var(--color-border-subtle)" },
+            }}
+          >
+            <ListItemIcon sx={{ fontSize: 18 }}>🍺</ListItemIcon>
+            Agregar Cerveza
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setQuickMenuAnchor(null);
+              router.push("/lugares/nueva");
+            }}
+            sx={{
+              color: "var(--color-text-primary)",
+              fontSize: "0.85rem",
+              py: 1.2,
+              "&:hover": { backgroundColor: "var(--color-border-subtle)" },
+            }}
+          >
+            <ListItemIcon sx={{ fontSize: 18 }}>📍</ListItemIcon>
+            Agregar Lugar
+          </MenuItem>
+        </Menu>
       </nav>
 
       <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
@@ -1107,17 +1491,27 @@ export default function Navbar() {
         </Box>
       </Drawer>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 md:hidden">
+      <div 
+        className="fixed z-50 md:hidden transition-all duration-300"
+        style={{
+          bottom: "calc(16px + env(safe-area-inset-bottom))",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "calc(100% - 32px)",
+          maxWidth: "420px",
+        }}
+      >
         <div
-          className="flex items-stretch border-t transition-all duration-300"
+          className="flex items-stretch border transition-all duration-300"
           style={{
+            borderRadius: "32px",
             background: scrolled
-              ? "color-mix(in srgb, var(--navbar-bg-scrolled) 82%, transparent)"
-              : "color-mix(in srgb, var(--navbar-bg-scrolled) 55%, transparent)",
-            borderColor: "color-mix(in srgb, var(--color-border-light) 60%, transparent)",
-            backdropFilter: scrolled ? "blur(24px) saturate(200%)" : "blur(6px) saturate(140%)",
-            WebkitBackdropFilter: scrolled ? "blur(24px) saturate(200%)" : "blur(6px) saturate(140%)",
-            paddingBottom: "env(safe-area-inset-bottom)",
+              ? "color-mix(in srgb, var(--navbar-bg-scrolled) 92%, transparent)"
+              : "color-mix(in srgb, var(--navbar-bg-scrolled) 78%, transparent)",
+            borderColor: "color-mix(in srgb, var(--color-border-light) 40%, transparent)",
+            boxShadow: "0 12px 35px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0,0,0,0.15)",
+            backdropFilter: scrolled ? "blur(24px) saturate(200%)" : "blur(12px) saturate(140%)",
+            WebkitBackdropFilter: scrolled ? "blur(24px) saturate(200%)" : "blur(12px) saturate(140%)",
           }}
         >
           {navItems.map((item) => {
@@ -1128,7 +1522,7 @@ export default function Navbar() {
                 key={item.text}
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2.5 text-center transition-all duration-200"
+                className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-3 text-center transition-all duration-200"
                 style={{
                   color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)",
                 }}
@@ -1136,21 +1530,21 @@ export default function Navbar() {
                 {isActive && (
                   <motion.span
                     layoutId="mobile-app-nav-pill"
-                    className="absolute inset-x-2 top-1.5 h-0.5 rounded-full"
+                    className="absolute inset-x-4 top-1 h-0.5 rounded-full"
                     style={{ background: "var(--color-amber-primary)" }}
                     transition={{ type: "spring", stiffness: 360, damping: 32 }}
                   />
                 )}
 
                 <span
-                  className="relative z-10 flex h-7 w-7 items-center justify-center transition-all"
+                  className="relative z-10 flex h-6 w-6 items-center justify-center transition-all"
                   style={{
                     color: isActive ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
                   }}
                 >
                   {item.icon}
                 </span>
-                <span className="relative z-10 block w-full truncate text-[9px] font-semibold md:text-[9.5px]">
+                <span className="relative z-10 block w-full truncate text-[9px] font-semibold">
                   {item.text}
                 </span>
               </Link>

@@ -1,0 +1,149 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.card {
+  background: color-mix(in srgb, var(--color-surface-card) 80%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: var(--shadow-elevated);
+}
+
+.header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border-subtle);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-amber-primary);
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
+  }
+}
+
+.editorContainer {
+  margin-top: 0.5rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  background: #ffffff; /* Quill usually works best with light backgrounds or needs heavy custom CSS */
+  
+  /* We add basic custom styling for Quill to fit the dark theme a bit better if we want */
+
+  /* React Quill Theme Overrides for Dark Mode */
+  :global(.quill) {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.75rem;
+    color: var(--color-text-primary);
+  }
+  :global(.ql-toolbar.ql-snow) {
+    border: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem 0.75rem 0 0;
+  }
+  :global(.ql-container.ql-snow) {
+    border: none;
+    border-radius: 0 0 0.75rem 0.75rem;
+    min-height: 350px;
+    font-size: 1.05rem;
+  }
+  :global(.ql-editor.ql-blank::before) {
+    color: var(--color-text-muted);
+  }
+  :global(.ql-snow .ql-stroke) {
+    stroke: #ccc;
+  }
+  :global(.ql-snow .ql-fill) {
+    fill: #ccc;
+  }
+  :global(.ql-snow .ql-picker) {
+    color: #ccc;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.btnCancel {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  transition: all 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+  }
+}
+
+.btnSubmit {
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  background: var(--gradient-button-primary);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-amber-glow);
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}

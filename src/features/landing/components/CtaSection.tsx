@@ -45,7 +45,7 @@ export default function CtaSection() {
             viewport={{ once: true }}
           >
             <div
-              className="mb-2 text-5xl leading-none font-black opacity-15 select-none sm:text-7xl"
+              className="mb-2 text-5xl leading-none font-extrabold opacity-15 select-none sm:text-7xl"
               style={{ color: "var(--color-amber-primary)", fontFamily: "Georgia, serif" }}
               aria-hidden="true"
             >
@@ -78,17 +78,24 @@ export default function CtaSection() {
               Da igual si destapas o si fabricas — acá tu pasión por la cerveza artesanal tiene nombre, comunidad y un lugar que la honra.
             </p>
 
-            <div className="mt-10 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center">
-              {/* Primary CTA with shimmer */}
+            <div className="mt-10 flex flex-col items-stretch justify-center gap-5 sm:flex-row sm:items-center">
+              {/* Primary CTA with mobile breathing glow */}
               <motion.div
                 whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full sm:w-auto"
+                whileTap={{ scale: 0.96 }}
+                className="relative w-full sm:w-auto"
               >
+                {/* Mobile Breathing Glow */}
+                <motion.div
+                  className="absolute -inset-1 rounded-full opacity-60 blur-md sm:hidden"
+                  style={{ background: "var(--gradient-button-primary)" }}
+                  animate={{ scale: [0.98, 1.05, 0.98], opacity: [0.4, 0.8, 0.4] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
                 <Link
                   href="/auth/register"
                   prefetch
-                  className="group relative block w-full overflow-hidden rounded-full px-10 py-4 text-center text-sm font-bold shadow-xl transition-all duration-300 hover:brightness-110 sm:inline-block sm:w-auto"
+                  className="group relative flex w-full min-h-[56px] items-center justify-center overflow-hidden rounded-full px-8 text-center text-[15px] font-extrabold shadow-2xl transition-all duration-300 hover:brightness-110 sm:inline-flex sm:w-auto sm:px-10"
                   style={{
                     background: "var(--gradient-button-primary)",
                     color: "var(--color-text-dark)",
@@ -107,10 +114,11 @@ export default function CtaSection() {
                 <Link
                   href="/auth/login"
                   prefetch
-                  className="group relative block w-full overflow-hidden rounded-full border px-10 py-4 text-center text-sm font-medium backdrop-blur-sm transition-all duration-300 sm:inline-block sm:w-auto"
+                  className="group relative flex w-full min-h-[56px] items-center justify-center overflow-hidden rounded-full border px-8 text-center text-[15px] font-bold backdrop-blur-md transition-all duration-300 sm:inline-flex sm:w-auto sm:px-10"
                   style={{
                     borderColor: "var(--color-border-medium)",
-                    color: "var(--color-text-muted)",
+                    color: "var(--color-text-primary)",
+                    background: "color-mix(in srgb, var(--color-surface-card) 20%, transparent)"
                   }}
                 >
                   <span className="relative z-10 transition-colors duration-300 group-hover:text-amber-primary">

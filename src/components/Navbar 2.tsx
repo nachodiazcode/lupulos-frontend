@@ -30,6 +30,8 @@ import {
   Logout as LogoutIcon,
   MenuRounded as MenuRoundedIcon,
   SportsBar as SportsBarIcon,
+  Favorite as FavoriteIcon,
+  Chat as ChatIcon,
 } from "@mui/icons-material";
 import { getImageUrl } from "@/lib/constants";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
@@ -75,10 +77,16 @@ const navItems: NavItem[] = [
     icon: <ForumIcon fontSize="small" />,
   },
   {
-    text: "Usuarios",
-    href: "/usuarios",
-    description: "Conecta con la gente detrás de cada pinta.",
-    icon: <GroupIcon fontSize="small" />,
+    text: "Favoritos",
+    href: "/favoritos",
+    description: "Tus cervezas y lugares favoritos guardados.",
+    icon: <FavoriteIcon fontSize="small" />,
+  },
+  {
+    text: "Carrete",
+    href: "/carrete",
+    description: "Chatea con la comunidad, IA o B2B.",
+    icon: <ChatIcon fontSize="small" />,
   },
 ];
 
@@ -172,7 +180,7 @@ export default function Navbar() {
               <Link
                 href="/"
                 aria-label="Ir al inicio"
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border text-base font-black"
+                className="flex h-10 w-10 items-center justify-center rounded-2xl border text-base font-extrabold"
                 style={{
                   borderColor: "color-mix(in srgb, var(--color-border-amber) 62%, transparent)",
                   background:
@@ -221,7 +229,7 @@ export default function Navbar() {
                   >
                     {item.icon}
                   </motion.span>
-                  <span className="relative z-10">{item.text}</span>
+                  <span className="sidebar-cursive-text relative z-10">{item.text}</span>
 
                   {isActive && (
                     <>

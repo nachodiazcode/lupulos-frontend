@@ -184,7 +184,7 @@ export default function NewsletterBanner() {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <h3 className="text-text-primary text-2xl font-black sm:text-3xl">
+          <h3 className="text-text-primary text-2xl font-extrabold sm:text-3xl">
             El correo que los cerveceros sí abren <span className="inline-block">🍻</span>
           </h3>
           <p className="text-text-secondary mx-auto mt-3 max-w-2xl text-base font-semibold leading-relaxed sm:text-lg">

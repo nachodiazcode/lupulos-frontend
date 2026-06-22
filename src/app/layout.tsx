@@ -3,6 +3,8 @@ import ThemeRegistry from "@/theme/ThemeRegistry";
 import { ReactQueryProvider } from "@/components/ReactQueryProvider";
 import AppLoader from "@/components/AppLoader";
 import { AuthProvider } from "@/context/AuthContext";
+import Navbar from "@/components/Navbar";
+import CommandPalette from "@/components/CommandPalette";
 import "./globals.scss";
 
 export const metadata: Metadata = {
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
   description: "Explora y comparte las mejores cervezas artesanales",
 };
 
-const themeBootScript = `(function(){try{var key='lupulos-theme';var themes=['ambar','saintpatrick','stout','haze','dorado'];var backgrounds={ambar:'#160800',saintpatrick:'#e0f0e6',stout:'#080610',haze:'#ede5ff',dorado:'#030201'};var stored=localStorage.getItem(key);var theme=themes.indexOf(stored)>=0?stored:'stout';var root=document.documentElement;root.setAttribute('data-theme',theme);root.style.background=backgrounds[theme]||backgrounds.stout;root.style.colorScheme=theme==='saintpatrick'||theme==='haze'?'light':'dark';}catch(e){}}())`;
+const themeBootScript = `(function(){try{var key='lupulos-theme';var themes=['ambar','saintpatrick','stout','haze','dorado'];var backgrounds={ambar:'#160800',saintpatrick:'#f0fbf4',stout:'#080610',haze:'#f7f2ff',dorado:'#030201'};var stored=localStorage.getItem(key);var theme=themes.indexOf(stored)>=0?stored:'stout';var root=document.documentElement;root.setAttribute('data-theme',theme);root.style.background=backgrounds[theme]||backgrounds.stout;root.style.colorScheme=theme==='saintpatrick'||theme==='haze'?'light':'dark';}catch(e){}}())`;
 
 export default function RootLayout({
   children,
@@ -32,6 +34,8 @@ export default function RootLayout({
         <AuthProvider>
           <ReactQueryProvider>
             <ThemeRegistry>
+              <Navbar />
+              <CommandPalette />
               <AppLoader>{children}</AppLoader>
             </ThemeRegistry>
           </ReactQueryProvider>

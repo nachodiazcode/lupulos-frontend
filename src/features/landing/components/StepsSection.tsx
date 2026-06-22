@@ -69,7 +69,7 @@ export default function StepsSection() {
               >
                 {/* Step number badge with pulse on hover */}
                 <motion.div
-                  className="text-amber-primary relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-full text-sm font-black"
+                  className="text-amber-primary relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-full text-sm font-extrabold"
                   style={{
                     background: "var(--color-surface-deepest)",
                     border: "1.5px solid var(--color-border-amber)",

@@ -15,6 +15,9 @@ import {
   normalizeStoredAuthUser,
 } from "@/lib/auth-user";
 import { getErrorMessage } from "@/lib/errors";
+import { Cinzel } from "next/font/google";
+
+const brandFont = Cinzel({ weight: ["400", "700", "900"], subsets: ["latin"] });
 
 const LOGIN_THEME = {
   accent: "var(--color-amber-primary)",
@@ -585,6 +588,19 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
+    let originalTheme: string | null = null;
+
+    const timer = setTimeout(() => {
+      originalTheme = document.documentElement.getAttribute("data-theme");
+      document.documentElement.setAttribute("data-theme", "stout");
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      if (originalTheme) {
+        document.documentElement.setAttribute("data-theme", originalTheme);
+      }
+    };
   }, []);
 
   const particles = useMemo(() => (mounted ? generateParticles(24) : []), [mounted]);
@@ -788,7 +804,16 @@ export default function LoginPage() {
       style={{ color: LOGIN_THEME.textPrimary }}
     >
       {/* Fondo */}
-      <div className="absolute inset-0" style={{ background: LOGIN_BG }} />
+      <div 
+        className="absolute inset-0" 
+        style={{
+          backgroundImage: `radial-gradient(ellipse 120% 80% at 62% 24%, rgba(255, 184, 92, 0.32) 0%, rgba(255, 138, 48, 0.12) 38%, transparent 62%), radial-gradient(ellipse 150% 130% at 50% 50%, transparent 50%, rgba(12, 6, 2, 0.6) 100%), linear-gradient(90deg, rgba(18, 9, 3, 0.78) 0%, rgba(18, 9, 3, 0.36) 34%, rgba(18, 9, 3, 0) 58%), linear-gradient(180deg, rgba(255, 150, 60, 0.1) 0%, rgba(40, 18, 6, 0.18) 55%, rgba(14, 7, 2, 0.5) 100%), url('/kattegat_bg.png')`,
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          filter: "sepia(0.45) saturate(1.5) hue-rotate(-8deg) contrast(1.05) brightness(1.05)"
+        }}
+      />
 
       {/* Partículas flotantes */}
       {mounted && (
@@ -961,25 +986,59 @@ export default function LoginPage() {
             <motion.h1
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-5xl font-extrabold tracking-tight xl:text-[4.5rem]"
-              style={{ lineHeight: 1.1, color: LOGIN_THEME.textPrimary }}
+              className={`${brandFont.className} text-[2.5rem] xl:text-[3rem]`}
+              style={{ lineHeight: 1.12, color: LOGIN_THEME.textPrimary }}
             >
-              Bienvenido a <br />
-              <span style={{
-                  background: "linear-gradient(135deg, #fde047 0%, #f59e0b 50%, #b45309 100%)",
-                  WebkitBackgroundClip: "text", backgroundClip: "text",
-                  color: "transparent", WebkitTextFillColor: "transparent",
-                  filter: "drop-shadow(0px 8px 16px rgba(245, 158, 11, 0.25))",
-                  display: "inline-block", paddingRight: "0.2em" }}>
-                Lúpulos
+              {/* Marca — dorado metálico (gold foil), glow que abraza las letras */}
+              <span
+                className="relative block"
+                style={{ paddingRight: "0.06em" }}
+              >
+                <span
+                  className={`${brandFont.className} block`}
+                  style={{
+                    fontWeight: 900,
+                    fontSize: "1.5em",
+                    lineHeight: 0.85,
+                    letterSpacing: "0.04em",
+                    background:
+                      "linear-gradient(180deg, #ece0bd 0%, #d8c599 22%, #c0a673 42%, #a48a54 58%, #8d7444 67%, #bda66f 84%, #eaddb8 100%)",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    color: "transparent",
+                    WebkitTextFillColor: "transparent",
+                    WebkitTextStrokeWidth: "1.5px",
+                    WebkitTextStrokeColor: "#bda66f",
+                    paintOrder: "stroke",
+                    filter:
+                      "drop-shadow(0 1px 0 rgba(60, 45, 18, 0.5)) drop-shadow(0 5px 16px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 24px rgba(214, 190, 138, 0.42)) drop-shadow(0 0 54px rgba(214, 190, 138, 0.2))",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Lupuløs
+                </span>
               </span>
             </motion.h1>
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            {/* Bajada — estilo "LOUNGE BEER": mayúsculas, tracking, dorado */}
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="max-w-[28rem] text-lg leading-relaxed font-medium xl:text-xl opacity-90"
-              style={{ marginTop: LOGIN_SPACING.titleToSubtitle + 12, color: LOGIN_THEME.textSecondary, textWrap: "balance" }}
+              className={`${brandFont.className} mt-[2px] text-[0.95rem] xl:text-[1.1rem]`}
+              style={{
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                background:
+                  "linear-gradient(180deg, #ece0bd 0%, #c8b07a 55%, #a48a54 100%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+                WebkitTextFillColor: "transparent",
+                filter:
+                  "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 16px rgba(214, 190, 138, 0.28))",
+              }}
             >
-              La nueva red social para los amantes de la cerveza.
+              Descubre ese brebaje que te faltaba
             </motion.p>
           </motion.div>
 

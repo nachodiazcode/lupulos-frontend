@@ -59,7 +59,7 @@ export default function StatsSection() {
                 <AnimatedCounter
                   value={stat.value}
                   duration={2.2}
-                  className="text-amber-primary relative mt-4 text-3xl font-black tracking-tight tabular-nums md:text-4xl"
+                  className="text-amber-primary relative mt-4 text-3xl font-extrabold tracking-tight tabular-nums md:text-4xl"
                 />
 
                 <p className="text-text-muted relative mt-2 max-w-[120px] text-xs leading-snug font-medium transition-colors duration-300 group-hover:text-text-secondary">
