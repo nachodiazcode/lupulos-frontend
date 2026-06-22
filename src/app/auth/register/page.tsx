@@ -241,8 +241,26 @@ const IconStar = () => (
   </svg>
 );
 
-/* ─── Hero feature row ─── */
-function FeatureRow({
+/* ─── Gradient text (técnica inline — robusta en Tailwind v4) ─── */
+function GradientText({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      style={{
+        backgroundImage:
+          "linear-gradient(120deg, #fde68a 0%, #fbbf24 45%, #f59e0b 72%, #d97706 100%)",
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        color: "transparent",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+/* ─── Premium feature card ─── */
+function FeatureCard({
   icon,
   title,
   desc,
@@ -257,16 +275,34 @@ function FeatureRow({
         hidden: { opacity: 0, y: 16 },
         show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
       }}
-      className="flex items-start gap-4"
+      whileHover={{ y: -3 }}
+      className="glass-pill group flex items-center gap-4 rounded-2xl px-4 py-3.5"
     >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-400/15 bg-amber-400/[0.06] text-amber-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+      <div
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-amber-300 transition-transform duration-300 group-hover:scale-110"
+        style={{
+          background: "linear-gradient(135deg, rgba(251,191,36,0.16), rgba(217,119,6,0.07))",
+          border: "1px solid rgba(251,191,36,0.18)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+        }}
+      >
         {icon}
       </div>
-      <div className="pt-0.5">
+      <div>
         <p className="text-[15px] font-semibold text-white">{title}</p>
-        <p className="mt-0.5 text-sm leading-snug text-amber-100/40">{desc}</p>
+        <p className="mt-0.5 text-[13px] leading-snug text-amber-100/45">{desc}</p>
       </div>
     </motion.div>
+  );
+}
+
+/* ─── Social proof stat ─── */
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-2xl leading-none font-bold text-white">{value}</span>
+      <span className="mt-1 text-xs font-medium tracking-wide text-amber-100/45">{label}</span>
+    </div>
   );
 }
 
@@ -397,53 +433,93 @@ export default function RegisterPage() {
           animate="show"
           className="hidden flex-1 lg:block"
         >
-          <div className="max-w-lg">
-            {/* Kicker */}
-            <motion.div variants={heroItem} className="mb-7 flex items-center gap-3">
-              <span className="h-px w-10 bg-gradient-to-r from-transparent to-amber-400/70" />
-              <span className="text-xs font-semibold tracking-[0.28em] text-amber-300/70 uppercase">
-                Comunidad cervecera
-              </span>
-            </motion.div>
+          <div className="max-w-xl">
+            {/* Badge */}
+            <motion.span
+              variants={heroItem}
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase backdrop-blur-sm"
+              style={{
+                borderColor: "rgba(251,191,36,0.28)",
+                background: "rgba(251,191,36,0.08)",
+                color: "var(--color-amber-primary)",
+              }}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{
+                  background: "var(--color-amber-primary)",
+                  boxShadow: "0 0 8px var(--color-amber-primary)",
+                }}
+              />
+              Comunidad cervecera
+            </motion.span>
 
-            {/* Headline */}
+            {/* Headline — shimmer dorado */}
             <motion.h2
               variants={heroItem}
-              className="text-5xl leading-[1.05] font-bold tracking-tight xl:text-6xl"
+              className="mt-6 text-5xl leading-[1.05] font-black tracking-tight xl:text-6xl"
+              style={{
+                backgroundImage:
+                  "linear-gradient(105deg, #ffffff 0%, #ffffff 38%, #fde68a 47%, #f59e0b 50%, #fde68a 53%, #ffffff 62%, #ffffff 100%)",
+                backgroundSize: "250% 100%",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                animation: "hero-shimmer 4.5s ease-in-out infinite",
+                animationDelay: "1s",
+              }}
             >
-              <span className="text-white">Se parte de la </span>
-              <span className="bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent">
-                comunidad más cervecera
-              </span>
-              <span className="text-white"> del mundo</span>
+              Se parte de la comunidad más cervecera del mundo
             </motion.h2>
 
             {/* Sub copy */}
             <motion.p
               variants={heroItem}
-              className="mt-6 max-w-md text-lg leading-relaxed text-amber-100/45"
+              className="mt-6 max-w-md text-lg leading-relaxed"
+              style={{ color: "var(--color-text-secondary)" }}
             >
               Descubre cervezas artesanales, comparte tus catas y conecta con miles de
               cerveceros tan apasionados como tú.
             </motion.p>
 
             {/* Features */}
-            <motion.div variants={heroContainer} className="mt-10 space-y-5">
-              <FeatureRow
+            <motion.div variants={heroContainer} className="mt-9 space-y-3">
+              <FeatureCard
                 icon={<IconHops />}
                 title="Cervezas artesanales"
                 desc="Explora cientos de etiquetas y estilos"
               />
-              <FeatureRow
+              <FeatureCard
                 icon={<IconPin />}
                 title="Bares y rutas cerca de ti"
                 desc="Encuentra los mejores spots del momento"
               />
-              <FeatureRow
+              <FeatureCard
                 icon={<IconStar />}
                 title="Catas y rankings reales"
                 desc="Comparte reseñas con la comunidad"
               />
+            </motion.div>
+
+            {/* Social proof */}
+            <motion.div variants={heroItem} className="mt-9 flex items-center gap-7">
+              <Stat value="+1.200" label="Cervezas" />
+              <span
+                className="h-10 w-px"
+                style={{
+                  background:
+                    "linear-gradient(180deg, transparent, rgba(251,191,36,0.3), transparent)",
+                }}
+              />
+              <Stat value="280+" label="Locales" />
+              <span
+                className="h-10 w-px"
+                style={{
+                  background:
+                    "linear-gradient(180deg, transparent, rgba(251,191,36,0.3), transparent)",
+                }}
+              />
+              <Stat value="100%" label="Gratis" />
             </motion.div>
           </div>
         </motion.div>
@@ -473,10 +549,7 @@ export default function RegisterPage() {
                 transition={{ delay: 0.3, duration: 0.5 }}
                 className="text-3xl font-bold tracking-tight text-white"
               >
-                Crea tu{" "}
-                <span className="bg-gradient-to-r from-amber-300 to-amber-500 bg-clip-text text-transparent">
-                  cuenta
-                </span>
+                Crea tu <GradientText>cuenta</GradientText>
               </motion.h1>
               <motion.p
                 initial={{ y: 10, opacity: 0 }}
