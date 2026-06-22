@@ -45,11 +45,19 @@ export default function ThemeSwitcher() {
               key={t.id}
               onClick={() => setTheme(t.id)}
               title={`Tema ${t.label}`}
-              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200 ${
-                isActive
-                  ? "bg-amber-primary/15 text-amber-primary ring-amber-primary/40 ring-1"
-                  : "text-text-muted hover:bg-border-subtle hover:text-text-secondary"
-              }`}
+              className="theme-switcher-pill flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap transition-all duration-200"
+              style={{
+                background: isActive
+                  ? "color-mix(in srgb, var(--color-amber-primary) 14%, transparent)"
+                  : "transparent",
+                borderColor: isActive
+                  ? "color-mix(in srgb, var(--color-amber-primary) 40%, transparent)"
+                  : "transparent",
+                color: isActive ? "var(--color-amber-primary)" : "var(--color-text-muted)",
+                boxShadow: isActive
+                  ? "inset 0 1px 0 rgba(255,255,255,0.42), 0 4px 14px color-mix(in srgb, var(--color-amber-primary) 10%, transparent)"
+                  : "none",
+              }}
             >
               <span className="text-sm leading-none">{t.icon}</span>
               <span>{t.label}</span>

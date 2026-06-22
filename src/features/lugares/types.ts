@@ -1,3 +1,5 @@
+import type { Beer } from "@/features/beers/model/types";
+
 export interface Review {
   _id?: string;
   comment: string;
@@ -24,4 +26,17 @@ export interface Place {
   };
   reviews?: Review[];
   likes?: string[];
+  owner?: string;
+  isFeatured?: boolean;
+  beers?: Beer[];
+  promotions?: Array<{
+    _id?: string;
+    description: string;
+    discountPercent?: number;
+    startDate?: string;
+    endDate?: string;
+  }>;
+  hasTerrace?: boolean;
+  hasLiveMusic?: boolean;
+  isPetFriendly?: boolean;
 }

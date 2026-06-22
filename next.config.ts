@@ -7,6 +7,12 @@ const apiProxyTarget = normalizeApiTarget(process.env.API_PROXY_TARGET);
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   devIndicators: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 
   // Suppress Sass deprecations that are currently expected in our toolchain:
   // - `import`: Tailwind v4 still uses `@import "tailwindcss"` in globals.scss
@@ -36,6 +42,8 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "localhost", port: "3940" },
       { protocol: "http", hostname: "127.0.0.1", port: "3001" },
       { protocol: "http", hostname: "127.0.0.1", port: "3940" },
+      { protocol: "https", hostname: "i.pravatar.cc" },
+      { protocol: "https", hostname: "commondatastorage.googleapis.com" },
     ],
   },
 

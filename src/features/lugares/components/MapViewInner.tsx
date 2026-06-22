@@ -109,13 +109,20 @@ export default function MapViewInner({ places, selectedId, onSelectPlace }: Prop
                     }}
                   />
                 )}
-                <strong style={{ fontSize: 14 }}>{lugar.name}</strong>
-                <br />
-                <span style={{ fontSize: 12, color: "#666" }}>
+                <strong style={{ fontSize: 14, color: "var(--color-text-primary)", display: "block" }}>{lugar.name}</strong>
+                <span style={{ fontSize: 11, color: "var(--color-text-muted)", display: "block", marginTop: 2, marginBottom: 4 }}>
                   {lugar.address.city}, {lugar.address.country}
                 </span>
-                <br />
-                <Rating value={avgRating} precision={0.5} readOnly size="small" />
+                <Rating
+                  value={avgRating}
+                  precision={0.5}
+                  readOnly
+                  size="small"
+                  sx={{
+                    "& .MuiRating-iconFilled": { color: "var(--color-amber-primary)" },
+                    "& .MuiRating-iconEmpty": { color: "var(--color-border-medium)" },
+                  }}
+                />
               </div>
             </Popup>
           </Marker>

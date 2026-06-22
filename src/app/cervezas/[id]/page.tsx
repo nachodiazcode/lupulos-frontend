@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { getImageUrl } from "@/lib/constants";
 import { Rating, Snackbar, Alert, Avatar, CircularProgress } from "@mui/material";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import type { Beer, User } from "@/types";
@@ -145,7 +144,6 @@ export default function DetalleCervezaPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Navbar />
         <div className="flex flex-1 items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center">
             <CircularProgress
@@ -170,7 +168,6 @@ export default function DetalleCervezaPage() {
   if (!beer) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Navbar />
         <div className="flex flex-1 items-center justify-center px-4 text-center">
           <div>
             <p className="text-5xl">😢</p>
@@ -196,7 +193,6 @@ export default function DetalleCervezaPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
 
       {/* ─── Hero ─── */}
       <section

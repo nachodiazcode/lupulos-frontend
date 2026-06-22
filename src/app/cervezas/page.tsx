@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import {
   motion,
   AnimatePresence,
@@ -12,18 +11,18 @@ import {
   animate as fmAnimate,
   type Variants,
 } from "framer-motion";
-import { Snackbar, Alert, Rating, CircularProgress } from "@mui/material";
+import { Snackbar, Alert, CircularProgress } from "@mui/material";
 import Slide from "@mui/material/Slide";
 import type { SlideProps } from "@mui/material/Slide";
 
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import GoldenBackground from "@/components/GoldenBackground";
 import BeerFormModal from "@/features/beers/components/BeerFormModal";
 import PairingBanner from "@/components/PairingBanner";
-import { getImageUrl } from "@/lib/constants";
 import { useBeers } from "@/features/beers/hooks/useBeers";
 import type { Beer } from "@/features/beers/model/types";
+import MainLayout from "@/components/layouts/MainLayout";
+import BeerCard from "@/components/ui/BeerCard";
+import { SidebarWidget } from "@/components/ui/SidebarWidget";
 
 /* ═══════════════════════════════════
    Gradient Border (search bar)
@@ -292,15 +291,7 @@ const stagger: Variants = {
   visible: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } },
 };
 
-const cardPop: Variants = {
-  hidden: { opacity: 0, scale: 0.92, y: 24 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { type: "spring" as const, stiffness: 300, damping: 22 },
-  },
-};
+
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -311,183 +302,7 @@ const fadeUp: Variants = {
   }),
 };
 
-/* ═══════════════════════════════════
-   Beer Card
-   ═══════════════════════════════════ */
 
-function BeerCard({
-  beer,
-  userHasLiked,
-  onLike,
-  onClick,
-}: {
-  beer: Beer;
-  userHasLiked: boolean;
-  onLike: () => void;
-  onClick: () => void;
-}) {
-  const [imgError, setImgError] = useState(false);
-
-  return (
-    <motion.div
-      variants={cardPop}
-      whileHover={{ y: -6, scale: 1.015 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      onClick={onClick}
-      className="group relative cursor-pointer overflow-hidden rounded-2xl border backdrop-blur-sm transition-all duration-300"
-      style={{
-        background: "var(--color-surface-card)",
-        borderColor: "var(--color-border-subtle)",
-        boxShadow: "var(--shadow-card)",
-      }}
-    >
-      {/* Shimmer sweep on hover */}
-      <span
-        className="pointer-events-none absolute inset-0 z-10 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.06] to-transparent transition-transform duration-700 group-hover:translate-x-full"
-      />
-
-      {/* Image */}
-      <div
-        className="relative aspect-[5/3] overflow-hidden"
-        style={{ background: "var(--color-surface-card-alt)" }}
-      >
-        {beer.image && !imgError ? (
-          <Image
-            src={getImageUrl(beer.image)}
-            alt={beer.name}
-            fill
-            unoptimized
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-5xl select-none">🍺</div>
-        )}
-
-        {/* Gradient overlay on image */}
-        <div
-          className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          style={{
-            background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.35) 100%)",
-          }}
-        />
-
-        {/* Like button overlay */}
-        <motion.button
-          onClick={(e) => {
-            e.stopPropagation();
-            onLike();
-          }}
-          whileHover={{ scale: 1.25, rotate: 8 }}
-          whileTap={{ scale: 0.85 }}
-          className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-md transition-colors"
-          style={{
-            background: userHasLiked ? "rgba(251,191,36,0.3)" : "rgba(0,0,0,0.4)",
-            boxShadow: userHasLiked ? "0 0 12px rgba(251,191,36,0.3)" : "none",
-          }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={userHasLiked ? "liked" : "not"}
-              initial={{ scale: 0.5, opacity: 0, rotate: -15 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              exit={{ scale: 0.5, opacity: 0, rotate: 15 }}
-              transition={{ type: "spring", stiffness: 500, damping: 15 }}
-              className="text-base leading-none"
-            >
-              {userHasLiked ? "🍻" : "🤍"}
-            </motion.span>
-          </AnimatePresence>
-        </motion.button>
-
-        {/* ABV badge */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 400 }}
-          className="absolute bottom-3 left-3 rounded-full px-2.5 py-1 text-[11px] font-bold backdrop-blur-md"
-          style={{
-            background: "var(--gradient-button-primary)",
-            color: "var(--color-text-dark)",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-          }}
-        >
-          {beer.abv}% ABV
-        </motion.div>
-      </div>
-
-      {/* Content */}
-      <div className="p-5">
-        <h3
-          className="truncate text-lg font-bold tracking-tight transition-colors duration-200"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          {beer.name}
-        </h3>
-
-        {/* Style + brewery */}
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span
-            className="rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors duration-200 group-hover:border-amber-primary/50"
-            style={{
-              borderColor: "var(--color-border-amber)",
-              color: "var(--color-amber-primary)",
-              background: "rgba(251,191,36,0.06)",
-            }}
-          >
-            {beer.style}
-          </span>
-          <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-            {beer.brewery}
-          </span>
-        </div>
-
-        {/* Rating */}
-        <div className="mt-3 flex items-center gap-2">
-          <Rating
-            value={beer.averageRating || 0}
-            precision={0.5}
-            readOnly
-            size="small"
-            sx={{
-              "& .MuiRating-iconFilled": { color: "var(--color-amber-primary)" },
-              "& .MuiRating-iconEmpty": { color: "var(--color-border-medium)" },
-            }}
-          />
-          <span
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-amber-primary)" }}
-          >
-            {beer.averageRating?.toFixed(1) || "0.0"}
-          </span>
-        </div>
-
-        {/* Footer */}
-        <div
-          className="mt-3 flex items-center justify-between text-xs"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          <span>
-            Por{" "}
-            <strong style={{ color: "var(--color-text-secondary)" }}>
-              {beer.createdBy?.username ?? "—"}
-            </strong>
-          </span>
-          <span style={{ color: "var(--color-amber-primary)" }}>🍻 {beer.likes.length}</span>
-        </div>
-      </div>
-
-      {/* Bottom accent on hover */}
-      <div
-        className="h-[2px] w-full origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
-        style={{
-          background:
-            "linear-gradient(90deg, var(--color-amber-primary), var(--color-amber-dark), transparent)",
-        }}
-      />
-    </motion.div>
-  );
-}
 
 /* ═══════════════════════════════════
    Widget registry (sidebar)
@@ -504,6 +319,7 @@ const WIDGET_REGISTRY = [
 type WidgetId = (typeof WIDGET_REGISTRY)[number]["id"];
 const DEFAULT_WIDGETS: WidgetId[] = ["cerveza-del-dia", "encuesta"];
 const SIDEBAR_STORAGE_KEY = "cervezas_sidebar_widgets_v1";
+const COLLAPSED_STORAGE_KEY = "cervezas_sidebar_collapsed_v1";
 
 /* ═══════════════════════════════════
    Page
@@ -523,7 +339,9 @@ export default function CervezasPage() {
   const [pollVote, setPollVote] = useState<string | null>(null);
   const [sidebarDismissed, setSidebarDismissed] = useState(false);
   const [enabledWidgets, setEnabledWidgets] = useState<WidgetId[]>(DEFAULT_WIDGETS);
+  const [collapsedWidgets, setCollapsedWidgets] = useState<WidgetId[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [dailyBeer, setDailyBeer] = useState<{ name: string; style: string; abv: number; description: string; id?: string } | null>(null);
 
   const searchRef = useRef<HTMLInputElement>(null);
   const typedPlaceholder = useTypewriter(SOMMELIER_HINTS);
@@ -537,7 +355,26 @@ export default function CervezasPage() {
     if (stored) {
       try { setEnabledWidgets(JSON.parse(stored) as WidgetId[]); } catch {}
     }
+    const storedCol = localStorage.getItem(COLLAPSED_STORAGE_KEY);
+    if (storedCol) {
+      try { setCollapsedWidgets(JSON.parse(storedCol) as WidgetId[]); } catch {}
+    }
   }, []);
+
+  useEffect(() => {
+    if (cervezas && cervezas.length > 0 && !dailyBeer && !activeQuery) {
+      const best = [...cervezas].sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))[0];
+      if (best) {
+        setDailyBeer({
+          name: best.name,
+          style: best.style || "Estilo artesanal",
+          abv: best.abv,
+          description: best.description || "",
+          id: best._id,
+        });
+      }
+    }
+  }, [cervezas, dailyBeer, activeQuery]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -568,97 +405,269 @@ export default function CervezasPage() {
     });
   };
 
+  const removeWidget = (id: WidgetId) => {
+    setEnabledWidgets((prev) => {
+      const next = prev.filter((w) => w !== id);
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const toggleCollapse = (id: WidgetId) => {
+    setCollapsedWidgets((prev) => {
+      const next = prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id];
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
   const renderWidget = (id: WidgetId): React.ReactNode => {
     switch (id) {
       case "cerveza-del-dia": return (
-        <div className="px-5 pt-3 pb-3">
-          <div className="mb-2.5 flex items-center gap-2">
-            <motion.span className="text-sm" animate={{ rotate: [0, 10, -5, 0], y: [0, -2, 0] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 3 }}>☀️</motion.span>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Cerveza del día</span>
-          </div>
-          <p className="text-[12px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>Hoy hace calor — te recomendamos una</p>
-          <div className="mt-2.5 flex items-center gap-2.5 rounded-xl p-2.5" style={{ background: "rgba(251,191,36,0.06)" }}>
-            <span className="text-xl">🍻</span>
-            <div>
-              <p className="text-[12px] font-bold" style={{ color: "var(--color-text-primary)" }}>Lager Refrescante</p>
-              <p className="text-[11px]" style={{ color: "var(--color-text-secondary)" }}>Suave, crisp, perfecta para el verano</p>
+        <SidebarWidget 
+          label="DESTACADO"
+          collapsed={collapsedWidgets.includes(id)}
+          onClose={() => removeWidget(id)}
+          onToggleCollapse={() => toggleCollapse(id)}
+        >
+          <div className="flex items-start gap-3 mt-1">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-2xl border border-amber-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              ☀️
+            </span>
+            <div className="min-w-0 flex-1">
+              <h4 className="font-extrabold text-white leading-snug" style={{ fontSize: "18px" }}>
+                {dailyBeer?.name || "Volcanes del Sur Pilsner"}
+              </h4>
+              <p className="mt-0.5" style={{ color: "var(--color-text-muted)", fontSize: "10px" }}>
+                {dailyBeer?.style || "Czech Pilsner"} · {dailyBeer?.abv || 4.5}% ABV
+              </p>
             </div>
           </div>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => { setSearchQuery("Lager"); setActiveQuery("Lager"); }} className="mt-2.5 w-full rounded-xl py-1.5 text-[11px] font-semibold transition-all" style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}>
-            Buscar Lagers →
+
+          <p className="leading-relaxed mt-2.5 font-medium" style={{ color: "var(--color-text-secondary)", fontSize: "14px" }}>
+            {dailyBeer?.description || "Pilsner bohemia con agua del volcán Villarrica. Maltosa, dorada y con un amargor floral delicado."}
+          </p>
+
+          <motion.button 
+            whileHover={{ scale: 1.02, backgroundColor: "rgba(251,191,36,0.08)", borderColor: "var(--color-amber-primary)", boxShadow: "0 0 12px rgba(251,191,36,0.1)" }} 
+            whileTap={{ scale: 0.98 }} 
+            onClick={() => { 
+              if (dailyBeer?.id) {
+                router.push(`/cervezas/${dailyBeer.id}`);
+              } else {
+                setSearchQuery("Pilsner"); 
+                setActiveQuery("Pilsner"); 
+              }
+            }} 
+            className="mt-3.5 w-full rounded-xl border py-2 font-semibold transition-all duration-200 text-[var(--color-amber-primary)] flex items-center justify-center gap-1.5" 
+            style={{ 
+              fontSize: "11px",
+              borderColor: "rgba(251,191,36,0.3)",
+              background: "rgba(251,191,36,0.03)"
+            }}
+          >
+            <span>{dailyBeer?.id ? "Ver Ficha Completa" : "Explorar Pilsners"}</span>
+            <span>→</span>
           </motion.button>
-        </div>
+        </SidebarWidget>
       );
       case "encuesta": return (
-        <div className="px-5 py-3">
-          <div className="mb-2.5 flex items-center gap-2">
-            <motion.span className="text-sm" animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>📊</motion.span>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Encuesta</span>
-          </div>
-          <p className="mb-2 text-[12px] font-medium" style={{ color: "var(--color-text-secondary)" }}>¿Qué estilo prefieres para el fin de semana?</p>
-          <div className="space-y-1.5">
-            {[{ label: "IPA bien lupulada", emoji: "🌿", pct: 38 }, { label: "Stout cremosa", emoji: "☕", pct: 27 }, { label: "Lager clásica", emoji: "🥂", pct: 22 }, { label: "Sour frutal", emoji: "🍊", pct: 13 }].map((opt) => {
+        <SidebarWidget 
+          label="ENCUESTA"
+          collapsed={collapsedWidgets.includes(id)}
+          onClose={() => removeWidget(id)}
+          onToggleCollapse={() => toggleCollapse(id)}
+        >
+          <div className="space-y-2 mt-1">
+            {[
+              { label: "IPA bien lupulada", emoji: "🌿", pct: 38 }, 
+              { label: "Stout cremosa", emoji: "☕", pct: 27 }, 
+              { label: "Lager clásica", emoji: "🥂", pct: 22 }, 
+              { label: "Sour frutal", emoji: "🍊", pct: 13 }
+            ].map((opt) => {
               const voted = pollVote !== null;
               const isSelected = pollVote === opt.label;
               return (
-                <motion.button key={opt.label} whileHover={!voted ? { scale: 1.02 } : {}} whileTap={!voted ? { scale: 0.98 } : {}} onClick={() => !voted && setPollVote(opt.label)} className="relative w-full overflow-hidden rounded-xl border px-2.5 py-2 text-left transition-all" style={{ borderColor: isSelected ? "var(--color-amber-primary)" : "var(--color-border-light)", cursor: voted ? "default" : "pointer" }}>
-                  {voted && <motion.div initial={{ width: 0 }} animate={{ width: `${opt.pct}%` }} transition={{ duration: 0.6, ease: "easeOut" }} className="absolute inset-y-0 left-0 rounded-xl" style={{ background: isSelected ? "rgba(251,191,36,0.15)" : "rgba(251,191,36,0.06)" }} />}
-                  <div className="relative flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-[11px] font-medium" style={{ color: isSelected ? "var(--color-amber-primary)" : "var(--color-text-primary)" }}><span>{opt.emoji}</span>{opt.label}</span>
-                    {voted && <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="text-[11px] font-bold" style={{ color: "var(--color-text-secondary)" }}>{opt.pct}%</motion.span>}
+                <motion.button 
+                  key={opt.label} 
+                  whileHover={!voted ? { y: -1, backgroundColor: "rgba(255,255,255,0.03)", borderColor: "rgba(251,191,36,0.25)" } : {}} 
+                  whileTap={!voted ? { scale: 0.98 } : {}} 
+                  onClick={() => !voted && setPollVote(opt.label)} 
+                  className="relative w-full overflow-hidden rounded-xl border px-3 py-2 flex items-center justify-between transition-all duration-200 min-h-[38px]" 
+                  style={{ 
+                    borderColor: isSelected ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-light) 66%, transparent)", 
+                    background: isSelected ? "rgba(251,191,36,0.04)" : "rgba(255,255,255,0.01)",
+                    cursor: voted ? "default" : "pointer"
+                  }}
+                >
+                  {voted && (
+                    <motion.div 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${opt.pct}%` }} 
+                      transition={{ type: "spring", stiffness: 100, damping: 15 }} 
+                      className="absolute inset-y-0 left-0 rounded-xl" 
+                      style={{ background: isSelected ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.04)" }} 
+                    />
+                  )}
+                  <div className="relative flex items-center gap-2.5">
+                    <span className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded bg-white/[0.03] text-[11px] border border-white/[0.02]">
+                      {opt.emoji}
+                    </span>
+                    <span 
+                      className="text-[11px] font-semibold text-white" 
+                      style={{ color: isSelected ? "var(--color-amber-primary)" : "var(--color-text-primary)" }}
+                    >
+                      {opt.label}
+                    </span>
                   </div>
+                  {voted && (
+                    <motion.span 
+                      initial={{ opacity: 0, scale: 0.8 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      className="relative text-[10px] font-bold" 
+                      style={{ color: isSelected ? "var(--color-amber-primary)" : "var(--color-text-secondary)" }}
+                    >
+                      {opt.pct}%
+                    </motion.span>
+                  )}
                 </motion.button>
               );
             })}
           </div>
-          {pollVote && <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-2 text-center text-[11px]" style={{ color: "var(--color-text-secondary)" }}>¡Gracias por votar! 🎉 127 votos totales</motion.p>}
-        </div>
+          {pollVote && (
+            <motion.p 
+              initial={{ opacity: 0, y: 4 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              className="mt-3 text-center text-[10px]" 
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              ¡Gracias por tu voto! 🗳️ 127 participantes
+            </motion.p>
+          )}
+        </SidebarWidget>
       );
       case "explorar-estilo": return (
-        <div className="px-5 py-3">
-          <div className="mb-2.5 flex items-center gap-2">
-            <motion.span className="text-sm" animate={{ y: [0, -3, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}>🍺</motion.span>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Explorar por estilo</span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {["IPA", "Stout", "Lager", "Porter", "Wheat", "Pale Ale", "Sour", "Amber"].map((style, i) => (
-              <motion.button key={style} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileHover={{ scale: 1.1, y: -2 }} whileTap={{ scale: 0.92 }} onClick={() => { setSearchQuery(style); setActiveQuery(style); }} className="rounded-full border px-2.5 py-1 text-[11px] font-medium backdrop-blur-sm transition-all" style={{ borderColor: activeQuery === style ? "var(--color-amber-primary)" : "var(--color-border-light)", color: activeQuery === style ? "var(--color-amber-primary)" : "var(--color-text-primary)", background: activeQuery === style ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.04)" }}>
-                {style}
+        <SidebarWidget 
+          label="ESTILOS"
+          collapsed={collapsedWidgets.includes(id)}
+          onClose={() => removeWidget(id)}
+          onToggleCollapse={() => toggleCollapse(id)}
+        >
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {[
+              { label: "🌿 IPA", query: "IPA" },
+              { label: "☕ Stout", query: "Stout" },
+              { label: "🌾 Lager", query: "Lager" },
+              { label: "🪵 Porter", query: "Porter" },
+              { label: "🌾 Wheat", query: "Wheat" },
+              { label: "🥖 Pale Ale", query: "Pale Ale" },
+              { label: "🍊 Sour", query: "Sour" },
+              { label: "🔥 Amber", query: "Amber" }
+            ].map((s, i) => (
+              <motion.button 
+                key={s.query} 
+                initial={{ opacity: 0, scale: 0.8 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                transition={{ delay: i * 0.03 }} 
+                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.04)", borderColor: "rgba(251,191,36,0.2)" }} 
+                whileTap={{ scale: 0.95 }} 
+                onClick={() => { setSearchQuery(s.query); setActiveQuery(s.query); }} 
+                className="rounded-full border px-2.5 py-1 text-[10.5px] font-semibold transition-all duration-200 flex items-center gap-1 shrink-0" 
+                style={{ 
+                  borderColor: activeQuery === s.query ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-light) 66%, transparent)", 
+                  color: activeQuery === s.query ? "var(--color-amber-primary)" : "var(--color-text-secondary)", 
+                  background: activeQuery === s.query ? "rgba(251,191,36,0.08)" : "rgba(255,255,255,0.01)",
+                  boxShadow: activeQuery === s.query ? "0 0 10px rgba(251,191,36,0.05)" : "none"
+                }}
+              >
+                {s.label}
               </motion.button>
             ))}
           </div>
-        </div>
+        </SidebarWidget>
       );
       case "tips": return (
-        <div className="px-5 py-3">
-          <div className="mb-2.5 flex items-center gap-2">
-            <motion.span className="text-sm" animate={{ rotate: [0, 20, -10, 0], opacity: [0.8, 1, 0.8] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 5 }}>💡</motion.span>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>¿Sabías que...?</span>
-          </div>
-          <p className="text-[12px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>Las IPAs deben su amargor al lúpulo, una planta trepadora que también actúa como conservante natural. ¡Por eso los marineros ingleses las llevaban a la India!</p>
-          <div className="my-2.5 h-px w-full" style={{ background: "var(--color-border-subtle)" }} />
-          <p className="text-[12px] leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>La temperatura ideal para servir una Stout es entre 10°C y 13°C. Demasiado fría oculta sus notas de chocolate y café. ☕</p>
-        </div>
-      );
-      case "cerveceros": return (
-        <div className="px-5 py-3">
-          <div className="mb-2.5 flex items-center gap-2">
-            <motion.span className="text-sm" animate={{ rotate: [0, 15, -10, 0], scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}>⭐</motion.span>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Cerveceros destacados</span>
-          </div>
-          <div className="space-y-1.5">
-            {["Ragnar", "Lagertha", "Björn", "Floki", "Ivar"].map((name, i) => (
-              <motion.div key={name} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }} whileHover={{ x: 3 }} className="group flex cursor-pointer items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors" style={{ background: "transparent" }} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.06)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold" style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: i === 0 ? "0 0 8px rgba(251,191,36,0.3)" : "none" }}>{name[0]}</div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-medium" style={{ color: "var(--color-text-primary)" }}>{name}</p>
-                  <p className="text-[10px]" style={{ color: "var(--color-text-secondary)" }}>{[12, 9, 7, 6, 5][i]} cervezas · {[48, 35, 22, 18, 14][i]} 🍻</p>
-                </div>
-                <span className="text-[10px] font-bold" style={{ color: "var(--color-amber-primary)" }}>#{i + 1}{i === 0 ? " 👑" : ""}</span>
-              </motion.div>
+        <SidebarWidget 
+          label="TIPS"
+          collapsed={collapsedWidgets.includes(id)}
+          onClose={() => removeWidget(id)}
+          onToggleCollapse={() => toggleCollapse(id)}
+        >
+          <div className="space-y-2.5 mt-1">
+            {[
+              { icon: "🌿", title: "Amargor histórico", text: "Las IPAs nacieron para resistir el viaje a la India: el lúpulo actuaba como conservante natural." },
+              { icon: "☕", title: "Servicio Stout", text: "Sirve la Stout entre 10°C y 13°C. Demasiado fría oculta sus exquisitas notas de chocolate y café tostado." }
+            ].map((tip, idx) => (
+              <div 
+                key={idx}
+                className="rounded-xl border p-2.5 transition-all duration-200"
+                style={{ 
+                  borderColor: "color-mix(in srgb, var(--color-border-light) 66%, transparent)", 
+                  background: "rgba(255,255,255,0.01)" 
+                }}
+              >
+                <p className="text-[10.5px] leading-relaxed text-[var(--color-text-secondary)] flex items-start gap-2">
+                  <span className="text-[12px] shrink-0 mt-0.5">{tip.icon}</span>
+                  <span>
+                    <strong className="text-white block mb-0.5">{tip.title}</strong>
+                    {tip.text}
+                  </span>
+                </p>
+              </div>
             ))}
           </div>
-        </div>
+        </SidebarWidget>
+      );
+      case "cerveceros": return (
+        <SidebarWidget 
+          label="COMUNIDAD"
+          collapsed={collapsedWidgets.includes(id)}
+          onClose={() => removeWidget(id)}
+          onToggleCollapse={() => toggleCollapse(id)}
+        >
+          <div className="space-y-1.5 mt-1">
+            {["Ragnar", "Lagertha", "Björn", "Floki", "Ivar"].map((name, i) => {
+              const medals = ["👑 #1", "🥈 #2", "🥉 #3", "⭐ #4", "⭐ #5"];
+              return (
+                <motion.div 
+                  key={name} 
+                  initial={{ opacity: 0, x: 8 }} 
+                  animate={{ opacity: 1, x: 0 }} 
+                  transition={{ delay: i * 0.05 }} 
+                  whileHover={{ x: 3 }} 
+                  className="group flex cursor-pointer items-center gap-3 rounded-xl p-2 transition-colors border border-transparent hover:border-white/[0.04]" 
+                  style={{ background: "transparent" }} 
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")} 
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  <div 
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold" 
+                    style={{ 
+                      background: "var(--gradient-button-primary)", 
+                      color: "var(--color-text-dark)", 
+                      boxShadow: i === 0 ? "0 0 10px rgba(251,191,36,0.3)" : "none" 
+                    }}
+                  >
+                    {name[0]}
+                  </div>
+                  
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold" style={{ color: "var(--color-text-primary)", fontSize: "11.5px" }}>
+                      {name}
+                    </p>
+                    <p style={{ color: "var(--color-text-muted)", fontSize: "10px" }}>
+                      {[12, 9, 7, 6, 5][i]} cervezas · {[48, 35, 22, 18, 14][i]} 🍻
+                    </p>
+                  </div>
+                  
+                  <span className="font-bold px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.04]" style={{ color: i === 0 ? "var(--color-amber-primary)" : "var(--color-text-muted)", fontSize: "10px" }}>
+                    {medals[i]}
+                  </span>
+                </motion.div>
+              );
+            })}
+          </div>
+        </SidebarWidget>
       );
       default: return null;
     }
@@ -688,31 +697,246 @@ export default function CervezasPage() {
   if (!mounted) return null;
 
   return (
-    <div className="relative flex min-h-screen flex-col" style={{ color: "var(--color-text-primary)" }}>
-      <GoldenBackground />
-      <Navbar />
-      <PairingBanner beers={cervezas} />
-
-      <main className="relative z-[2] mx-auto w-full max-w-4xl flex-1 px-4 pt-6 pb-12 sm:px-6">
-        {/* ─── Header ─── */}
-        <motion.div initial="hidden" animate="visible" className="mb-6 flex flex-col items-center text-center sm:mb-10">
-          <motion.span
-            variants={fadeUp}
-            custom={0}
-            className="inline-block rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase backdrop-blur-sm"
+    <MainLayout
+      maxWidth="calc(1140px + 4rem)"
+      topBanner={<PairingBanner beers={cervezas} />}
+      sidebar={
+        !sidebarDismissed ? (
+          <div
+            className="flex flex-col gap-3.5 pr-1 max-h-[calc(100vh-8rem)] overflow-y-auto"
             style={{
-              borderColor: "var(--color-border-amber)",
-              color: "var(--color-amber-primary)",
-              background: "rgba(251,191,36,0.06)",
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(251,191,36,0.18) transparent",
             }}
           >
-            🍺 Catálogo Lúpulos
-          </motion.span>
+            {/* Floating header row */}
+            <div className="flex items-center justify-between px-1.5 shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
+              <button
+                type="button"
+                onClick={() => setSidebarDismissed(true)}
+                className="flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all hover:bg-white/5"
+                style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 75%, white 25%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}
+                aria-label="Cerrar panel"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Selector de widgets (inline) */}
+            <AnimatePresence initial={false}>
+              {pickerOpen && (
+                <motion.div
+                  className="relative w-full overflow-hidden"
+                  initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, height: "auto", scale: 1 }}
+                  exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 280, damping: 26 }}
+                >
+                  <div
+                    className="relative overflow-hidden rounded-[1.75rem]"
+                    style={{
+                      background: "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-deepest) 6%)",
+                      backdropFilter: "blur(22px) saturate(1.2)",
+                      WebkitBackdropFilter: "blur(22px) saturate(1.2)",
+                      border: "1px solid color-mix(in srgb, var(--color-border-amber) 38%, var(--color-border-light))",
+                      boxShadow: "inset 0 1px 0 color-mix(in srgb, white 18%, transparent), var(--shadow-elevated), 0 0 0 1px color-mix(in srgb, var(--color-amber-primary) 8%, transparent)",
+                    }}
+                  >
+                    {/* Inner border */}
+                    <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
+                        <p className="text-[9px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca para agregar al panel</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPickerOpen(false)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border text-sm hover:bg-white/5"
+                        style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    {/* Available widgets */}
+                    <div className="p-3 space-y-2">
+                      <AnimatePresence mode="popLayout">
+                        {WIDGET_REGISTRY.filter((w) => !enabledWidgets.includes(w.id)).map((w) => (
+                          <motion.div
+                            key={w.id}
+                            layout
+                            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.15 } }}
+                            transition={{ type: "spring", stiffness: 300, damping: 26 }}
+                            className="flex items-center gap-3 rounded-2xl p-3"
+                            style={{
+                              background: "color-mix(in srgb, var(--color-surface-card-alt) 60%, transparent)",
+                              border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+                            }}
+                          >
+                            <span className="leading-none" style={{ fontSize: "20px" }}>{w.emoji}</span>
+                            <span className="min-w-0 flex-1 font-medium" style={{ color: "var(--color-text-primary)", fontSize: "11px" }}>{w.label}</span>
+                            <motion.button
+                              whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+                              onClick={() => { toggleWidget(w.id); }}
+                              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-bold"
+                              style={{ fontSize: "13px", background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+                              aria-label={`Agregar ${w.label}`}
+                            >
+                              +
+                            </motion.button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+
+                      {WIDGET_REGISTRY.every((w) => enabledWidgets.includes(w.id)) && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-4 text-center">
+                          <span style={{ fontSize: "24px" }}>✨</span>
+                          <p className="mt-1 font-medium" style={{ color: "var(--color-text-secondary)", fontSize: "11px" }}>Todos los widgets activos</p>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    <div className="pb-3 text-center">
+                      <span style={{ color: "var(--color-text-muted)", opacity: 0.45, fontSize: "9px" }}>Los cambios se guardan automáticamente</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Individual widget cards — drag to reorder */}
+            <Reorder.Group
+              axis="y"
+              values={enabledWidgets}
+              onReorder={(newOrder) => {
+                setEnabledWidgets(newOrder);
+                localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(newOrder));
+              }}
+              className="flex flex-col gap-2.5 list-none m-0 p-0"
+            >
+              <AnimatePresence initial={false} mode="popLayout">
+                {enabledWidgets.map((id) => (
+                  <Reorder.Item
+                    key={id}
+                    value={id}
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ type: "spring", stiffness: 280, damping: 26 }}
+                    className="relative shrink-0 cursor-grab active:cursor-grabbing"
+                    style={{ listStyle: "none" }}
+                  >
+                    {renderWidget(id)}
+                  </Reorder.Item>
+                ))}
+              </AnimatePresence>
+            </Reorder.Group>
+
+            {/* Empty state */}
+            {enabledWidgets.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center shrink-0"
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}
+              >
+                <span style={{ fontSize: "30px" }}>🍺</span>
+                <p className="mt-2 font-medium" style={{ color: "var(--color-text-muted)", fontSize: "12px" }}>Sin widgets activos</p>
+              </motion.div>
+            )}
+
+            {/* Agregar widget button */}
+            {WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setPickerOpen((v) => !v)}
+                className="flex w-full items-center justify-center gap-2 rounded-[1.2rem] border py-2.5 font-semibold transition-all shrink-0"
+                style={{
+                  fontSize: "11px",
+                  borderColor: pickerOpen
+                    ? "var(--color-amber-primary)"
+                    : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
+                  color: pickerOpen
+                    ? "var(--color-amber-primary)"
+                    : "var(--color-text-secondary)",
+                  background: pickerOpen
+                    ? "rgba(251,191,36,0.08)"
+                    : "rgba(251,191,36,0.03)",
+                }}
+                aria-label="Agregar widget"
+              >
+                <span className="leading-none" style={{ fontSize: "16px" }}>{pickerOpen ? "−" : "+"}</span>
+                Agregar widget
+              </motion.button>
+            )}
+          </div>
+        ) : undefined
+      }
+    >
+      <div className="relative z-[2] mx-auto w-full max-w-[30.375rem] xl:max-w-none flex-1 pb-12">
+        {/* ─── Header ─── */}
+        <motion.div initial="hidden" animate="visible" className="mb-8 border-b pb-6" style={{ borderColor: "var(--color-border-subtle)" }}>
+          {/* Top row: eyebrow + Subir Cerveza */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <motion.span
+              variants={fadeUp}
+              custom={0}
+              className="inline-block rounded-full border px-4 py-1.5 font-semibold tracking-[0.2em] uppercase backdrop-blur-sm"
+              style={{
+                fontSize: "11px",
+                borderColor: "var(--color-border-amber)",
+                color: "var(--color-amber-primary)",
+                background: "rgba(251,191,36,0.06)",
+              }}
+            >
+              🍺 Catálogo Lúpulos
+            </motion.span>
+
+            {user && (
+              <motion.div variants={fadeUp} custom={4} className="shrink-0">
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setModalOpen(true)}
+                  className="group relative overflow-hidden rounded-full px-6 py-2.5 text-sm font-bold transition-all duration-300"
+                  style={{
+                    background: "var(--gradient-button-primary)",
+                    color: "var(--color-text-dark)",
+                    boxShadow: "var(--shadow-amber-glow)",
+                  }}
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Subir Cerveza
+                  </span>
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                </motion.button>
+              </motion.div>
+            )}
+          </div>
 
           <motion.h1
             variants={fadeUp}
             custom={1}
-            className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
+            className="mt-4 text-3xl font-heading font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
             style={{ color: "var(--color-text-primary)" }}
           >
             Explora{" "}
@@ -733,7 +957,7 @@ export default function CervezasPage() {
           <motion.p
             variants={fadeUp}
             custom={2}
-            className="mt-3 max-w-lg text-sm sm:text-base"
+            className="mt-3 max-w-xl text-sm sm:text-base"
             style={{ color: "var(--color-text-secondary)" }}
           >
             Descubre, califica y comparte las mejores cervezas artesanales de la comunidad
@@ -745,7 +969,7 @@ export default function CervezasPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.45 }}
-              className="mt-4 flex flex-wrap justify-center gap-2"
+              className="mt-4 flex flex-wrap items-center gap-2"
             >
               {[
                 { icon: "🍺", value: cervezas.length, label: `cerveza${cervezas.length !== 1 ? "s" : ""}` },
@@ -757,8 +981,9 @@ export default function CervezasPage() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.55 + i * 0.08, type: "spring", stiffness: 320, damping: 22 }}
-                  className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold backdrop-blur-sm"
+                  className="flex items-center gap-1.5 rounded-full border px-3 py-1 font-semibold backdrop-blur-sm"
                   style={{
+                    fontSize: "11px",
                     borderColor: "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
                     background: "rgba(251,191,36,0.05)",
                     color: "var(--color-text-secondary)",
@@ -771,9 +996,11 @@ export default function CervezasPage() {
               ))}
             </motion.div>
           )}
+        </motion.div>
 
-          {/* AI Sommelier Search */}
-          <motion.div variants={fadeUp} custom={3} className="mt-8 w-full max-w-xl">
+        {/* ─── Toolbar: AI Sommelier search + filtros ─── */}
+        <motion.div initial="hidden" animate="visible" className="mb-8">
+          <motion.div variants={fadeUp} custom={3} className="w-full">
             <GradientBorder active={searchFocused} radius={28} borderWidth={1.5}>
               <form
                 onSubmit={handleSearchSubmit}
@@ -815,15 +1042,15 @@ export default function CervezasPage() {
                       setSearchQuery("");
                       setActiveQuery("");
                     }}
-                    className="text-xs transition-colors"
-                    style={{ color: "var(--color-text-muted)" }}
+                    className="transition-colors"
+                    style={{ fontSize: "12px", color: "var(--color-text-muted)" }}
                   >
                     ✕
                   </button>
                 ) : (
                   <kbd
-                    className="hidden select-none rounded border px-1.5 py-0.5 text-[9px] font-semibold sm:block"
-                    style={{ borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)", color: "var(--color-text-muted)", background: "rgba(255,255,255,0.04)" }}
+                    className="hidden select-none rounded border px-1.5 py-0.5 font-semibold sm:block"
+                    style={{ fontSize: "9px", borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)", color: "var(--color-text-muted)", background: "rgba(255,255,255,0.04)" }}
                   >
                     /
                   </kbd>
@@ -836,81 +1063,87 @@ export default function CervezasPage() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0"
+              className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex-wrap sm:overflow-visible sm:pb-0"
             >
-              {QUICK_SUGGESTIONS.map((s) => (
-                <motion.button
-                  key={s.query}
-                  whileHover={{ scale: 1.06, y: -1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setSearchQuery(s.query);
-                    setActiveQuery(s.query);
-                  }}
-                  className="flex-shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium backdrop-blur-sm transition-all"
-                  style={{
-                    borderColor: "var(--color-border-light)",
-                    color: "var(--color-text-secondary)",
-                    background: "rgba(251,191,36,0.04)",
-                  }}
-                >
-                  {s.label}
-                </motion.button>
-              ))}
+              <motion.button
+                whileHover={{ scale: 1.06, y: -1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setSearchQuery("");
+                  setActiveQuery("");
+                }}
+                className="flex-shrink-0 rounded-full border px-3 py-1 font-medium backdrop-blur-sm transition-all"
+                style={
+                  activeQuery === ""
+                    ? {
+                        fontSize: "11px",
+                        borderColor: "color-mix(in srgb, var(--color-amber-primary) 55%, transparent)",
+                        background: "color-mix(in srgb, var(--color-amber-primary) 14%, transparent)",
+                        color: "var(--color-amber-primary)",
+                      }
+                    : {
+                        fontSize: "11px",
+                        borderColor: "var(--color-border-light)",
+                        color: "var(--color-text-secondary)",
+                        background: "rgba(251,191,36,0.04)",
+                      }
+                }
+              >
+                Todas
+              </motion.button>
+              {QUICK_SUGGESTIONS.map((s) => {
+                const isActive = activeQuery === s.query;
+                return (
+                  <motion.button
+                    key={s.query}
+                    whileHover={{ scale: 1.06, y: -1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setSearchQuery(s.query);
+                      setActiveQuery(s.query);
+                    }}
+                    className="flex-shrink-0 rounded-full border px-3 py-1 font-medium backdrop-blur-sm transition-all"
+                    style={
+                      isActive
+                        ? {
+                            fontSize: "11px",
+                            borderColor: "color-mix(in srgb, var(--color-amber-primary) 55%, transparent)",
+                            background: "color-mix(in srgb, var(--color-amber-primary) 14%, transparent)",
+                            color: "var(--color-amber-primary)",
+                          }
+                        : {
+                            fontSize: "11px",
+                            borderColor: "var(--color-border-light)",
+                            color: "var(--color-text-secondary)",
+                            background: "rgba(251,191,36,0.04)",
+                          }
+                    }
+                  >
+                    {s.label}
+                  </motion.button>
+                );
+              })}
             </motion.div>
           </motion.div>
-
-          {/* Upload CTA */}
-          {user && (
-            <motion.div variants={fadeUp} custom={4} className="mt-5">
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setModalOpen(true)}
-                className="group relative overflow-hidden rounded-full px-6 py-2.5 text-sm font-bold transition-all duration-300"
-                style={{
-                  background: "var(--gradient-button-primary)",
-                  color: "var(--color-text-dark)",
-                  boxShadow: "var(--shadow-amber-glow)",
-                }}
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                  Subir Cerveza
-                </span>
-                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              </motion.button>
-            </motion.div>
-          )}
         </motion.div>
 
         {/* ─── Mobile Widgets (xl:hidden) ─── */}
         <div className="mb-6 xl:hidden">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
+            <span className="font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)", fontSize: "10px" }}>Mis widgets</span>
             {WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
               <motion.button
                 whileTap={{ scale: 0.94 }}
                 onClick={() => setPickerOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all"
+                className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-semibold transition-all"
                 style={{
+                  fontSize: "11px",
                   borderColor: pickerOpen ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
                   color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
                   background: pickerOpen ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.03)",
                 }}
               >
-                <span className="text-sm leading-none">{pickerOpen ? "−" : "+"}</span>
+                <span className="leading-none" style={{ fontSize: "14px" }}>{pickerOpen ? "−" : "+"}</span>
                 Agregar
               </motion.button>
             )}
@@ -938,8 +1171,8 @@ export default function CervezasPage() {
                 <motion.button
                   whileTap={{ scale: 0.88 }}
                   onClick={() => toggleWidget(id)}
-                  className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] opacity-0 group-hover/widget-m:opacity-100 transition-opacity"
-                  style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)" }}
+                  className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border opacity-0 group-hover/widget-m:opacity-100 transition-opacity"
+                  style={{ fontSize: "11px", borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)" }}
                   aria-label="Quitar widget"
                 >
                   −
@@ -955,9 +1188,9 @@ export default function CervezasPage() {
               className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center"
               style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}
             >
-              <span className="text-3xl">🍺</span>
-              <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin widgets activos</p>
-              <p className="mt-0.5 text-[10px]" style={{ color: "var(--color-text-muted)", opacity: 0.6 }}>Toca + Agregar para personalizar</p>
+              <span style={{ fontSize: "30px" }}>🍺</span>
+              <p className="mt-2 font-medium" style={{ color: "var(--color-text-muted)", fontSize: "12px" }}>Sin widgets activos</p>
+              <p className="mt-0.5" style={{ color: "var(--color-text-muted)", opacity: 0.6, fontSize: "10px" }}>Toca + Agregar para personalizar</p>
             </motion.div>
           )}
         </div>
@@ -979,10 +1212,10 @@ export default function CervezasPage() {
                   sx={{ color: "var(--color-amber-primary)" }}
                   aria-label="Cargando cervezas"
                 />
-                <p className="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+                <p className="font-semibold" style={{ color: "var(--color-text-primary)", fontSize: "14px" }}>
                   Cargando cervezas...
                 </p>
-                <p className="max-w-sm text-xs" style={{ color: "var(--color-text-muted)" }}>
+                <p className="max-w-sm" style={{ color: "var(--color-text-muted)", fontSize: "12px" }}>
                   Estamos sirviendo el listado para ti.
                 </p>
               </div>
@@ -990,40 +1223,25 @@ export default function CervezasPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center py-20 text-center"
+                className="flex flex-col items-center pt-4 pb-12 text-center"
               >
                 <motion.span
-                  className="text-7xl"
+                  style={{ fontSize: "72px" }}
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 >
                   🍺
                 </motion.span>
-                <h3 className="mt-6 text-xl font-bold" style={{ color: "var(--color-text-primary)" }}>
+                <h3 className="mt-6 font-bold" style={{ color: "var(--color-text-primary)", fontSize: "20px" }}>
                   {activeQuery
                     ? "No encontramos cervezas con esa búsqueda"
                     : "Aún no hay cervezas publicadas"}
                 </h3>
-                <p className="mt-2 max-w-sm text-sm" style={{ color: "var(--color-text-muted)" }}>
+                <p className="mt-2 max-w-sm" style={{ color: "var(--color-text-muted)", fontSize: "14px" }}>
                   {activeQuery
                     ? "Intenta con otro nombre, estilo o cervecería"
                     : "¡Sé el primero en compartir tu cerveza favorita con la comunidad!"}
                 </p>
-                {user && !activeQuery && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => setModalOpen(true)}
-                    className="mt-6 rounded-full px-6 py-2.5 text-sm font-bold transition-all"
-                    style={{
-                      background: "var(--gradient-button-primary)",
-                      color: "var(--color-text-dark)",
-                      boxShadow: "var(--shadow-amber-glow)",
-                    }}
-                  >
-                    Subir la primera cerveza 🚀
-                  </motion.button>
-                )}
               </motion.div>
             ) : (
               <>
@@ -1032,7 +1250,7 @@ export default function CervezasPage() {
                   variants={stagger}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+                  className="grid grid-cols-1 gap-5 xl:grid-cols-2"
                 >
                   {cervezas.map((beer: Beer) => {
                     const liked = user ? beer.likes.includes(user._id) : false;
@@ -1051,8 +1269,8 @@ export default function CervezasPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="mt-6 text-center text-xs"
-                  style={{ color: "var(--color-text-muted)" }}
+                  className="mt-6"
+                  style={{ color: "var(--color-text-muted)", fontSize: "12px" }}
                 >
                   {cervezas.length} cerveza{cervezas.length !== 1 ? "s" : ""} encontrada
                   {cervezas.length !== 1 ? "s" : ""}
@@ -1067,214 +1285,7 @@ export default function CervezasPage() {
           </div>
         </div>
 
-      </main>
-
-        {/* ─── Fixed Sidebar Widget ─── */}
-        <AnimatePresence>
-          {!sidebarDismissed && (
-            <motion.aside
-              className="fixed z-40 hidden xl:flex flex-col"
-              style={{ top: 120, right: 16, width: 256, bottom: 16 }}
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 32, scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.3 }}
-            >
-              {/* Widget cards column */}
-              <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden flex-1 pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(251,191,36,0.2) transparent" }}>
-
-                {/* Floating header row */}
-                <div className="flex items-center justify-between px-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
-                  <button
-                    type="button"
-                    onClick={() => setSidebarDismissed(true)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all"
-                    style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 75%, white 25%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}
-                    aria-label="Cerrar panel"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                {/* Individual widget cards — drag to reorder */}
-                <Reorder.Group
-                  axis="y"
-                  values={enabledWidgets}
-                  onReorder={(newOrder) => {
-                    setEnabledWidgets(newOrder);
-                    localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(newOrder));
-                  }}
-                  className="flex flex-col gap-2.5 list-none m-0 p-0"
-                >
-                  <AnimatePresence initial={false} mode="popLayout">
-                  {enabledWidgets.map((id) => (
-                    <Reorder.Item
-                      key={id}
-                      value={id}
-                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      transition={{ type: "spring", stiffness: 280, damping: 26 }}
-                      className="group/widget relative overflow-hidden rounded-[1.5rem] cursor-grab active:cursor-grabbing"
-                      style={{
-                        background: "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)",
-                        backdropFilter: "blur(18px) saturate(1.15)",
-                        WebkitBackdropFilter: "blur(18px) saturate(1.15)",
-                        border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
-                        boxShadow: "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 6%, transparent), var(--shadow-elevated)",
-                        listStyle: "none",
-                      }}
-                    >
-                      {/* Inner border */}
-                      <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
-                      {/* Bottom rim */}
-                      <div className="pointer-events-none absolute inset-x-5 bottom-[1px] h-px" style={{ background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-light) 40%, transparent), transparent)", opacity: 0.6 }} aria-hidden="true" />
-
-                      {/* Remove button — visible on hover */}
-                      <motion.button
-                        whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.88 }}
-                        onClick={() => toggleWidget(id)}
-                        className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] opacity-0 group-hover/widget:opacity-100 transition-opacity duration-150"
-                        style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)", backdropFilter: "blur(8px)" }}
-                        aria-label="Quitar widget"
-                      >
-                        −
-                      </motion.button>
-
-                      {renderWidget(id)}
-                    </Reorder.Item>
-                  ))}
-                  </AnimatePresence>
-                </Reorder.Group>
-
-                {/* Empty state */}
-                {enabledWidgets.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center"
-                    style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}
-                  >
-                    <span className="text-3xl">🍺</span>
-                    <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin widgets activos</p>
-                  </motion.div>
-                )}
-
-                {/* Agregar widget button */}
-                {WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => setPickerOpen((v) => !v)}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border py-2.5 text-[11px] font-semibold transition-all"
-                    style={{
-                      borderColor: pickerOpen ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
-                      color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
-                      background: pickerOpen ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.03)",
-                    }}
-                  >
-                    <span className="text-base leading-none">{pickerOpen ? "−" : "+"}</span>
-                    Agregar widget
-                    <kbd
-                      className="ml-auto rounded border px-1.5 py-0.5 text-[9px] font-semibold"
-                      style={{ borderColor: "color-mix(in srgb, var(--color-border-amber) 45%, transparent)", color: "var(--color-text-muted)", background: "rgba(255,255,255,0.03)" }}
-                    >
-                      ⌘K
-                    </kbd>
-                  </motion.button>
-                )}
-
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
-
-        {/* ─── Widget Picker Card ─── */}
-        <AnimatePresence>
-          {!sidebarDismissed && pickerOpen && (
-            <motion.div
-              className="fixed z-[60] hidden xl:block"
-              style={{ top: 120, right: 280, width: 248 }}
-              initial={{ opacity: 0, x: -16, scale: 0.96 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -16, scale: 0.96 }}
-              transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            >
-              <div
-                className="relative overflow-hidden rounded-[1.75rem]"
-                style={{
-                  background: "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-deepest) 6%)",
-                  backdropFilter: "blur(22px) saturate(1.2)",
-                  WebkitBackdropFilter: "blur(22px) saturate(1.2)",
-                  border: "1px solid color-mix(in srgb, var(--color-border-amber) 38%, var(--color-border-light))",
-                  boxShadow: "inset 0 1px 0 color-mix(in srgb, white 18%, transparent), var(--shadow-elevated), 0 0 0 1px color-mix(in srgb, var(--color-amber-primary) 8%, transparent)",
-                }}
-              >
-                {/* Inner border */}
-                <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
-
-                {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
-                    <p className="text-[9px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca para agregar al panel</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setPickerOpen(false)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border text-sm"
-                    style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}
-                  >
-                    ×
-                  </button>
-                </div>
-
-                {/* Available widgets */}
-                <div className="p-3 space-y-2">
-                  <AnimatePresence mode="popLayout">
-                    {WIDGET_REGISTRY.filter((w) => !enabledWidgets.includes(w.id)).map((w) => (
-                      <motion.div
-                        key={w.id}
-                        layout
-                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.15 } }}
-                        transition={{ type: "spring", stiffness: 300, damping: 26 }}
-                        className="flex items-center gap-3 rounded-2xl p-3"
-                        style={{
-                          background: "color-mix(in srgb, var(--color-surface-card-alt) 60%, transparent)",
-                          border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)",
-                        }}
-                      >
-                        <span className="text-xl leading-none">{w.emoji}</span>
-                        <span className="min-w-0 flex-1 text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>{w.label}</span>
-                        <motion.button
-                          whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
-                          onClick={() => { toggleWidget(w.id); }}
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold"
-                          style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
-                          aria-label={`Agregar ${w.label}`}
-                        >
-                          +
-                        </motion.button>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-
-                  {WIDGET_REGISTRY.every((w) => enabledWidgets.includes(w.id)) && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-4 text-center">
-                      <span className="text-2xl">✨</span>
-                      <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Todos los widgets activos</p>
-                    </motion.div>
-                  )}
-                </div>
-
-                <div className="pb-3 text-center">
-                  <span className="text-[9px]" style={{ color: "var(--color-text-muted)", opacity: 0.45 }}>Los cambios se guardan automáticamente</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      </div>
 
       {/* ─── Mobile Picker Bottom Sheet (xl:hidden) — fuera de main para que fixed funcione ─── */}
       <AnimatePresence>
@@ -1313,14 +1324,14 @@ export default function CervezasPage() {
               {/* Header */}
               <div className="flex items-center justify-between px-5 pb-3 pt-2" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
                 <div>
-                  <p className="text-[13px] font-bold" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca + para agregar al panel</p>
+                  <p className="font-bold" style={{ color: "var(--color-amber-primary)", fontSize: "13px" }}>Widgets disponibles</p>
+                  <p className="mt-0.5" style={{ color: "var(--color-text-muted)", fontSize: "11px" }}>Toca + para agregar al panel</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setPickerOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border text-base"
-                  style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.05)", color: "var(--color-text-muted)" }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border"
+                  style={{ fontSize: "16px", borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.05)", color: "var(--color-text-muted)" }}
                 >
                   ×
                 </button>
@@ -1343,13 +1354,13 @@ export default function CervezasPage() {
                         border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)",
                       }}
                     >
-                      <span className="text-2xl leading-none">{w.emoji}</span>
-                      <span className="min-w-0 flex-1 text-[13px] font-medium" style={{ color: "var(--color-text-primary)" }}>{w.label}</span>
+                      <span className="leading-none" style={{ fontSize: "24px" }}>{w.emoji}</span>
+                      <span className="min-w-0 flex-1 font-medium" style={{ color: "var(--color-text-primary)", fontSize: "13px" }}>{w.label}</span>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={() => toggleWidget(w.id)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg font-bold"
-                        style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold"
+                        style={{ fontSize: "18px", background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
                         aria-label={`Agregar ${w.label}`}
                       >
                         +
@@ -1405,6 +1416,6 @@ export default function CervezasPage() {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </div>
+    </MainLayout>
   );
 }

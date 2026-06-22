@@ -131,7 +131,7 @@ export default function BentoFeatures() {
                   </motion.div>
 
                   <div>
-                    <p className="text-text-primary text-lg font-black leading-tight">
+                    <p className="text-text-primary text-lg font-extrabold leading-tight">
                       {item.title}
                     </p>
                     <p

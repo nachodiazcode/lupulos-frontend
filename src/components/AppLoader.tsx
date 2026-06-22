@@ -103,7 +103,7 @@ export default function AppLoader({ children }: { children: React.ReactNode }) {
 
             <div className="min-w-0 flex-1">
               <p
-                className="text-[0.7rem] font-black tracking-[0.28em] uppercase"
+                className="text-[0.7rem] font-extrabold tracking-[0.28em] uppercase"
                 style={{ color: "var(--color-text-muted)" }}
               >
                 LUPULOS

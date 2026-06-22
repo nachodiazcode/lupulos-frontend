@@ -76,3 +76,25 @@ export const getImageUrl = (path: string): string => {
 
   return buildApiAssetUrl(`/${normalizedPath.replace(/^\/+/, "")}`);
 };
+
+/* ═══════════════════════════════════════════════════════════
+   Media upload limits — shorts-first
+   ═══════════════════════════════════════════════════════════
+   Single source of truth for video duration caps. The same values
+   must be enforced server-side in lupulos-api/MediaUploadModule
+   to reject oversize files before they touch disk.
+
+   Why 60s: shorts format favors high engagement, low storage cost
+   (~15 MB per clip at 720p), and easy moderation. Long-form vlogs
+   can be added later behind a creator-verification gate. */
+
+export const MAX_SHORT_DURATION_SECONDS = 60;           // 60s — Cervezagramas
+export const MAX_SHORT_FILE_SIZE_MB = 25;               // ~15 MB real, 25 buffer for high-bitrate
+export const ACCEPTED_VIDEO_MIME_TYPES = ["video/mp4", "video/webm", "video/quicktime"] as const;
+
+/** Formats seconds → "M:SS" (e.g. 60 → "1:00", 45 → "0:45"). Used in upload UI hints. */
+export const formatDuration = (totalSeconds: number): string => {
+  const m = Math.floor(totalSeconds / 60);
+  const s = Math.floor(totalSeconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+};

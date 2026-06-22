@@ -5,7 +5,6 @@ import {
   Box,
   Typography,
   Button,
-  Container,
   Card,
   CardContent,
   Stack,
@@ -21,9 +20,9 @@ import StarBorderIcon from "@mui/icons-material/StarBorder";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoldenBackground from "@/components/GoldenBackground";
+import PageContainer from "@/components/layouts/PageContainer";
 
 const amarillo = "var(--color-amber-primary)";
 
@@ -112,19 +111,8 @@ export default function PlanesPage() {
   return (
     <Box sx={{ position: "relative", minHeight: "100vh", pb: 10 }}>
       <GoldenBackground />
-      <Navbar />
 
-      <Container
-        maxWidth={false}
-        sx={{
-          maxWidth: "calc(80% - 240px)",
-          marginLeft: "440px",
-          px: 2,
-          pt: 12,
-          position: "relative",
-          zIndex: 2,
-        }}
-      >
+      <PageContainer className="relative z-10 pt-12">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -283,7 +271,7 @@ export default function PlanesPage() {
             </motion.div>
           ))}
         </Stack>
-      </Container>
+      </PageContainer>
 
       <Footer />
     </Box>

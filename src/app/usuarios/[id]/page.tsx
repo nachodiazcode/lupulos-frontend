@@ -8,14 +8,13 @@ import {
   Avatar,
   Button,
   CircularProgress,
-  Container,
   Stack,
   Typography,
   Box,
   Paper,
 } from "@mui/material";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PageContainer from "@/components/layouts/PageContainer";
 
 interface Usuario {
   _id?: string;
@@ -118,9 +117,7 @@ export default function UsuarioPage() {
 
   return (
     <>
-      <Navbar />
-      <Box sx={{ minHeight: "100vh", py: { xs: 6, md: 10 } }}>
-        <Container maxWidth="lg">
+      <PageContainer>
           <Paper
             elevation={6}
             sx={{
@@ -211,8 +208,7 @@ export default function UsuarioPage() {
               </Box>
             </Stack>
           </Paper>
-        </Container>
-      </Box>
+      </PageContainer>
       <Footer />
     </>
   );

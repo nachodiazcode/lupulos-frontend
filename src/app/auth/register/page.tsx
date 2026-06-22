@@ -334,6 +334,19 @@ export default function RegisterPage() {
 
   useEffect(() => {
     setMounted(true);
+    let originalTheme: string | null = null;
+
+    const timer = setTimeout(() => {
+      originalTheme = document.documentElement.getAttribute("data-theme");
+      document.documentElement.setAttribute("data-theme", "stout");
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      if (originalTheme) {
+        document.documentElement.setAttribute("data-theme", originalTheme);
+      }
+    };
   }, []);
 
   const bubbles = useMemo(() => (mounted ? generateBubbles(20) : []), [mounted]);

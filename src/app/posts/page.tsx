@@ -1,26 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence, Reorder, type Variants } from "framer-motion";
+import Image from "next/image";
+import { AnimatePresence, Reorder, motion } from "framer-motion";
+import { Box, Button, CircularProgress, Modal, TextField, Typography } from "@mui/material";
+
+import Footer from "@/components/Footer";
+import MainLayout from "@/components/layouts/MainLayout";
+import { SidebarWidget } from "@/components/ui/SidebarWidget";
+import PostCard from "@/components/ui/PostCard";
 import { api } from "@/lib/api";
-import { getImageUrl } from "@/lib/constants";
 import {
   MAX_VIDEO_DURATION_SECONDS,
   extractUploadedMedia,
-  getPrimaryPostMedia,
-  inferMediaType,
   readVideoDurationSeconds,
   type PostMedia,
 } from "@/lib/post-media";
-import { Modal, Box, TextField, Button, Typography, CircularProgress } from "@mui/material";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import GoldenBackground from "@/components/GoldenBackground";
-
-/* ─── Types ─── */
 interface Usuario {
   _id?: string;
   id?: string;
@@ -45,372 +41,61 @@ interface Post {
   author?: Usuario;
   createdAt?: string;
   updatedAt?: string;
-  reacciones?: {
-    meGusta?: { count: number; usuarios: string[] };
-  };
-  reactions?: {
-    like?: { count: number; users: string[] };
-  };
+  views?: number;
+  comments?: unknown[];
+  reacciones?: Record<string, { count?: number; users?: string[]; usuarios?: string[] }>;
+  reactions?: Record<string, { count?: number; users?: string[]; usuarios?: string[] }>;
 }
 
-/* ─── Animations ─── */
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, delay: i * 0.1, ease: "easeOut" },
-  }),
-};
+type ReactionType = "cheers" | "recommended" | "like";
 
-const stagger: Variants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
-
-const cardPop: Variants = {
-  hidden: { opacity: 0, y: 20, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } },
-};
-
-/* ─── Sort chips ─── */
 const SORT_OPTIONS = [
-  { label: "🔥 Recientes", value: "recientes" },
-  { label: "🏆 Más saludados", value: "likes" },
-  { label: "📸 Con imagen", value: "imagen" },
+  { label: "🆕 Recientes", value: "recientes" },
+  { label: "🔥 Top", value: "likes" },
+  { label: "🖼️ Con foto", value: "imagen" },
 ] as const;
 
 type SortKey = (typeof SORT_OPTIONS)[number]["value"];
 
-/* ─── Time ago helper ─── */
-function timeAgo(dateString: string): string {
-  if (!dateString) return "";
-  const now = Date.now();
-  const then = new Date(dateString).getTime();
-  const diff = Math.max(0, now - then);
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 7);
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
-
-  if (years > 0) return `hace ${years}a`;
-  if (months > 0) return `hace ${months}m`;
-  if (weeks > 0) return `hace ${weeks} sem`;
-  if (days > 0) return `hace ${days}d`;
-  if (hours > 0) return `hace ${hours}h`;
-  if (minutes > 0) return `hace ${minutes}min`;
-  return "ahora";
-}
-
-/* ─── Avatar gradient backgrounds ─── */
-const AVATAR_GRADIENTS = [
-  "linear-gradient(135deg, #f59e0b, #ef4444)",
-  "linear-gradient(135deg, #10b981, #3b82f6)",
-  "linear-gradient(135deg, #8b5cf6, #ec4899)",
-  "linear-gradient(135deg, #f59e0b, #10b981)",
-  "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-  "linear-gradient(135deg, #ef4444, #f59e0b)",
-];
-
-function getAvatarGradient(username: string): string {
-  let hash = 0;
-  for (let i = 0; i < username.length; i++) {
-    hash = username.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
-}
-
-/* ─── Widget Registry ─── */
 const WIDGET_REGISTRY = [
-  { id: "publicar",         emoji: "✏️", label: "Publicar" },
-  { id: "tendencias",       emoji: "🔥", label: "Tendencias" },
-  { id: "comunidad-stats",  emoji: "📊", label: "Comunidad" },
-  { id: "filtros",          emoji: "🎯", label: "Filtros" },
+  {
+    id: "publicar",
+    emoji: "✏️",
+    label: "Publicar",
+    description: "Crea una publicacion rapida.",
+  },
+  {
+    id: "tendencias",
+    emoji: "🔥",
+    label: "Tendencias",
+    description: "Lo mas saludado por la comunidad.",
+  },
+  {
+    id: "comunidad-stats",
+    emoji: "📊",
+    label: "Comunidad",
+    description: "Lectura rapida del movimiento.",
+  },
+  {
+    id: "filtros",
+    emoji: "🎯",
+    label: "Filtros",
+    description: "Busca y ordena la actividad.",
+  },
 ] as const;
 
 type WidgetId = (typeof WIDGET_REGISTRY)[number]["id"];
-const DEFAULT_WIDGETS: WidgetId[] = ["publicar", "tendencias"];
+
+const DEFAULT_WIDGETS: WidgetId[] = ["publicar", "tendencias", "comunidad-stats", "filtros"];
 const SIDEBAR_STORAGE_KEY = "posts_sidebar_widgets_v1";
 
-/* ─── Instagram-style Post Card ─── */
-function PostCard({
-  post,
-  liked,
-  onLike,
-  onClick,
-  shareOpenId,
-  onShareToggle,
-}: {
-  post: Post;
-  liked: boolean;
-  onLike: () => void;
-  onClick: () => void;
-  shareOpenId: string | null;
-  onShareToggle: (id: string | null) => void;
-}) {
-  const primaryMedia = getPrimaryPostMedia(post);
-  const mediaPath = primaryMedia?.path || getPostImages(post)[0] || "";
-  const mediaType = primaryMedia?.type || inferMediaType(mediaPath);
-  const [imgError, setImgError] = useState(false);
-  const username = getPostUser(post)?.username ?? "anon";
-  const postId = getPostId(post);
-  const isShareOpen = shareOpenId === postId;
-  const content = getPostContent(post);
-  const [expanded, setExpanded] = useState(false);
-  const shouldTruncate = content.length > 120;
+const widgetById = new Map(WIDGET_REGISTRY.map((widget) => [widget.id, widget]));
 
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}/posts/${postId}`);
-    } catch {
-      /* silent */
-    }
-    onShareToggle(null);
-  };
-
-  const handleShareTwitter = () => {
-    const url = encodeURIComponent(`${window.location.origin}/posts/${postId}`);
-    const text = encodeURIComponent(getPostTitle(post));
-    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, "_blank");
-    onShareToggle(null);
-  };
-
-  const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`${getPostTitle(post)} - ${window.location.origin}/posts/${postId}`);
-    window.open(`https://wa.me/?text=${text}`, "_blank");
-    onShareToggle(null);
-  };
-
-  return (
-    <motion.div
-      variants={cardPop}
-      className="group relative overflow-hidden rounded-2xl border backdrop-blur-sm"
-      style={{
-        background: "var(--color-surface-card)",
-        borderColor: "var(--color-border-subtle)",
-        boxShadow: "var(--shadow-card)",
-      }}
-    >
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-3 min-w-0 cursor-pointer" onClick={onClick}>
-          {/* Avatar */}
-          <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-            style={{ background: getAvatarGradient(username) }}
-          >
-            {username[0]?.toUpperCase() ?? "?"}
-          </div>
-          <div className="min-w-0">
-            <span className="block truncate text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
-              {username}
-            </span>
-            <span className="block text-[11px]" style={{ color: "var(--color-text-muted)" }}>
-              {timeAgo(getPostDate(post))}
-            </span>
-          </div>
-        </div>
-        <button
-          className="flex h-8 w-8 items-center justify-center rounded-full text-lg transition-colors"
-          style={{ color: "var(--color-text-muted)" }}
-          onClick={(e) => { e.stopPropagation(); }}
-        >
-          ···
-        </button>
-      </div>
-
-      {/* ── Image ── */}
-      <div
-        className="relative aspect-[4/3] w-full overflow-hidden cursor-pointer"
-        style={{ background: "var(--color-surface-card-alt)" }}
-        onClick={onClick}
-      >
-        {mediaPath && !imgError ? (
-          mediaType === "video" ? (
-            <video
-              src={getImageUrl(mediaPath)}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              muted
-              playsInline
-              preload="metadata"
-            />
-          ) : (
-            <Image
-              src={getImageUrl(mediaPath)}
-              alt={getPostTitle(post)}
-              fill
-              unoptimized
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              onError={() => setImgError(true)}
-            />
-          )
-        ) : (
-          <div
-            className="flex h-full w-full flex-col items-center justify-center gap-2 select-none"
-            style={{
-              background: "linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(245,158,11,0.05) 50%, rgba(251,191,36,0.12) 100%)",
-            }}
-          >
-            <span className="text-4xl">📝</span>
-            <span
-              className="max-w-[80%] text-center text-sm font-semibold leading-snug"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              {getPostTitle(post)}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* ── Action bar ── */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-1">
-        <div className="flex items-center gap-3">
-          {/* Like */}
-          <motion.button
-            onClick={(e) => { e.stopPropagation(); onLike(); }}
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.85 }}
-            className="text-xl leading-none"
-          >
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={liked ? "liked" : "not"}
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.5, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 15 }}
-              >
-                {liked ? "🍻" : "🤍"}
-              </motion.span>
-            </AnimatePresence>
-          </motion.button>
-
-          {/* Comment */}
-          <motion.button
-            onClick={onClick}
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
-            className="text-xl leading-none"
-          >
-            💬
-          </motion.button>
-
-          {/* Share */}
-          <div className="relative">
-            <motion.button
-              onClick={(e) => {
-                e.stopPropagation();
-                onShareToggle(isShareOpen ? null : postId);
-              }}
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.9 }}
-              className="text-xl leading-none"
-            >
-              ↗
-            </motion.button>
-
-            {/* Share dropdown */}
-            <AnimatePresence>
-              {isShareOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute left-0 top-full z-30 mt-2 w-48 overflow-hidden rounded-xl border"
-                  style={{
-                    background: "var(--color-surface-card)",
-                    borderColor: "var(--color-border-light)",
-                    boxShadow: "var(--shadow-elevated)",
-                  }}
-                >
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs font-medium transition-colors"
-                    style={{ color: "var(--color-text-primary)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.08)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <span>🔗</span> Copiar enlace
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleShareTwitter(); }}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs font-medium transition-colors"
-                    style={{ color: "var(--color-text-primary)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.08)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <span>🐦</span> Compartir en Twitter
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleShareWhatsApp(); }}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs font-medium transition-colors"
-                    style={{ color: "var(--color-text-primary)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.08)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <span>💬</span> Compartir en WhatsApp
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Like count */}
-        <span className="text-xs font-semibold" style={{ color: "var(--color-amber-primary)" }}>
-          🍻 {getLikeCount(post)}
-        </span>
-      </div>
-
-      {/* ── Content area ── */}
-      <div className="px-4 pt-1 pb-2">
-        {getPostTitle(post) && (
-          <h3 className="text-sm font-bold" style={{ color: "var(--color-text-primary)" }}>
-            {getPostTitle(post)}
-          </h3>
-        )}
-        {content && (
-          <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-            <span className="font-semibold" style={{ color: "var(--color-text-primary)" }}>
-              {username}
-            </span>{" "}
-            {shouldTruncate && !expanded ? (
-              <>
-                {content.slice(0, 120)}...{" "}
-                <button
-                  onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
-                  className="font-medium"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  más
-                </button>
-              </>
-            ) : (
-              content
-            )}
-          </p>
-        )}
-      </div>
-
-      {/* ── Date ── */}
-      <div className="px-4 pb-3">
-        <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--color-text-muted)" }}>
-          {timeAgo(getPostDate(post))}
-        </span>
-      </div>
-    </motion.div>
-  );
+function isWidgetId(value: string): value is WidgetId {
+  return WIDGET_REGISTRY.some((widget) => widget.id === value);
 }
 
-/* ═════════════════════════════════
-   Page
-   ═════════════════════════════════ */
 export default function PostPage() {
-  const router = useRouter();
   const [user, setUser] = useState<Usuario | null>(null);
   const [titulo, setTitulo] = useState("");
   const [contenido, setContenido] = useState("");
@@ -423,66 +108,100 @@ export default function PostPage() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [filtro, setFiltro] = useState("");
   const [sort, setSort] = useState<SortKey>("recientes");
-  const [shareOpenId, setShareOpenId] = useState<string | null>(null);
-
-  /* Widget state */
   const [sidebarDismissed, setSidebarDismissed] = useState(false);
   const [enabledWidgets, setEnabledWidgets] = useState<WidgetId[]>(DEFAULT_WIDGETS);
   const [pickerOpen, setPickerOpen] = useState(false);
-
-  /* Quick-post state for widget */
   const [widgetTitulo, setWidgetTitulo] = useState("");
   const [widgetContenido, setWidgetContenido] = useState("");
+  const [shareOpenId, setShareOpenId] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
+
     const token = localStorage.getItem("authToken");
     const storedUser = localStorage.getItem("user");
-    if (token && storedUser) setUser(JSON.parse(storedUser));
-    fetchPosts();
-    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-    if (stored) {
-      try { setEnabledWidgets(JSON.parse(stored) as WidgetId[]); } catch { /* noop */ }
+    if (token && storedUser) {
+      try {
+        setUser(JSON.parse(storedUser) as Usuario);
+      } catch {
+        setUser(null);
+      }
     }
+
+    const storedWidgets = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    if (storedWidgets) {
+      try {
+        const parsed = JSON.parse(storedWidgets) as string[];
+        const validWidgets = parsed.filter(isWidgetId);
+        if (validWidgets.length > 0) setEnabledWidgets(validWidgets);
+      } catch {
+        localStorage.removeItem(SIDEBAR_STORAGE_KEY);
+      }
+    }
+
+    void fetchPosts();
   }, []);
 
   useEffect(() => {
-    if (imagen) {
-      const url = URL.createObjectURL(imagen);
-      setPreview(url);
-      return () => URL.revokeObjectURL(url);
+    if (!imagen) {
+      setPreview(null);
+      return undefined;
     }
-    setPreview(null);
-  }, [imagen]);
 
-  /* Close share dropdown on outside click */
-  useEffect(() => {
-    if (!shareOpenId) return;
-    const handler = () => setShareOpenId(null);
-    window.addEventListener("click", handler);
-    return () => window.removeEventListener("click", handler);
-  }, [shareOpenId]);
+    const url = URL.createObjectURL(imagen);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imagen]);
 
   const fetchPosts = async () => {
     try {
-      const res = await api.get(`/post`);
+      const res = await api.get("/post");
       const data = Array.isArray(res.data?.data) ? res.data.data : res.data?.posts || [];
       setPosts(data);
     } catch (err) {
-      console.error("❌ Error al obtener posts:", err);
+      console.error("Error al obtener publicaciones:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleLike = async (postId: string) => {
-    const userId = getUserId(user);
-    if (!userId) return;
+  const currentUserId = (user?._id || user?.id || "") as string;
+
+  const SP_REACTION: Record<ReactionType, string> = {
+    cheers: "brindis",
+    recommended: "recomendado",
+    like: "meGusta",
+  };
+
+  const getReactionUsers = (post: Post, type: ReactionType): string[] => {
+    const en = post.reactions?.[type];
+    const sp = post.reacciones?.[SP_REACTION[type]];
+    return en?.users || sp?.users || sp?.usuarios || [];
+  };
+
+  const handleReact = async (postId: string, type: ReactionType) => {
+    if (!postId || !user) return;
+    const spKey = SP_REACTION[type];
+    // Optimista: actualiza el contador al instante
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (getPostId(post) !== postId) return post;
+        const users = getReactionUsers(post, type);
+        const has = users.includes(currentUserId);
+        const nextUsers = has ? users.filter((u) => u !== currentUserId) : [...users, currentUserId];
+        const shape = { count: nextUsers.length, users: nextUsers, usuarios: nextUsers };
+        return {
+          ...post,
+          reactions: { ...post.reactions, [type]: shape },
+          reacciones: { ...post.reacciones, [spKey]: shape },
+        };
+      })
+    );
     try {
-      await api.post(`/post/${postId}/react`, { type: "meGusta" });
-      fetchPosts();
-    } catch (err) {
-      console.error("❌ Error al alternar like:", err);
+      await api.post(`/post/${postId}/react`, { type });
+    } catch (error) {
+      console.error("Error al reaccionar al post:", error);
+      void fetchPosts();
     }
   };
 
@@ -499,8 +218,8 @@ export default function PostPage() {
           return;
         }
       } catch (error) {
-        console.error("❌ Error al leer duración del video:", error);
-        setMediaError("No pudimos leer la duración de ese video.");
+        console.error("Error al leer duracion del video:", error);
+        setMediaError("No pudimos leer la duracion de ese video.");
         return;
       }
     }
@@ -508,227 +227,84 @@ export default function PostPage() {
     setImagen(file);
   };
 
+  const resetComposer = () => {
+    setTitulo("");
+    setContenido("");
+    setImagen(null);
+    setPreview(null);
+    setMediaError("");
+  };
+
   const handleSubmit = async () => {
     const userId = getUserId(user);
     if (!userId) return;
+
     try {
       let uploadedMedia: PostMedia | null = null;
       let imagePath = "";
+
       if (imagen) {
         const formData = new FormData();
         formData.append("media", imagen);
+
         if (imagen.type.startsWith("video/")) {
           const durationSeconds = await readVideoDurationSeconds(imagen);
           formData.append("durationSeconds", String(durationSeconds));
         }
-        const res = await api.post(`/post/upload`, formData, {
+
+        const res = await api.post("/post/upload", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         uploadedMedia = extractUploadedMedia(res.data);
         imagePath = uploadedMedia?.path || "";
+
         if (!imagePath) {
           throw new Error("Upload response did not include a media path");
         }
       }
-      await api.post(`/post`, {
+
+      await api.post("/post", {
         titulo,
         contenido,
         media: uploadedMedia ? [uploadedMedia] : [],
         imagenes: imagePath ? [imagePath] : [],
       });
-      setTitulo("");
-      setContenido("");
-      setImagen(null);
-      setPreview(null);
-      setMediaError("");
+
+      resetComposer();
       setModalAbierto(false);
-      fetchPosts();
+      await fetchPosts();
     } catch (err) {
-      console.error("❌ Error al subir post:", err);
-      setMediaError("No pudimos subir la publicación.");
+      console.error("Error al subir publicacion:", err);
+      setMediaError("No pudimos subir la publicacion.");
     }
   };
 
   const handleWidgetSubmit = async () => {
     const userId = getUserId(user);
     if (!userId || !widgetTitulo.trim()) return;
+
     try {
-      await api.post(`/post`, { titulo: widgetTitulo, contenido: widgetContenido, imagenes: [] });
+      await api.post("/post", {
+        titulo: widgetTitulo,
+        contenido: widgetContenido,
+        imagenes: [],
+        media: [],
+      });
       setWidgetTitulo("");
       setWidgetContenido("");
-      fetchPosts();
+      await fetchPosts();
     } catch (err) {
-      console.error("❌ Error al subir post:", err);
+      console.error("Error al subir publicacion:", err);
     }
   };
 
   const toggleWidget = (id: WidgetId) => {
     setEnabledWidgets((prev) => {
-      const next = prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id];
+      const next = prev.includes(id) ? prev.filter((widgetId) => widgetId !== id) : [...prev, id];
       localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(next));
       if (next.length === WIDGET_REGISTRY.length) setPickerOpen(false);
       return next;
     });
-  };
-
-  /* ─── Widget renderer ─── */
-  const renderWidget = (id: WidgetId): React.ReactNode => {
-    switch (id) {
-      case "publicar":
-        return (
-          <div className="px-5 py-3">
-            <div className="mb-2.5 flex items-center gap-2">
-              <motion.span className="text-sm" animate={{ rotate: [0, 10, -5, 0] }} transition={{ duration: 3, repeat: Infinity, repeatDelay: 3 }}>✏️</motion.span>
-              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Publicar</span>
-            </div>
-            {user ? (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={widgetTitulo}
-                  onChange={(e) => setWidgetTitulo(e.target.value)}
-                  placeholder="Título..."
-                  className="w-full rounded-xl border bg-transparent px-3 py-2 text-[12px] outline-none"
-                  style={{ borderColor: "var(--color-border-subtle)", color: "var(--color-text-primary)" }}
-                />
-                <textarea
-                  value={widgetContenido}
-                  onChange={(e) => setWidgetContenido(e.target.value)}
-                  placeholder="¿Qué quieres compartir?"
-                  rows={2}
-                  className="w-full resize-none rounded-xl border bg-transparent px-3 py-2 text-[12px] outline-none"
-                  style={{ borderColor: "var(--color-border-subtle)", color: "var(--color-text-primary)" }}
-                />
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleWidgetSubmit}
-                  className="w-full rounded-xl py-1.5 text-[11px] font-semibold transition-all"
-                  style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
-                >
-                  Publicar
-                </motion.button>
-              </div>
-            ) : (
-              <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>Inicia sesión para publicar</p>
-            )}
-          </div>
-        );
-
-      case "tendencias":
-        return (
-          <div className="px-5 py-3">
-            <div className="mb-2.5 flex items-center gap-2">
-              <motion.span className="text-sm" animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>🔥</motion.span>
-              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Tendencias</span>
-            </div>
-            <div className="space-y-1.5">
-              {[...posts]
-                .sort((a, b) => getLikeCount(b) - getLikeCount(a))
-                .slice(0, 5)
-                .map((p, i) => (
-                  <motion.div
-                    key={getPostId(p)}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.06 }}
-                    whileHover={{ x: 3 }}
-                    onClick={() => router.push(`/posts/${getPostId(p)}`)}
-                    className="group/trend flex cursor-pointer items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors"
-                    style={{ background: "transparent" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(251,191,36,0.06)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <span className="text-[10px] font-bold" style={{ color: "var(--color-amber-primary)" }}>#{i + 1}</span>
-                    <span className="min-w-0 flex-1 truncate text-[12px] font-medium" style={{ color: "var(--color-text-primary)" }}>
-                      {getPostTitle(p) || "Sin título"}
-                    </span>
-                    <span className="shrink-0 text-[10px]" style={{ color: "var(--color-text-secondary)" }}>🍻 {getLikeCount(p)}</span>
-                  </motion.div>
-                ))}
-              {posts.length === 0 && (
-                <p className="text-[12px]" style={{ color: "var(--color-text-muted)" }}>Sin publicaciones aún</p>
-              )}
-            </div>
-          </div>
-        );
-
-      case "comunidad-stats":
-        return (
-          <div className="px-5 py-3">
-            <div className="mb-2.5 flex items-center gap-2">
-              <motion.span className="text-sm" animate={{ y: [0, -3, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}>📊</motion.span>
-              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Comunidad</span>
-            </div>
-            <div className="space-y-2">
-              {[
-                { icon: "📝", label: "Total publicaciones", value: posts.length },
-                { icon: "📸", label: "Con imagen", value: posts.filter((p) => getPostImages(p).length > 0).length },
-                { icon: "🍻", label: "Total saludos", value: posts.reduce((sum, p) => sum + getLikeCount(p), 0) },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-center justify-between rounded-xl px-3 py-2" style={{ background: "rgba(251,191,36,0.04)" }}>
-                  <span className="flex items-center gap-2 text-[12px]" style={{ color: "var(--color-text-secondary)" }}>
-                    <span>{stat.icon}</span> {stat.label}
-                  </span>
-                  <span className="text-[12px] font-bold" style={{ color: "var(--color-amber-primary)", fontVariantNumeric: "tabular-nums" }}>{stat.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "filtros":
-        return (
-          <div className="px-5 py-3">
-            <div className="mb-2.5 flex items-center gap-2">
-              <motion.span className="text-sm" animate={{ rotate: [0, 15, -10, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}>🎯</motion.span>
-              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--color-amber-primary)" }}>Filtros</span>
-            </div>
-            {/* Search */}
-            <div
-              className="mb-2.5 flex items-center gap-2 rounded-xl border px-3 py-2"
-              style={{ borderColor: "var(--color-border-subtle)" }}
-            >
-              <span style={{ color: "var(--color-amber-primary)" }}>🔍</span>
-              <input
-                type="text"
-                value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
-                placeholder="Buscar..."
-                className="w-full bg-transparent text-[12px] outline-none"
-                style={{ color: "var(--color-text-primary)" }}
-              />
-              {filtro && (
-                <button onClick={() => setFiltro("")} className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-                  ✕
-                </button>
-              )}
-            </div>
-            {/* Sort */}
-            <div className="flex flex-wrap gap-1.5">
-              {SORT_OPTIONS.map((opt) => (
-                <motion.button
-                  key={opt.value}
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSort(opt.value)}
-                  className="rounded-full border px-2.5 py-1 text-[10px] font-medium transition-all"
-                  style={{
-                    borderColor: sort === opt.value ? "var(--color-amber-primary)" : "var(--color-border-light)",
-                    color: sort === opt.value ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
-                    background: sort === opt.value ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.04)",
-                  }}
-                >
-                  {opt.label}
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
   };
 
   if (!isClient || loading) {
@@ -740,13 +316,13 @@ export default function PostPage() {
   }
 
   const postsFiltrados = posts
-    .filter((p) => {
-      const q = normalizeText(filtro);
-      const title = normalizeText(getPostTitle(p));
-      const content = normalizeText(getPostContent(p));
-      const author = normalizeText(getPostUser(p)?.username || "");
-      const matchesText = !q || title.includes(q) || content.includes(q) || author.includes(q);
-      const matchesImage = sort === "imagen" ? !!getPostImages(p)[0] : true;
+    .filter((post) => {
+      const query = normalizeText(filtro);
+      const title = normalizeText(getPostTitle(post));
+      const content = normalizeText(getPostContent(post));
+      const author = normalizeText(getPostUser(post)?.username || "");
+      const matchesText = !query || title.includes(query) || content.includes(query) || author.includes(query);
+      const matchesImage = sort === "imagen" ? getPostImages(post).length > 0 || getPostMedia(post).length > 0 : true;
       return matchesText && matchesImage;
     })
     .sort((a, b) => {
@@ -754,555 +330,550 @@ export default function PostPage() {
       return new Date(getPostDate(b)).getTime() - new Date(getPostDate(a)).getTime();
     });
 
-  return (
-    <div className="relative flex min-h-screen flex-col" style={{ color: "var(--color-text-primary)" }}>
-      <GoldenBackground />
-      <Navbar />
+  const topPosts = [...posts].sort((a, b) => getLikeCount(b) - getLikeCount(a)).slice(0, 5);
+  const totalCheers = posts.reduce((sum, post) => sum + getLikeCount(post), 0);
+  const postsWithMedia = posts.filter((post) => getPostImages(post).length > 0 || getPostMedia(post).length > 0).length;
+  const hiddenFeedSummary = `${postsFiltrados.length} publicacion${postsFiltrados.length === 1 ? "" : "es"} filtrada${
+    postsFiltrados.length === 1 ? "" : "s"
+  }`;
 
-      <main className="relative z-[2] mx-auto w-full max-w-2xl flex-1 px-4 pt-6 pb-12 sm:px-6">
-        {/* ─── Header ─── */}
-        <motion.div initial="hidden" animate="visible" className="mb-10 flex flex-col items-center text-center">
-          <motion.span
-            variants={fadeUp}
-            custom={0}
-            className="inline-block rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase backdrop-blur-sm"
-            style={{
-              borderColor: "var(--color-border-amber)",
-              color: "var(--color-amber-primary)",
-              background: "rgba(251,191,36,0.06)",
-            }}
-          >
-            🍺 Lo que está tomando la comunidad
-          </motion.span>
+  const renderWidget = (id: WidgetId): React.ReactNode => {
+    switch (id) {
+      case "publicar":
+        return (
+          <div className="space-y-3">
+            {user ? (
+              <>
+                <input
+                  type="text"
+                  value={widgetTitulo}
+                  onChange={(event) => setWidgetTitulo(event.target.value)}
+                  placeholder="Titulo..."
+                  className="w-full rounded-2xl border bg-transparent px-3 py-2 text-[12px] font-semibold outline-none"
+                  style={{
+                    borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+                    color: "var(--color-text-primary)",
+                  }}
+                />
+                <textarea
+                  value={widgetContenido}
+                  onChange={(event) => setWidgetContenido(event.target.value)}
+                  placeholder="Que estas tomando?"
+                  rows={3}
+                  className="w-full resize-none rounded-2xl border bg-transparent px-3 py-2 text-[12px] outline-none"
+                  style={{
+                    borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+                    color: "var(--color-text-primary)",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleWidgetSubmit}
+                  disabled={!widgetTitulo.trim()}
+                  className="w-full rounded-full px-4 py-2 text-[12px] font-extrabold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{
+                    background: "var(--gradient-button-primary)",
+                    color: "var(--color-text-dark)",
+                    boxShadow: "var(--shadow-amber-glow)",
+                  }}
+                >
+                  Publicar
+                </button>
+              </>
+            ) : (
+              <p className="text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+                Inicia sesion para publicar en la comunidad.
+              </p>
+            )}
+          </div>
+        );
 
-          <motion.h1
-            variants={fadeUp}
-            custom={1}
-            className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
-          >
-            El feed de la{" "}
-            <span
+      case "tendencias":
+        return (
+          <div className="space-y-2">
+            {topPosts.length > 0 ? (
+              topPosts.map((post, index) => {
+                const postId = getPostId(post);
+                return (
+                  <button
+                    key={postId || `${getPostTitle(post)}-${index}`}
+                    type="button"
+                    onClick={() => {
+                      if (postId) window.location.href = `/posts/${postId}`;
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-2xl border px-3 py-2 text-left transition-all hover:translate-x-0.5"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--color-border-light) 58%, transparent)",
+                      background: "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <span className="text-[10px] font-black text-[var(--color-amber-primary)]">#{index + 1}</span>
+                    <span className="min-w-0 flex-1 truncate text-[12px] font-bold text-[var(--color-text-primary)]">
+                      {getPostTitle(post) || "Sin titulo"}
+                    </span>
+                    <span className="shrink-0 text-[10px] font-semibold text-[var(--color-text-secondary)]">
+                      🍻 {getLikeCount(post)}
+                    </span>
+                  </button>
+                );
+              })
+            ) : (
+              <p className="text-[12px] leading-relaxed text-[var(--color-text-muted)]">
+                Aun no hay actividad para destacar.
+              </p>
+            )}
+          </div>
+        );
+
+      case "comunidad-stats":
+        return (
+          <div className="grid gap-2">
+            {[
+              { icon: "📝", label: "Publicaciones", value: posts.length },
+              { icon: "📸", label: "Con media", value: postsWithMedia },
+              { icon: "🍻", label: "Saludos", value: totalCheers },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="flex items-center justify-between rounded-2xl border px-3 py-2.5"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-border-light) 58%, transparent)",
+                  background: "rgba(255,255,255,0.03)",
+                }}
+              >
+                <span className="flex items-center gap-2 text-[12px] font-semibold text-[var(--color-text-secondary)]">
+                  <span>{stat.icon}</span>
+                  {stat.label}
+                </span>
+                <span className="text-[13px] font-black tabular-nums text-[var(--color-amber-primary)]">
+                  {stat.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        );
+
+      case "filtros":
+        return (
+          <div className="space-y-3">
+            <div
+              className="flex items-center gap-2 rounded-2xl border px-3 py-2"
               style={{
-                background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 20%, var(--color-amber-hover) 40%, var(--color-amber-primary) 60%, var(--color-amber-light) 80%, var(--color-amber-primary) 100%)",
-                backgroundSize: "300% 300%",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                animation: "magic-gradient-shift 4s ease-in-out infinite",
+                borderColor: "color-mix(in srgb, var(--color-border-light) 68%, transparent)",
+                background: "rgba(255,255,255,0.03)",
               }}
             >
-              escena craft
-            </span>
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            custom={2}
-            className="mt-3 max-w-lg text-sm sm:text-base"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            Publica lo que estás tomando, da likes, comenta y conecta con quienes viven la cerveza tan en serio como tú.
-          </motion.p>
-
-          {/* Search (visible below xl, hidden when filtros widget handles it on xl) */}
-          <motion.div variants={fadeUp} custom={3} className="mt-6 w-full max-w-md xl:hidden">
-            <div
-              className="flex items-center gap-3 rounded-2xl border px-4 py-2.5"
-              style={{ background: "var(--color-surface-card)", borderColor: "var(--color-border-subtle)" }}
-            >
-              <span style={{ color: "var(--color-amber-primary)" }}>🔍</span>
+              <span className="text-[var(--color-amber-primary)]">🔎</span>
               <input
                 type="text"
                 value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
-                placeholder="Buscar publicaciones…"
-                className="w-full bg-transparent text-sm outline-none"
+                onChange={(event) => setFiltro(event.target.value)}
+                placeholder="Buscar..."
+                className="w-full bg-transparent text-[12px] font-semibold outline-none"
                 style={{ color: "var(--color-text-primary)" }}
               />
-              {filtro && (
-                <button onClick={() => setFiltro("")} className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                  ✕
+              {filtro ? (
+                <button
+                  type="button"
+                  onClick={() => setFiltro("")}
+                  className="text-[11px] font-bold text-[var(--color-text-muted)]"
+                  aria-label="Limpiar busqueda"
+                >
+                  ×
                 </button>
-              )}
+              ) : null}
             </div>
-          </motion.div>
+            <div className="flex flex-wrap gap-1.5">
+              {SORT_OPTIONS.map((option) => {
+                const active = sort === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setSort(option.value)}
+                    className="rounded-full border px-2.5 py-1 text-[10px] font-extrabold transition-all"
+                    style={{
+                      borderColor: active
+                        ? "var(--color-amber-primary)"
+                        : "color-mix(in srgb, var(--color-border-light) 62%, transparent)",
+                      background: active ? "rgba(251,191,36,0.13)" : "rgba(255,255,255,0.03)",
+                      color: active ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
 
-          {/* Sort chips (visible below xl) */}
-          <motion.div variants={fadeUp} custom={4} className="mt-3 flex flex-wrap justify-center gap-2 xl:hidden">
-            {SORT_OPTIONS.map((opt) => (
-              <motion.button
-                key={opt.value}
-                whileHover={{ scale: 1.06, y: -1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSort(opt.value)}
-                className="rounded-full border px-3 py-1 text-[11px] font-medium backdrop-blur-sm transition-all"
+      default:
+        return null;
+    }
+  };
+
+  const widgetPicker = (
+    <AnimatePresence initial={false}>
+      {pickerOpen ? (
+        <motion.div
+          initial={{ opacity: 0, y: -10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 320, damping: 26 }}
+          className="rounded-[1.25rem] border p-3"
+          style={{
+            borderColor: "color-mix(in srgb, var(--color-border-amber) 46%, var(--color-border-light))",
+            background: "color-mix(in srgb, var(--color-surface-card) 94%, transparent)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
+          }}
+        >
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-amber-primary)]">
+              Disponibles
+            </p>
+            <button
+              type="button"
+              onClick={() => setPickerOpen(false)}
+              className="flex h-6 w-6 items-center justify-center rounded-full border text-[12px]"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-border-light) 65%, transparent)",
+                color: "var(--color-text-muted)",
+              }}
+              aria-label="Cerrar selector"
+            >
+              ×
+            </button>
+          </div>
+          <div className="space-y-2">
+            {WIDGET_REGISTRY.filter((widget) => !enabledWidgets.includes(widget.id)).map((widget) => (
+              <div
+                key={widget.id}
+                className="flex items-center gap-3 rounded-2xl border p-3"
                 style={{
-                  borderColor: sort === opt.value ? "var(--color-amber-primary)" : "var(--color-border-light)",
-                  color: sort === opt.value ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
-                  background: sort === opt.value ? "rgba(251,191,36,0.12)" : "rgba(251,191,36,0.04)",
+                  borderColor: "color-mix(in srgb, var(--color-border-light) 62%, transparent)",
+                  background: "rgba(255,255,255,0.03)",
                 }}
               >
-                {opt.label}
-              </motion.button>
-            ))}
-          </motion.div>
-
-          {/* CTA */}
-          {user && (
-            <motion.div variants={fadeUp} custom={5} className="mt-5">
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setModalAbierto(true)}
-                className="group relative overflow-hidden rounded-full px-6 py-2.5 text-sm font-bold transition-all duration-300"
-                style={{
-                  background: "var(--gradient-button-primary)",
-                  color: "var(--color-text-dark)",
-                  boxShadow: "var(--shadow-amber-glow)",
-                }}
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                  Publicar
+                <span className="text-lg">{widget.emoji}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[12px] font-extrabold text-[var(--color-text-primary)]">
+                    {widget.label}
+                  </span>
+                  <span className="mt-0.5 block text-[10px] leading-snug text-[var(--color-text-muted)]">
+                    {widget.description}
+                  </span>
                 </span>
-                <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              </motion.button>
-            </motion.div>
-          )}
+                <button
+                  type="button"
+                  onClick={() => toggleWidget(widget.id)}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[16px] font-black"
+                  style={{
+                    background: "var(--gradient-button-primary)",
+                    color: "var(--color-text-dark)",
+                    boxShadow: "var(--shadow-amber-glow)",
+                  }}
+                  aria-label={`Agregar ${widget.label}`}
+                >
+                  +
+                </button>
+              </div>
+            ))}
+            {WIDGET_REGISTRY.every((widget) => enabledWidgets.includes(widget.id)) ? (
+              <p className="py-3 text-center text-[12px] font-semibold text-[var(--color-text-muted)]">
+                Todos los widgets estan activos.
+              </p>
+            ) : null}
+          </div>
         </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
 
-        {/* ─── Mobile Widgets (xl:hidden) ─── */}
-        <div className="mb-6 xl:hidden">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
-            {WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
-              <motion.button
-                whileTap={{ scale: 0.94 }}
-                onClick={() => setPickerOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all"
-                style={{
-                  borderColor: pickerOpen ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
-                  color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
-                  background: pickerOpen ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.03)",
-                }}
+  const widgetRail = (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">
+          Mis widgets
+        </p>
+        <button
+          type="button"
+          onClick={() => setSidebarDismissed(true)}
+          className="flex h-7 w-7 items-center justify-center rounded-full border text-[13px]"
+          style={{
+            borderColor: "color-mix(in srgb, var(--color-border-light) 65%, transparent)",
+            background: "rgba(255,255,255,0.04)",
+            color: "var(--color-text-muted)",
+          }}
+          aria-label="Ocultar widgets"
+        >
+          ×
+        </button>
+      </div>
+
+      <Reorder.Group
+        axis="y"
+        values={enabledWidgets}
+        onReorder={(newOrder) => {
+          setEnabledWidgets(newOrder);
+          localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(newOrder));
+        }}
+        className="space-y-3"
+      >
+        <AnimatePresence initial={false} mode="popLayout">
+          {enabledWidgets.map((id) => {
+            const widget = widgetById.get(id);
+            if (!widget) return null;
+
+            return (
+              <Reorder.Item key={id} value={id} className="list-none cursor-grab active:cursor-grabbing">
+                <SidebarWidget label={widget.label} onClose={() => toggleWidget(id)}>
+                  {renderWidget(id)}
+                </SidebarWidget>
+              </Reorder.Item>
+            );
+          })}
+        </AnimatePresence>
+      </Reorder.Group>
+
+      {enabledWidgets.length === 0 ? (
+        <div
+          className="rounded-[1.25rem] border border-dashed px-4 py-8 text-center"
+          style={{
+            borderColor: "color-mix(in srgb, var(--color-border-light) 58%, transparent)",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          <p className="text-[12px] font-bold">Sin widgets activos</p>
+        </div>
+      ) : null}
+
+      {WIDGET_REGISTRY.some((widget) => !enabledWidgets.includes(widget.id)) ? (
+        <button
+          type="button"
+          onClick={() => setPickerOpen((current) => !current)}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border py-2.5 text-[12px] font-extrabold transition-all"
+          style={{
+            borderColor: pickerOpen
+              ? "var(--color-amber-primary)"
+              : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
+            background: pickerOpen ? "rgba(251,191,36,0.1)" : "rgba(255,255,255,0.03)",
+            color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
+          }}
+        >
+          <span className="text-base leading-none">{pickerOpen ? "−" : "+"}</span>
+          Agregar widget
+        </button>
+      ) : null}
+
+      {widgetPicker}
+    </div>
+  );
+
+  return (
+    <MainLayout
+      maxWidth="calc(1140px + 4rem)"
+      stickySidebar={false}
+      title="Bienvenido a la Comunidad"
+      titleGradientText="Lupuloso"
+      titleGradient="var(--gradient-heading)"
+      subtitle="Tu super comunidad cervecera: brinda, recomienda, comenta y descubre lo que está pasando 🍻"
+      sidebar={!sidebarDismissed ? widgetRail : undefined}
+    >
+      <div className="relative z-[2] mx-auto w-full flex-1 pb-12">
+        {sidebarDismissed ? (
+          <button
+            type="button"
+            onClick={() => setSidebarDismissed(false)}
+            className="mb-4 rounded-full border px-4 py-2 text-[12px] font-extrabold transition-all hover:translate-y-[-1px]"
+            style={{
+              borderColor: "color-mix(in srgb, var(--color-border-amber) 60%, transparent)",
+              background: "rgba(251,191,36,0.06)",
+              color: "var(--color-amber-primary)",
+            }}
+          >
+            Mostrar widgets
+          </button>
+        ) : null}
+
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 24 }}
+          className="rounded-[1.5rem] border p-4"
+          style={{
+            background:
+              "linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 94%, transparent), color-mix(in srgb, var(--color-surface-card-alt) 84%, transparent))",
+            borderColor: "color-mix(in srgb, var(--color-border-light) 70%, transparent)",
+            boxShadow: "var(--shadow-card)",
+            backdropFilter: "blur(24px) saturate(160%)",
+            WebkitBackdropFilter: "blur(24px) saturate(160%)",
+          }}
+        >
+          <div
+            className="flex items-center gap-3 rounded-2xl border px-3.5 py-3"
+            style={{
+              borderColor: "color-mix(in srgb, var(--color-border-light) 62%, transparent)",
+              background: "rgba(255,255,255,0.035)",
+            }}
+          >
+            <span className="text-[var(--color-amber-primary)]">🔎</span>
+            <input
+              type="text"
+              value={filtro}
+              onChange={(event) => setFiltro(event.target.value)}
+              placeholder="Buscar actividad de la comunidad..."
+              className="w-full bg-transparent text-sm font-semibold outline-none"
+              style={{ color: "var(--color-text-primary)" }}
+            />
+            {filtro ? (
+              <button
+                type="button"
+                onClick={() => setFiltro("")}
+                className="text-sm font-black text-[var(--color-text-muted)]"
+                aria-label="Limpiar busqueda"
               >
-                <span className="text-sm leading-none">{pickerOpen ? "−" : "+"}</span>
-                Agregar
-              </motion.button>
-            )}
+                ×
+              </button>
+            ) : null}
           </div>
 
-          <AnimatePresence initial={false} mode="popLayout">
-            {enabledWidgets.map((id) => (
-              <motion.div
-                key={id}
-                layout
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                transition={{ type: "spring", stiffness: 280, damping: 26 }}
-                className="group/widget-m relative mb-2.5 overflow-hidden rounded-[1.5rem]"
-                style={{
-                  background: "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)",
-                  backdropFilter: "blur(18px) saturate(1.15)",
-                  WebkitBackdropFilter: "blur(18px) saturate(1.15)",
-                  border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
-                  boxShadow: "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), var(--shadow-elevated)",
-                }}
-              >
-                <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
-                <motion.button
-                  whileTap={{ scale: 0.88 }}
-                  onClick={() => toggleWidget(id)}
-                  className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] opacity-0 group-hover/widget-m:opacity-100 transition-opacity"
-                  style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)" }}
-                  aria-label="Quitar widget"
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {SORT_OPTIONS.map((option) => {
+              const active = sort === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSort(option.value)}
+                  className="rounded-full border px-3 py-1.5 text-[11px] font-extrabold transition-all"
+                  style={{
+                    borderColor: active
+                      ? "var(--color-amber-primary)"
+                      : "color-mix(in srgb, var(--color-border-light) 60%, transparent)",
+                    background: active ? "rgba(251,191,36,0.12)" : "rgba(255,255,255,0.03)",
+                    color: active ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
+                  }}
                 >
-                  −
-                </motion.button>
-                {renderWidget(id)}
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                  {option.label}
+                </button>
+              );
+            })}
+            <span className="ml-auto text-[11px] font-bold text-[var(--color-text-muted)]">
+              {hiddenFeedSummary}
+            </span>
+          </div>
+        </motion.section>
 
-          {enabledWidgets.length === 0 && (
+        {/* ─── Feed de la comunidad ─── */}
+        <div className="mt-5">
+          {postsFiltrados.length === 0 ? (
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 24 }}
+              className="relative overflow-hidden rounded-[1.75rem] border p-10 text-center md:p-14"
+              style={{
+                background: "linear-gradient(180deg, rgba(251,191,36,0.03) 0%, rgba(255,255,255,0.01) 100%)",
+                borderColor: "color-mix(in srgb, var(--color-border-light) 60%, transparent)",
+                boxShadow: "var(--shadow-card)",
+                backdropFilter: "blur(20px)",
+              }}
             >
-              <span className="text-3xl">📝</span>
-              <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin widgets activos</p>
-              <p className="mt-0.5 text-[10px]" style={{ color: "var(--color-text-muted)", opacity: 0.6 }}>Toca + Agregar para personalizar</p>
-            </motion.div>
-          )}
-        </div>
-
-        {/* ─── Posts feed (single column) ─── */}
-        {postsFiltrados.length === 0 ? (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center py-20 text-center">
-            <motion.span className="text-7xl" animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
-              📝
-            </motion.span>
-            <h3 className="mt-6 text-xl font-bold">El feed está esperando tu chela</h3>
-            <p className="mt-2 max-w-sm text-sm" style={{ color: "var(--color-text-muted)" }}>
-              Nadie ha publicado aún. Sé quien rompe el hielo — la comunidad te lo va a agradecer.
-            </p>
-            {user && (
+              <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-amber-500/5 blur-[80px]" />
+              <span className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                {filtro ? "🔍" : "💬"}
+              </span>
+              <h3 className="text-2xl font-extrabold leading-tight text-[var(--color-text-primary)]">
+                {filtro ? "Sin resultados para tu búsqueda" : "Sé el primero en publicar"}
+              </h3>
+              <p className="mx-auto mt-3.5 max-w-md text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                {filtro
+                  ? "Prueba con otra palabra o limpia el filtro para ver toda la actividad."
+                  : "Comparte una cata, una salida o esa cerveza que te voló la cabeza y arranca la conversación."}
+              </p>
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.03, filter: "brightness(1.08)" }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => setModalAbierto(true)}
-                className="mt-6 rounded-full px-6 py-2.5 text-sm font-bold"
-                style={{
-                  background: "var(--gradient-button-primary)",
-                  color: "var(--color-text-dark)",
-                  boxShadow: "var(--shadow-amber-glow)",
-                }}
+                onClick={() => (filtro ? setFiltro("") : setModalAbierto(true))}
+                className="mt-8 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-bold"
+                style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
               >
-                Publicar ahora 🍺
+                <span>{filtro ? "Limpiar búsqueda" : "Crear publicación"}</span>
+                <span>→</span>
               </motion.button>
-            )}
-          </motion.div>
-        ) : (
-          <>
+            </motion.div>
+          ) : (
             <motion.div
-              variants={stagger}
               initial="hidden"
               animate="visible"
-              className="flex flex-col gap-5"
+              variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
+              className="flex flex-col gap-4"
             >
               {postsFiltrados.map((post) => {
-                const liked = getLikeUsers(post).includes(getUserId(user));
+                const postId = getPostId(post);
                 return (
                   <PostCard
-                    key={getPostId(post)}
+                    key={postId}
                     post={post}
-                    liked={liked}
-                    onLike={() => toggleLike(getPostId(post))}
-                    onClick={() => router.push(`/posts/${getPostId(post)}`)}
+                    myReactions={{
+                      cheers: getReactionUsers(post, "cheers").includes(currentUserId),
+                      recommended: getReactionUsers(post, "recommended").includes(currentUserId),
+                      like: getReactionUsers(post, "like").includes(currentUserId),
+                    }}
+                    onReact={(type) => handleReact(postId, type)}
+                    onClick={() => {
+                      if (postId) window.location.href = `/posts/${postId}`;
+                    }}
                     shareOpenId={shareOpenId}
                     onShareToggle={setShareOpenId}
+                    currentUser={user}
                   />
                 );
               })}
             </motion.div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-6 text-center text-xs"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              {postsFiltrados.length} publicación{postsFiltrados.length !== 1 ? "es" : ""}
-              {filtro && <> para &ldquo;<strong>{filtro}</strong>&rdquo;</>}
-            </motion.p>
-          </>
-        )}
-      </main>
+          )}
+        </div>
 
-      {/* ─── Fixed Sidebar Widgets (xl only) ─── */}
-      <AnimatePresence>
-        {!sidebarDismissed && (
-          <motion.aside
-            className="fixed z-40 hidden xl:flex flex-col"
-            style={{ top: 120, right: 16, width: 256, bottom: 16 }}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 32, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 200, damping: 26, delay: 0.3 }}
-          >
-            <div className="flex flex-col gap-2.5 overflow-y-auto overflow-x-hidden flex-1 pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(251,191,36,0.2) transparent" }}>
-              {/* Header row */}
-              <div className="flex items-center justify-between px-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-text-secondary)" }}>Mis widgets</span>
-                <button
-                  type="button"
-                  onClick={() => setSidebarDismissed(true)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border text-sm transition-all"
-                  style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 75%, white 25%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}
-                  aria-label="Cerrar panel"
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* Drag-to-reorder widget cards */}
-              <Reorder.Group
-                axis="y"
-                values={enabledWidgets}
-                onReorder={(newOrder) => {
-                  setEnabledWidgets(newOrder);
-                  localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(newOrder));
+        <div className="mt-5 space-y-3 xl:hidden">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-text-secondary)]">
+              Mis widgets
+            </p>
+            {WIDGET_REGISTRY.some((widget) => !enabledWidgets.includes(widget.id)) ? (
+              <button
+                type="button"
+                onClick={() => setPickerOpen((current) => !current)}
+                className="rounded-full border px-3 py-1.5 text-[11px] font-extrabold"
+                style={{
+                  borderColor: pickerOpen
+                    ? "var(--color-amber-primary)"
+                    : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
+                  background: pickerOpen ? "rgba(251,191,36,0.1)" : "rgba(255,255,255,0.03)",
+                  color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
                 }}
-                className="flex flex-col gap-2.5 list-none m-0 p-0"
               >
-                <AnimatePresence initial={false} mode="popLayout">
-                  {enabledWidgets.map((id) => (
-                    <Reorder.Item
-                      key={id}
-                      value={id}
-                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      transition={{ type: "spring", stiffness: 280, damping: 26 }}
-                      className="group/widget relative overflow-hidden rounded-[1.5rem] cursor-grab active:cursor-grabbing"
-                      style={{
-                        background: "color-mix(in srgb, var(--color-surface-card) 92%, var(--color-surface-deepest) 8%)",
-                        backdropFilter: "blur(18px) saturate(1.15)",
-                        WebkitBackdropFilter: "blur(18px) saturate(1.15)",
-                        border: "1px solid color-mix(in srgb, var(--color-border-light) 88%, white 12%)",
-                        boxShadow: "inset 0 1px 0 color-mix(in srgb, white 16%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-amber-primary) 6%, transparent), var(--shadow-elevated)",
-                        listStyle: "none",
-                      }}
-                    >
-                      {/* Inner border */}
-                      <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
-                      {/* Bottom rim */}
-                      <div className="pointer-events-none absolute inset-x-5 bottom-[1px] h-px" style={{ background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-light) 40%, transparent), transparent)", opacity: 0.6 }} aria-hidden="true" />
+                {pickerOpen ? "Cerrar" : "+ Agregar"}
+              </button>
+            ) : null}
+          </div>
 
-                      {/* Remove button */}
-                      <motion.button
-                        whileHover={{ scale: 1.12 }}
-                        whileTap={{ scale: 0.88 }}
-                        onClick={() => toggleWidget(id)}
-                        className="absolute top-2.5 right-2.5 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] opacity-0 group-hover/widget:opacity-100 transition-opacity duration-150"
-                        style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)", color: "var(--color-text-muted)", backdropFilter: "blur(8px)" }}
-                        aria-label="Quitar widget"
-                      >
-                        −
-                      </motion.button>
+          <AnimatePresence initial={false} mode="popLayout">
+            {enabledWidgets.map((id) => {
+              const widget = widgetById.get(id);
+              if (!widget) return null;
+              return (
+                <SidebarWidget key={id} label={widget.label} onClose={() => toggleWidget(id)}>
+                  {renderWidget(id)}
+                </SidebarWidget>
+              );
+            })}
+          </AnimatePresence>
 
-                      {renderWidget(id)}
-                    </Reorder.Item>
-                  ))}
-                </AnimatePresence>
-              </Reorder.Group>
+          {widgetPicker}
+        </div>
+      </div>
 
-              {/* Empty state */}
-              {enabledWidgets.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center rounded-[1.5rem] py-8 text-center"
-                  style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed color-mix(in srgb, var(--color-border-light) 55%, transparent)" }}
-                >
-                  <span className="text-3xl">📝</span>
-                  <p className="mt-2 text-[12px] font-medium" style={{ color: "var(--color-text-muted)" }}>Sin widgets activos</p>
-                </motion.div>
-              )}
-
-              {/* Add widget button */}
-              {WIDGET_REGISTRY.some((w) => !enabledWidgets.includes(w.id)) && (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setPickerOpen((v) => !v)}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border py-2.5 text-[11px] font-semibold transition-all"
-                  style={{
-                    borderColor: pickerOpen ? "var(--color-amber-primary)" : "color-mix(in srgb, var(--color-border-amber) 55%, transparent)",
-                    color: pickerOpen ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
-                    background: pickerOpen ? "rgba(251,191,36,0.08)" : "rgba(251,191,36,0.03)",
-                  }}
-                >
-                  <span className="text-base leading-none">{pickerOpen ? "−" : "+"}</span>
-                  Agregar widget
-                </motion.button>
-              )}
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-
-      {/* ─── Widget Picker Card (xl only) ─── */}
-      <AnimatePresence>
-        {!sidebarDismissed && pickerOpen && (
-          <motion.div
-            className="fixed z-[60] hidden xl:block"
-            style={{ top: 120, right: 280, width: 248 }}
-            initial={{ opacity: 0, x: -16, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -16, scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 260, damping: 24 }}
-          >
-            <div
-              className="relative overflow-hidden rounded-[1.75rem]"
-              style={{
-                background: "color-mix(in srgb, var(--color-surface-card) 94%, var(--color-surface-deepest) 6%)",
-                backdropFilter: "blur(22px) saturate(1.2)",
-                WebkitBackdropFilter: "blur(22px) saturate(1.2)",
-                border: "1px solid color-mix(in srgb, var(--color-border-amber) 38%, var(--color-border-light))",
-                boxShadow: "inset 0 1px 0 color-mix(in srgb, white 18%, transparent), var(--shadow-elevated), 0 0 0 1px color-mix(in srgb, var(--color-amber-primary) 8%, transparent)",
-              }}
-            >
-              {/* Inner border */}
-              <div className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ border: "1px solid color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))" }} aria-hidden="true" />
-
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
-                  <p className="text-[9px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca para agregar al panel</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setPickerOpen(false)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border text-sm"
-                  style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.04)", color: "var(--color-text-muted)" }}
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* Available widgets */}
-              <div className="p-3 space-y-2">
-                <AnimatePresence mode="popLayout">
-                  {WIDGET_REGISTRY.filter((w) => !enabledWidgets.includes(w.id)).map((w) => (
-                    <motion.div
-                      key={w.id}
-                      layout
-                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.15 } }}
-                      transition={{ type: "spring", stiffness: 300, damping: 26 }}
-                      className="flex items-center gap-3 rounded-2xl p-3"
-                      style={{
-                        background: "color-mix(in srgb, var(--color-surface-card-alt) 60%, transparent)",
-                        border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)",
-                      }}
-                    >
-                      <span className="text-xl leading-none">{w.emoji}</span>
-                      <span className="min-w-0 flex-1 text-[11px] font-medium" style={{ color: "var(--color-text-primary)" }}>{w.label}</span>
-                      <motion.button
-                        whileHover={{ scale: 1.08 }}
-                        whileTap={{ scale: 0.92 }}
-                        onClick={() => toggleWidget(w.id)}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold"
-                        style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
-                        aria-label={`Agregar ${w.label}`}
-                      >
-                        +
-                      </motion.button>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {WIDGET_REGISTRY.every((w) => enabledWidgets.includes(w.id)) && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-4 text-center">
-                    <span className="text-2xl">✨</span>
-                    <p className="mt-1 text-[11px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Todos los widgets activos</p>
-                  </motion.div>
-                )}
-              </div>
-
-              <div className="pb-3 text-center">
-                <span className="text-[9px]" style={{ color: "var(--color-text-muted)", opacity: 0.45 }}>Los cambios se guardan automáticamente</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ─── Mobile Picker Bottom Sheet (xl:hidden) ─── */}
-      <AnimatePresence>
-        {pickerOpen && (
-          <motion.div
-            className="fixed inset-0 z-[60] xl:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0"
-              style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)" }}
-              onClick={() => setPickerOpen(false)}
-            />
-            {/* Sheet */}
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 overflow-hidden rounded-t-[2rem]"
-              style={{
-                background: "color-mix(in srgb, var(--color-surface-card) 97%, var(--color-surface-deepest) 3%)",
-                backdropFilter: "blur(24px) saturate(1.2)",
-                WebkitBackdropFilter: "blur(24px) saturate(1.2)",
-                border: "1px solid color-mix(in srgb, var(--color-border-amber) 35%, var(--color-border-light))",
-                borderBottom: "none",
-                boxShadow: "0 -8px 40px rgba(0,0,0,0.4), inset 0 1px 0 color-mix(in srgb, white 14%, transparent)",
-              }}
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 32 }}
-            >
-              {/* Handle */}
-              <div className="mx-auto mt-3 mb-1 h-1 w-10 rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
-
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 pb-3 pt-2" style={{ borderBottom: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, transparent)" }}>
-                <div>
-                  <p className="text-[13px] font-bold" style={{ color: "var(--color-amber-primary)" }}>Widgets disponibles</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: "var(--color-text-muted)" }}>Toca + para agregar al panel</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setPickerOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border text-base"
-                  style={{ borderColor: "color-mix(in srgb, var(--color-border-subtle) 80%, white 20%)", background: "rgba(255,255,255,0.05)", color: "var(--color-text-muted)" }}
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* Widget list */}
-              <div className="max-h-[40vh] overflow-y-auto p-4 space-y-2.5">
-                <AnimatePresence mode="popLayout">
-                  {WIDGET_REGISTRY.filter((w) => !enabledWidgets.includes(w.id)).map((w) => (
-                    <motion.div
-                      key={w.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 26 }}
-                      className="flex items-center gap-4 rounded-2xl p-4"
-                      style={{
-                        background: "color-mix(in srgb, var(--color-surface-card-alt) 65%, transparent)",
-                        border: "1px solid color-mix(in srgb, var(--color-border-light) 70%, transparent)",
-                      }}
-                    >
-                      <span className="text-2xl leading-none">{w.emoji}</span>
-                      <span className="min-w-0 flex-1 text-[13px] font-medium" style={{ color: "var(--color-text-primary)" }}>{w.label}</span>
-                      <motion.button
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => toggleWidget(w.id)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg font-bold"
-                        style={{ background: "var(--gradient-button-primary)", color: "var(--color-text-dark)", boxShadow: "var(--shadow-amber-glow)" }}
-                        aria-label={`Agregar ${w.label}`}
-                      >
-                        +
-                      </motion.button>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {WIDGET_REGISTRY.every((w) => enabledWidgets.includes(w.id)) && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-8 text-center">
-                    <span className="text-3xl">✨</span>
-                    <p className="mt-2 text-[13px] font-medium" style={{ color: "var(--color-text-secondary)" }}>Todos los widgets activos</p>
-                  </motion.div>
-                )}
-              </div>
-
-              <div className="pb-6 pt-2 text-center">
-                <span className="text-[10px]" style={{ color: "var(--color-text-muted)", opacity: 0.5 }}>Los cambios se guardan automáticamente</span>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ─── New post modal ─── */}
       <Modal open={modalAbierto} onClose={() => setModalAbierto(false)}>
         <Box
           sx={{
@@ -1320,23 +891,23 @@ export default function PostPage() {
             overflowY: "auto",
           }}
         >
-          <Typography variant="h6" sx={{ color: "var(--color-amber-primary)", fontWeight: 700, mb: 2 }}>
-            ✏️ Nueva publicación
+          <Typography variant="h6" sx={{ color: "var(--color-amber-primary)", fontWeight: 800, mb: 2 }}>
+            Nueva publicacion
           </Typography>
           <TextField
-            label="Título"
+            label="Titulo"
             fullWidth
             value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
+            onChange={(event) => setTitulo(event.target.value)}
             sx={{ mb: 2 }}
           />
           <TextField
-            label="¿Qué quieres compartir?"
+            label="Que quieres compartir?"
             fullWidth
             multiline
             rows={3}
             value={contenido}
-            onChange={(e) => setContenido(e.target.value)}
+            onChange={(event) => setContenido(event.target.value)}
             sx={{ mb: 2 }}
           />
           <Button
@@ -1346,15 +917,19 @@ export default function PostPage() {
             sx={{
               color: "var(--color-amber-primary)",
               borderColor: "var(--color-amber-primary)",
-              "&:hover": { bgcolor: "var(--color-amber-primary)", color: "var(--color-text-dark)" },
+              fontWeight: 800,
+              "&:hover": {
+                bgcolor: "var(--color-amber-primary)",
+                color: "var(--color-text-dark)",
+              },
             }}
           >
-            📷 Subir foto o video
+            Subir foto o video
             <input
               type="file"
               hidden
               accept="image/*,video/*"
-              onChange={(e) => void handleMediaSelected(e.target.files?.[0] || null)}
+              onChange={(event) => void handleMediaSelected(event.target.files?.[0] || null)}
             />
           </Button>
           {mediaError ? (
@@ -1362,7 +937,7 @@ export default function PostPage() {
               {mediaError}
             </Typography>
           ) : null}
-          {preview && (
+          {preview ? (
             <Box mt={2}>
               {imagen?.type.startsWith("video/") ? (
                 <video
@@ -1374,14 +949,14 @@ export default function PostPage() {
               ) : (
                 <Image
                   src={preview}
-                  alt="preview"
+                  alt="Vista previa"
                   width={400}
                   height={250}
                   style={{ width: "100%", height: "auto", borderRadius: 8, objectFit: "cover" }}
                 />
               )}
             </Box>
-          )}
+          ) : null}
           <Button
             fullWidth
             variant="contained"
@@ -1390,49 +965,60 @@ export default function PostPage() {
               mt: 2,
               background: "var(--gradient-button-primary)",
               color: "var(--color-text-dark)",
-              fontWeight: 700,
+              fontWeight: 800,
               "&:hover": { opacity: 0.9 },
             }}
           >
-            Publicar 🚀
+            Publicar
           </Button>
         </Box>
       </Modal>
 
       <Footer />
-    </div>
+    </MainLayout>
   );
 }
 
 function getPostId(post: Post): string {
   return post._id || post.id || "";
 }
+
 function getPostTitle(post: Post): string {
   return post.titulo || post.title || "";
 }
+
 function getPostContent(post: Post): string {
   return post.contenido || post.content || "";
 }
+
 function getPostImages(post: Post): string[] {
   return post.imagenes || post.images || [];
 }
+
+function getPostMedia(post: Post): PostMedia[] {
+  return post.media || post.multimedia || [];
+}
+
 function getPostUser(post: Post): Usuario | undefined {
   return post.usuario || post.author;
 }
+
 function getUserId(user?: Usuario | null): string {
   return user?._id || user?.id || "";
 }
+
 function getLikeUsers(post?: Post): string[] {
   return post?.reacciones?.meGusta?.usuarios || post?.reactions?.like?.users || [];
 }
+
 function getLikeCount(post: Post): number {
-  return (
-    post.reacciones?.meGusta?.count ?? post.reactions?.like?.count ?? getLikeUsers(post).length ?? 0
-  );
+  return post.reacciones?.meGusta?.count ?? post.reactions?.like?.count ?? getLikeUsers(post).length ?? 0;
 }
+
 function getPostDate(post: Post): string {
   return post.createdAt ?? post.updatedAt ?? "";
 }
+
 function normalizeText(value: string): string {
   return value
     .normalize("NFD")

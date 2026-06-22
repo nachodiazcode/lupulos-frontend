@@ -22,7 +22,6 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 const amarillo = "var(--color-amber-primary)";
@@ -194,7 +193,6 @@ export default function PostDetailPage() {
 
   return (
     <Box sx={{ minHeight: "100vh", color: "white" }}>
-      <Navbar />
       <Container sx={{ py: 6 }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={4}>
           {/* 🖼️ COLUMNA IZQUIERDA */}

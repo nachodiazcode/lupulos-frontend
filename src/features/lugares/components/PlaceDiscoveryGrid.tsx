@@ -10,6 +10,7 @@ import {
   IconButton,
   Button,
 } from "@mui/material";
+import { motion, type Variants } from "framer-motion";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
@@ -26,6 +27,9 @@ interface Props {
   onSelect: (id: string) => void;
   onToggleFavorito: (id: string) => void;
   onNavigate: (id: string) => void;
+  usuario?: { _id?: string; id?: string; username?: string } | null;
+  onClaim?: (place: Place) => void;
+  onAdmin?: (place: Place) => void;
 }
 
 function getAverageRating(place: Place) {
@@ -69,16 +73,6 @@ function getMoodLine(place: Place, averageRating: number) {
   return "Un rincón con potencial para sorprenderte.";
 }
 
-function getQuickHighlight(place: Place, averageRating: number) {
-  const reviews = getReviewCount(place);
-
-  if (averageRating >= 4.7) return "Top del momento";
-  if (reviews >= 5) return `${reviews} opiniones`;
-  if (Boolean(place.coverImage)) return "Visual ganador";
-  if (hasCoordinates(place)) return "Listo para escapada";
-  return "Nuevo hallazgo";
-}
-
 export default function PlaceDiscoveryGrid({
   places,
   selectedId,
@@ -86,37 +80,70 @@ export default function PlaceDiscoveryGrid({
   onSelect,
   onToggleFavorito,
   onNavigate,
+  usuario,
+  onClaim,
+  onAdmin,
 }: Props) {
   if (places.length === 0) {
     return (
       <Box
         sx={{
-          borderRadius: 4,
-          border: "1px solid var(--color-border-subtle)",
-          background: "var(--color-surface-card)",
-          p: 4,
+          position: "relative",
+          display: "flex",
+          minHeight: "440px",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          borderRadius: "1.9rem",
+          border: "1px solid color-mix(in srgb, var(--color-border-light) 72%, transparent)",
+          background: "var(--gradient-feed-empty-state)",
+          boxShadow: "var(--shadow-card)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          px: 3,
+          py: 8,
           textAlign: "center",
         }}
       >
-        <Typography sx={{ fontSize: 18, fontWeight: 800, color: "var(--color-text-primary)" }}>
-          No encontramos un lugar con ese mood
+        <Typography sx={{ fontSize: 54 }}>📍</Typography>
+        <Typography sx={{ mt: 3, fontSize: 22, fontWeight: 900, color: "var(--color-text-primary)" }}>
+          El mapa sigue creciendo
         </Typography>
-        <Typography sx={{ mt: 1, fontSize: 13, color: "var(--color-text-secondary)" }}>
-          Prueba otra ciudad, cambia el filtro o vuelve al modo principal para seguir explorando.
+        <Typography sx={{ mt: 1.5, maxWidth: 380, fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+          No encontramos un lugar con ese mood. Prueba otra ciudad o vuelve al modo principal para seguir explorando.
         </Typography>
       </Box>
     );
   }
 
+  const stagger: Variants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.08 } },
+  };
+
+  const cardPop: Variants = {
+    hidden: { opacity: 0, scale: 0.96, y: 12 },
+    visible: { 
+      opacity: 1, 
+      scale: 1, 
+      y: 0,
+      transition: { type: "spring" as const, stiffness: 300, damping: 22 } 
+    }
+  };
+
   return (
     <Box
+      component={motion.div}
+      variants={stagger}
+      initial="hidden"
+      animate="visible"
       sx={{
         display: "grid",
         gridTemplateColumns: {
           xs: "1fr",
-          md: "repeat(2, minmax(0, 1fr))",
         },
-        gap: 2,
+        gap: 2.5,
       }}
     >
       {places.map((place) => {
@@ -126,69 +153,58 @@ export default function PlaceDiscoveryGrid({
         const reviewCount = getReviewCount(place);
         const badges = getBadges(place, averageRating);
         const hasImage = Boolean(place.coverImage);
+        const hasPromos = place.promotions && place.promotions.length > 0;
+        const hasBeersOnTap = place.beers && place.beers.length > 0;
 
         return (
           <Box
             key={place._id}
+            component={motion.div}
+            variants={cardPop}
+            whileHover={{
+              y: -4,
+              scale: 1.01,
+              borderColor: "var(--color-amber-primary)",
+              boxShadow: "var(--shadow-amber-glow)",
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
             onClick={() => onSelect(place._id)}
-            onMouseEnter={() => onSelect(place._id)}
             onFocus={() => onSelect(place._id)}
             tabIndex={0}
             sx={{
               position: "relative",
               isolation: "isolate",
               overflow: "hidden",
-              borderRadius: 4,
+              borderRadius: "18px",
               border: isSelected
-                ? "1px solid var(--color-amber-primary)"
+                ? "1.5px solid var(--color-amber-primary)"
                 : "1px solid var(--color-border-subtle)",
               background: isSelected
-                ? "linear-gradient(180deg, rgba(251,191,36,0.10) 0%, var(--color-surface-card) 48%)"
+                ? "linear-gradient(180deg, rgba(251,191,36,0.04) 0%, var(--color-surface-card) 100%)"
                 : "var(--color-surface-card)",
               boxShadow: isSelected ? "var(--shadow-amber-glow)" : "var(--shadow-card)",
-              transition: "transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease",
               cursor: "pointer",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                borderColor: "var(--color-amber-primary)",
-                boxShadow: "var(--shadow-amber-glow)",
-              },
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
               "& .place-card-media": {
-                transition: "transform 420ms ease",
-              },
-              "& .place-card-glow": {
-                opacity: isSelected ? 1 : 0,
-                transition: "opacity 240ms ease",
+                transition: "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
               },
               "&:hover .place-card-media": {
-                transform: "scale(1.05)",
-              },
-              "&:hover .place-card-glow": {
-                opacity: 1,
+                transform: "scale(1.06)",
               },
             }}
           >
-            <Box
-              className="place-card-glow"
-              sx={{
-                pointerEvents: "none",
-                position: "absolute",
-                top: -36,
-                right: -20,
-                zIndex: 0,
-                height: 124,
-                width: 124,
-                borderRadius: "50%",
-                background: "rgba(251,191,36,0.18)",
-                filter: "blur(30px)",
-              }}
-            />
+            {/* Left Image section */}
             <Box
               sx={{
                 position: "relative",
-                aspectRatio: "16 / 10",
+                width: { xs: "100%", md: "200px" },
+                height: { xs: "180px", md: "auto" },
+                minHeight: { md: "240px" },
                 overflow: "hidden",
-                borderBottom: "1px solid var(--color-border-subtle)",
+                flexShrink: 0,
+                borderRight: { md: "1px solid var(--color-border-subtle)" },
+                borderBottom: { xs: "1px solid var(--color-border-subtle)", md: "none" },
               }}
             >
               {hasImage ? (
@@ -196,7 +212,7 @@ export default function PlaceDiscoveryGrid({
                   src={getImageUrl(place.coverImage!)}
                   alt={place.name}
                   fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="(max-width: 768px) 100vw, 300px"
                   className="place-card-media object-cover"
                 />
               ) : (
@@ -209,24 +225,26 @@ export default function PlaceDiscoveryGrid({
                     alignItems: "center",
                     justifyContent: "center",
                     background:
-                      "radial-gradient(circle at top, rgba(251,191,36,0.30), rgba(14,14,14,0.10) 45%), linear-gradient(135deg, rgba(120,53,15,0.85), rgba(41,24,16,0.95))",
+                      "radial-gradient(circle at top, rgba(251,191,36,0.20), rgba(14,14,14,0.05) 50%), linear-gradient(135deg, rgba(120,53,15,0.75), rgba(41,24,16,0.90))",
                     color: "var(--color-text-primary)",
-                    fontSize: 54,
+                    fontSize: 48,
                   }}
                 >
-                  🍺
+                  🍻
                 </Box>
               )}
 
+              {/* Light overlay for gradient contrast */}
               <Box
                 sx={{
                   position: "absolute",
                   inset: 0,
                   background:
-                    "linear-gradient(180deg, rgba(12,10,9,0.12) 0%, rgba(12,10,9,0.20) 35%, rgba(12,10,9,0.86) 100%)",
+                    "linear-gradient(180deg, rgba(12,10,9,0.35) 0%, transparent 40%, rgba(12,10,9,0.5) 100%)",
                 }}
               />
 
+              {/* Overlaid Badges on Image (clean and subtle) */}
               <Stack
                 direction="row"
                 justifyContent="space-between"
@@ -235,30 +253,31 @@ export default function PlaceDiscoveryGrid({
                   position: "absolute",
                   inset: 0,
                   p: 1.5,
+                  zIndex: 2,
                 }}
               >
-                <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap>
-                  {isSelected && (
+                <Stack direction="row" spacing={0.6} flexWrap="wrap" useFlexGap>
+                  {place.owner && (
                     <Box
                       sx={{
-                        borderRadius: 999,
-                        border: "1px solid rgba(255,255,255,0.18)",
-                        background: "rgba(251,191,36,0.18)",
-                        px: 1.1,
-                        py: 0.45,
-                        backdropFilter: "blur(8px)",
+                        borderRadius: "6px",
+                        border: "1px solid rgba(251,191,36,0.5)",
+                        background: "rgba(17,24,39,0.75)",
+                        px: 1,
+                        py: 0.4,
+                        backdropFilter: "blur(6px)",
                       }}
                     >
                       <Typography
                         sx={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          letterSpacing: "0.08em",
+                          fontSize: 8.5,
+                          fontWeight: 800,
+                          letterSpacing: "0.05em",
                           textTransform: "uppercase",
-                          color: "white",
+                          color: "#fbbf24",
                         }}
                       >
-                        En radar
+                        👑 Socio
                       </Typography>
                     </Box>
                   )}
@@ -266,19 +285,19 @@ export default function PlaceDiscoveryGrid({
                     <Box
                       key={badge}
                       sx={{
-                        borderRadius: 999,
-                        border: "1px solid rgba(255,255,255,0.18)",
-                        background: "rgba(17,24,39,0.38)",
-                        px: 1.1,
-                        py: 0.45,
-                        backdropFilter: "blur(8px)",
+                        borderRadius: "6px",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        background: "rgba(17,24,39,0.65)",
+                        px: 1,
+                        py: 0.4,
+                        backdropFilter: "blur(6px)",
                       }}
                     >
                       <Typography
                         sx={{
-                          fontSize: 10,
+                          fontSize: 8.5,
                           fontWeight: 700,
-                          letterSpacing: "0.08em",
+                          letterSpacing: "0.05em",
                           textTransform: "uppercase",
                           color: "white",
                         }}
@@ -297,111 +316,69 @@ export default function PlaceDiscoveryGrid({
                   }}
                   sx={{
                     color: isFav ? "var(--color-amber-primary)" : "white",
-                    background: "rgba(17,24,39,0.38)",
-                    backdropFilter: "blur(8px)",
-                    border: "1px solid rgba(255,255,255,0.18)",
+                    background: "rgba(17,24,39,0.6)",
+                    backdropFilter: "blur(6px)",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    padding: "5px",
                     "&:hover": {
-                      background: "rgba(17,24,39,0.55)",
+                      background: "rgba(17,24,39,0.8)",
                     },
                   }}
                 >
-                  {isFav ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+                  {isFav ? <FavoriteIcon sx={{ fontSize: 16 }} /> : <FavoriteBorderIcon sx={{ fontSize: 16 }} />}
                 </IconButton>
               </Stack>
+            </Box>
 
-              <Box
-                sx={{
-                  position: "absolute",
-                  right: 0,
-                  bottom: 0,
-                  left: 0,
-                  p: 1.75,
-                }}
-              >
+            <Box
+              sx={{
+                flex: 1,
+                p: { xs: 1.5, md: 2 },
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                minWidth: 0,
+              }}
+            >
+              <Box>
+                {/* City & Name Row */}
+                <Stack direction="row" justifyContent="space-between" alignItems="baseline" spacing={2}>
+                  <Typography
+                    sx={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    {place.address.city}, {place.address.country}
+                  </Typography>
+                  
+                  {hasCoordinates(place) && (
+                    <Stack direction="row" alignItems="center" spacing={0.3} sx={{ color: "var(--color-amber-primary)" }}>
+                      <LocationOnOutlinedIcon sx={{ fontSize: 12 }} />
+                      <Typography sx={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-muted)" }}>
+                        En mapa
+                      </Typography>
+                    </Stack>
+                  )}
+                </Stack>
+
                 <Typography
-                  sx={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.78)",
-                  }}
-                >
-                  {place.address.city}, {place.address.country}
-                </Typography>
-                <Typography
+                  variant="h3"
                   sx={{
                     mt: 0.5,
-                    fontSize: 22,
-                    lineHeight: 1.1,
-                    fontWeight: 900,
-                    color: "white",
+                    fontSize: { xs: 18, md: 21 },
+                    fontWeight: 800,
+                    color: "var(--color-text-primary)",
                   }}
                 >
                   {place.name}
                 </Typography>
-                <Typography
-                  sx={{
-                    mt: 0.75,
-                    maxWidth: "90%",
-                    fontSize: 12,
-                    lineHeight: 1.5,
-                    color: "rgba(255,255,255,0.82)",
-                  }}
-                >
-                  {getMoodLine(place, averageRating)}
-                </Typography>
-              </Box>
-            </Box>
 
-            <Box sx={{ p: 2 }}>
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  lineHeight: 1.65,
-                  color: "var(--color-text-secondary)",
-                  minHeight: 64,
-                }}
-              >
-                {getSnippet(place)}
-              </Typography>
-
-              <Stack direction="row" flexWrap="wrap" useFlexGap sx={{ mt: 1.5, gap: 1 }}>
-                <Box
-                  sx={{
-                    borderRadius: 999,
-                    border: "1px solid var(--color-border-light)",
-                    px: 1.2,
-                    py: 0.55,
-                    background: "rgba(251,191,36,0.06)",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-primary)" }}>
-                    ✨ {getQuickHighlight(place, averageRating)}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    borderRadius: 999,
-                    border: "1px solid var(--color-border-light)",
-                    px: 1.2,
-                    py: 0.55,
-                    background: "rgba(251,191,36,0.06)",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-primary)" }}>
-                    {reviewCount ? `💬 ${reviewCount} voces` : "🍺 Sé el primero en opinar"}
-                  </Typography>
-                </Box>
-              </Stack>
-
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                sx={{ mt: 1.5, gap: 1 }}
-              >
-                <Stack direction="row" alignItems="center" spacing={1}>
+                {/* Rating & Short info */}
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.8 }}>
                   <Rating
                     value={averageRating}
                     precision={0.5}
@@ -412,62 +389,277 @@ export default function PlaceDiscoveryGrid({
                       "& .MuiRating-iconEmpty": { color: "var(--color-border-medium)" },
                     }}
                   />
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-primary)" }}>
+                    {averageRating.toFixed(1)}
+                  </Typography>
                   <Typography sx={{ fontSize: 12, color: "var(--color-text-muted)" }}>
-                    {averageRating.toFixed(1)} · {reviewCount} reseña{reviewCount === 1 ? "" : "s"}
+                    · {reviewCount} reseña{reviewCount === 1 ? "" : "s"}
                   </Typography>
                 </Stack>
 
-                {hasCoordinates(place) && (
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <LocationOnOutlinedIcon
-                      sx={{ fontSize: 15, color: "var(--color-amber-primary)" }}
-                    />
-                    <Typography sx={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                      En mapa
-                    </Typography>
-                  </Stack>
-                )}
-              </Stack>
+                {/* Mood sentence (Apuesta segura, etc.) */}
+                <Typography
+                  sx={{
+                    mt: 1,
+                    fontSize: 12.5,
+                    color: "var(--color-amber-primary)",
+                    fontStyle: "italic",
+                  }}
+                >
+                  &ldquo;{getMoodLine(place, averageRating)}&rdquo;
+                </Typography>
 
-              <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                {/* Description snippet */}
+                <Typography
+                  sx={{
+                    mt: 1.2,
+                    fontSize: 13.5,
+                    lineHeight: 1.6,
+                    color: "var(--color-text-secondary)",
+                  }}
+                >
+                  {getSnippet(place)}
+                </Typography>
+
+                {/* Vibe Ambient Tags (clean flat layout) */}
+                <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
+                  {place.hasTerrace && (
+                    <Box sx={{ borderRadius: "6px", border: "1px solid var(--color-border-light)", px: 1, py: 0.3, background: "rgba(255,255,255,0.02)" }}>
+                      <Typography sx={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)" }}>☀️ Terraza</Typography>
+                    </Box>
+                  )}
+                  {place.hasLiveMusic && (
+                    <Box sx={{ borderRadius: "6px", border: "1px solid var(--color-border-light)", px: 1, py: 0.3, background: "rgba(255,255,255,0.02)" }}>
+                      <Typography sx={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)" }}>🎸 Música en vivo</Typography>
+                    </Box>
+                  )}
+                  {place.isPetFriendly && (
+                    <Box sx={{ borderRadius: "6px", border: "1px solid var(--color-border-light)", px: 1, py: 0.3, background: "rgba(255,255,255,0.02)" }}>
+                      <Typography sx={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)" }}>🐾 Pet-Friendly</Typography>
+                    </Box>
+                  )}
+                </Stack>
+
+                {/* Active Promotions / Happy Hour Banner (simple structured layout) */}
+                {hasPromos && place.promotions && (
+                  <Box
+                    sx={{
+                      mt: 1.5,
+                      borderRadius: "8px",
+                      border: "1px solid rgba(239,68,68,0.2)",
+                      background: "linear-gradient(90deg, rgba(239,68,68,0.05) 0%, transparent 100%)",
+                      p: 1.2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.2,
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 14 }}>🔥</Typography>
+                    <Box>
+                      <Typography sx={{ fontSize: 9.5, fontWeight: 800, color: "#f87171", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Promo Activa · {place.promotions[0].discountPercent}% Dcto
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-primary)", mt: 0.1 }}>
+                        {place.promotions[0].description}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Beers on Tap List */}
+                {hasBeersOnTap && place.beers && (
+                  <Box sx={{ mt: 1.5 }}>
+                    <Typography sx={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      🍻 Pinchadas en barra:
+                    </Typography>
+                    <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap sx={{ mt: 0.5, gap: 0.6 }}>
+                      {place.beers.map((beer) => (
+                        <Box
+                          key={beer._id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigate(`/cervezas/${beer._id}`);
+                          }}
+                          sx={{
+                            borderRadius: "6px",
+                            border: "1px solid var(--color-border-light)",
+                            px: 1,
+                            py: 0.35,
+                            background: "rgba(255,255,255,0.03)",
+                            cursor: "pointer",
+                            transition: "all 150ms ease",
+                            "&:hover": {
+                              borderColor: "var(--color-amber-primary)",
+                              background: "rgba(251,191,36,0.04)",
+                            },
+                          }}
+                        >
+                          <Typography sx={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-primary)" }}>
+                            {beer.name} <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>({beer.brewery})</span>
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+              </Box>
+
+              {/* Action Buttons Row (clean rectangular border radius) */}
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2.5, width: "100%" }}>
                 <Button
-                  fullWidth
                   onClick={(event) => {
                     event.stopPropagation();
                     onNavigate(place._id);
                   }}
-                  endIcon={<ArrowOutwardRoundedIcon />}
+                  endIcon={<ArrowOutwardRoundedIcon sx={{ fontSize: 13 }} />}
                   sx={{
-                    borderRadius: 999,
-                    px: 2,
-                    py: 1.1,
+                    flex: 1.5,
+                    borderRadius: "8px",
+                    px: 1.5,
+                    height: "38px",
                     background: "var(--gradient-button-primary)",
                     color: "var(--color-text-dark)",
-                    fontWeight: 800,
+                    fontWeight: 700,
                     textTransform: "none",
+                    fontSize: "11.5px",
+                    whiteSpace: "nowrap",
+                    boxShadow: "none",
+                    minWidth: 0,
+                    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
                     "&:hover": {
                       background: "var(--gradient-button-primary)",
-                      filter: "brightness(1.03)",
+                      filter: "brightness(1.12)",
+                      transform: "translateY(-1px)",
+                      boxShadow: "0 6px 20px rgba(251,191,36,0.3)",
+                    },
+                    "&:active": {
+                      transform: "translateY(0)",
                     },
                   }}
                 >
-                  Descubrir lugar
+                  Descubrir
                 </Button>
+
+                {/* Claim / Admin Actions */}
+                {usuario && (
+                  <>
+                    {place.owner ? (
+                      place.owner === (usuario._id || usuario.id) ? (
+                        <Button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onAdmin?.(place);
+                          }}
+                          sx={{
+                            flex: 1.2,
+                            borderRadius: "8px",
+                            px: 1,
+                            height: "38px",
+                            background: "rgba(59,130,246,0.1)",
+                            color: "#60a5fa",
+                            border: "1px solid rgba(59,130,246,0.2)",
+                            textTransform: "none",
+                            fontWeight: 700,
+                            fontSize: "11.5px",
+                            whiteSpace: "nowrap",
+                            minWidth: 0,
+                            transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                            "&:hover": {
+                              background: "rgba(59,130,246,0.15)",
+                              transform: "translateY(-1px)",
+                              boxShadow: "0 4px 12px rgba(59,130,246,0.2)",
+                            },
+                            "&:active": {
+                              transform: "translateY(0)",
+                            },
+                          }}
+                        >
+                          ⚙️ Gestión
+                        </Button>
+                      ) : (
+                        <Box
+                          sx={{
+                            flex: 1.2,
+                            borderRadius: "8px",
+                            px: 1,
+                            height: "38px",
+                            background: "rgba(34,197,94,0.06)",
+                            border: "1px solid rgba(34,197,94,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            whiteSpace: "nowrap",
+                            minWidth: 0,
+                          }}
+                        >
+                          <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#4ade80" }}>
+                            🛡️ Verificado
+                          </Typography>
+                        </Box>
+                      )
+                    ) : (
+                      <Button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onClaim?.(place);
+                        }}
+                        sx={{
+                          flex: 1.2,
+                          borderRadius: "8px",
+                          px: 1,
+                          height: "38px",
+                          background: "rgba(251,191,36,0.08)",
+                          color: "var(--color-amber-primary)",
+                          border: "1px solid rgba(251,191,36,0.15)",
+                          textTransform: "none",
+                          fontWeight: 700,
+                          fontSize: "11.5px",
+                          whiteSpace: "nowrap",
+                          minWidth: 0,
+                          transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                          "&:hover": {
+                            background: "rgba(251,191,36,0.12)",
+                            transform: "translateY(-1px)",
+                            boxShadow: "0 4px 12px rgba(251,191,36,0.15)",
+                          },
+                          "&:active": {
+                            transform: "translateY(0)",
+                          },
+                        }}
+                      >
+                        📢 Reclamar
+                      </Button>
+                    )}
+                  </>
+                )}
 
                 <Button
                   onClick={(event) => {
                     event.stopPropagation();
                     onSelect(place._id);
                   }}
-                  startIcon={<MapOutlinedIcon />}
+                  startIcon={<MapOutlinedIcon sx={{ fontSize: 13 }} />}
                   sx={{
-                    flexShrink: 0,
-                    borderRadius: 999,
-                    px: 1.75,
+                    flex: 0.8,
+                    borderRadius: "8px",
+                    px: 1,
+                    height: "38px",
                     color: "var(--color-text-primary)",
                     border: "1px solid var(--color-border-light)",
                     textTransform: "none",
-                    fontWeight: 700,
+                    fontWeight: 600,
+                    fontSize: "11.5px",
+                    whiteSpace: "nowrap",
+                    minWidth: 0,
+                    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                    "&:hover": {
+                      background: "rgba(255,255,255,0.06)",
+                      borderColor: "var(--color-text-secondary)",
+                      transform: "translateY(-1px)",
+                    },
+                    "&:active": {
+                      transform: "translateY(0)",
+                    },
                   }}
                 >
                   Mapa

@@ -58,7 +58,7 @@ export default function HeroSection() {
   return (
     <section
       className="relative flex items-center overflow-hidden"
-      style={{ minHeight: "min(86vh, 720px)", background: "var(--gradient-hero)" }}
+      style={{ minHeight: "min(100dvh, 800px)", background: "var(--gradient-hero)" }}
     >
       {/* ── Blobs animados — fondo vivo ── */}
       <motion.div
@@ -158,8 +158,8 @@ export default function HeroSection() {
               className="inline-block self-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-3 py-1.5 text-[8px] font-semibold tracking-[0.08em] uppercase backdrop-blur-sm sm:px-4 sm:text-[11px] sm:tracking-[0.2em] lg:self-start"
               style={{
                 borderColor: "var(--color-border-amber)",
-                background: "rgba(249,115,22,0.1)",
-                color: "var(--color-amber-primary)",
+                background: "color-mix(in srgb, var(--color-amber-primary) 10%, transparent)",
+                color: "var(--color-amber-dark)",
               }}
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -170,8 +170,12 @@ export default function HeroSection() {
 
             {/* H1 */}
             <motion.h1
-              className="hero-shimmer-text text-text-primary mt-2 text-[1.25rem] leading-[1.12] font-black tracking-[-0.02em] min-[375px]:text-[1.5rem] sm:text-[2.2rem] sm:leading-[1.05] sm:tracking-[-0.04em] md:text-[2.6rem] lg:text-[3.05rem] xl:text-[3.35rem] 2xl:text-[3.55rem] min-[1920px]:text-[4rem]"
-              style={{
+              className="text-text-primary mt-2 text-[2rem] leading-[1.05] font-extrabold tracking-[-0.04em] min-[375px]:text-[2.35rem] sm:text-[3rem] sm:leading-[1] sm:tracking-[-0.05em] md:text-[3.4rem] lg:text-[3.05rem] xl:text-[3.35rem] 2xl:text-[3.55rem] min-[1920px]:text-[4rem]"
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <span className="hero-shimmer-text relative inline-block" style={{
                 textShadow: "0.6px 0.6px 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor",
                 backgroundImage: "linear-gradient(90deg, currentColor 0%, currentColor 35%, #fbbf24 48%, #f59e0b 50%, #fbbf24 52%, currentColor 65%, currentColor 100%)",
                 backgroundSize: "250% 100%",
@@ -180,12 +184,32 @@ export default function HeroSection() {
                 WebkitTextFillColor: "transparent",
                 animation: "hero-shimmer 4s ease-in-out infinite",
                 animationDelay: "1.5s",
-              }}
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.22, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-            >
-              La comunidad que los amantes de la cerveza estaban esperando
+              }}>La comunidad que los</span>
+              <br className="hidden sm:block" />
+              <motion.span
+                className="relative inline-block px-2"
+                animate={{ rotate: [-1, 1, -1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <span className="absolute inset-0 block rounded-2xl opacity-20 blur-xl" style={{ background: "var(--gradient-button-primary)" }} />
+                <span className="relative italic" style={{
+                  color: "var(--color-amber-primary)",
+                  textShadow: "0 0 30px rgba(251,191,36,0.5)",
+                }}>
+                  amantes de la cerveza
+                </span>
+              </motion.span>
+              <br className="hidden sm:block" />
+              <span className="hero-shimmer-text relative inline-block" style={{
+                textShadow: "0.6px 0.6px 0 currentColor, -0.6px 0 0 currentColor, 0 0.6px 0 currentColor, 0 -0.6px 0 currentColor",
+                backgroundImage: "linear-gradient(90deg, currentColor 0%, currentColor 35%, #fbbf24 48%, #f59e0b 50%, #fbbf24 52%, currentColor 65%, currentColor 100%)",
+                backgroundSize: "250% 100%",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                animation: "hero-shimmer 4s ease-in-out infinite",
+                animationDelay: "1.5s",
+              }}>estaban esperando</span>
             </motion.h1>
             {/* Subtitle */}
             <motion.p
@@ -211,10 +235,10 @@ export default function HeroSection() {
                     prefetch
                     className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-full border px-7 py-3 text-center text-sm font-bold shadow-xl transition-all duration-300 sm:inline-flex sm:w-auto sm:px-8 sm:text-[15px]"
                     style={{
-                      background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.08))",
-                      borderColor: "rgba(251,191,36,0.5)",
-                      color: "#fbbf24",
-                      boxShadow: "0 4px 24px rgba(251,191,36,0.2)",
+                      background: "linear-gradient(135deg, color-mix(in srgb, var(--color-amber-primary) 15%, transparent), color-mix(in srgb, var(--color-amber-dark) 8%, transparent))",
+                      borderColor: "var(--color-border-amber)",
+                      color: "var(--color-amber-dark)",
+                      boxShadow: "0 4px 24px color-mix(in srgb, var(--color-amber-primary) 20%, transparent)",
                     }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="relative z-10 shrink-0">
@@ -223,22 +247,28 @@ export default function HeroSection() {
                     <span className="relative z-10">Iniciar con Lúpulos Plus</span>
                     <span
                       className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-[600ms] group-hover:translate-x-full"
-                      style={{ background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.15), transparent)" }}
+                      style={{ background: "linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-amber-primary) 15%, transparent), transparent)" }}
                     />
                   </Link>
                 </motion.div>
               )}
 
               {!isLoggedIn && isAuthReady && (
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto relative">
+                  <motion.div
+                    className="absolute -inset-1 rounded-full blur-md opacity-60"
+                    style={{ background: "linear-gradient(135deg, var(--color-orange-cta), var(--color-orange-cta-hover))" }}
+                    animate={{ scale: [0.98, 1.05, 0.98], opacity: [0.4, 0.8, 0.4] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  />
                   <Link
                     href="/auth/register"
                     prefetch
-                    className="group relative block w-full overflow-hidden rounded-full px-7 py-3 text-center text-sm font-bold shadow-xl transition-all duration-300 sm:inline-block sm:w-auto sm:px-8 sm:text-[15px]"
+                    className="group relative block w-full overflow-hidden rounded-full px-7 py-3 text-center text-sm font-bold shadow-xl transition-all duration-300 sm:inline-block sm:w-auto sm:px-8 sm:text-[15px] border border-white/20"
                     style={{
-                      background: "linear-gradient(135deg, #f97316, #ea580c)",
+                      background: "linear-gradient(135deg, var(--color-orange-cta), var(--color-orange-cta-hover))",
                       color: "#ffffff",
-                      boxShadow: "0 4px 24px rgba(249,115,22,0.45)",
+                      boxShadow: "0 4px 24px color-mix(in srgb, var(--color-orange-cta) 45%, transparent)",
                     }}
                   >
                     <span className="relative z-10">Unirme gratis</span>
@@ -301,14 +331,14 @@ export default function HeroSection() {
                 />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
                   <span
-                    className="rounded-full px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md"
-                    style={{ background: "rgba(249,115,22,0.85)" }}
+                    className="rounded-full px-3 py-1.5 text-[11px] font-bold backdrop-blur-md"
+                    style={{ background: "rgba(249,115,22,0.85)", color: "#ffffff" }}
                   >
                     🍺 +1.200 cervezas
                   </span>
                   <span
-                    className="rounded-full px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md"
-                    style={{ background: "rgba(0,0,0,0.45)" }}
+                    className="rounded-full px-3 py-1.5 text-[11px] font-bold backdrop-blur-md"
+                    style={{ background: "rgba(0,0,0,0.45)", color: "#ffffff" }}
                   >
                     📍 280+ locales
                   </span>
@@ -316,49 +346,55 @@ export default function HeroSection() {
               </div>
             </motion.div>
 
-            {/* ── Principales funciones (mobile only) ── */}
+            {/* ── Principales funciones (mobile only Bento Box) ── */}
             <motion.div
-              className="mt-7 lg:hidden"
+              className="mt-8 mb-4 lg:hidden"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.05, duration: 0.55 }}
             >
-              <p className="mb-4 text-center text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--color-text-muted)" }}>
-                Principales funciones
+              <p className="mb-5 text-center text-[11px] font-extrabold uppercase tracking-[0.3em]" style={{ color: "var(--color-text-muted)" }}>
+                Experiencia Lúpulos
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {[
-                  { icon: "🍺", title: "Catálogo", desc: "Estilo, IBU y ABV", gradient: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,191,36,0.08))", glowColor: "rgba(249,115,22,0.25)" },
-                  { icon: "🗺️", title: "Mapa", desc: "Cervecerías cerca", gradient: "linear-gradient(135deg, rgba(34,197,94,0.12), rgba(16,185,129,0.06))", glowColor: "rgba(34,197,94,0.2)" },
-                  { icon: "✨", title: "Buscador IA", desc: "Tu catálogo personal", gradient: "linear-gradient(135deg, rgba(168,85,247,0.14), rgba(139,92,246,0.07))", glowColor: "rgba(168,85,247,0.22)" },
-                  { icon: "🏆", title: "Rankings", desc: "Top de la comunidad", gradient: "linear-gradient(135deg, rgba(234,179,8,0.15), rgba(251,191,36,0.08))", glowColor: "rgba(234,179,8,0.22)" },
+                  { icon: "🍺", title: "Catálogo", desc: "Estilo, IBU y ABV", gradient: "linear-gradient(135deg, rgba(249,115,22,0.18), rgba(251,191,36,0.05))", glowColor: "rgba(249,115,22,0.3)" },
+                  { icon: "🗺️", title: "Mapa", desc: "Cervecerías cerca", gradient: "linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.05))", glowColor: "rgba(34,197,94,0.25)" },
+                  { icon: "✨", title: "Buscador IA", desc: "Catálogo inteligente", gradient: "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(139,92,246,0.05))", glowColor: "rgba(168,85,247,0.3)" },
+                  { icon: "🏆", title: "Rankings", desc: "Top comunidad", gradient: "linear-gradient(135deg, rgba(234,179,8,0.18), rgba(251,191,36,0.05))", glowColor: "rgba(234,179,8,0.3)" },
                 ].map((f, i) => (
                   <motion.div
                     key={f.title}
-                    initial={{ opacity: 0, scale: 0.85, y: 16 }}
+                    initial={{ opacity: 0, scale: 0.85, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 1.1 + i * 0.1, type: "spring", stiffness: 300, damping: 22 }}
-                    className="group relative flex flex-col items-center gap-2 rounded-2xl px-3 py-5 text-center"
+                    transition={{ delay: 1.1 + i * 0.1, type: "spring", stiffness: 350, damping: 25 }}
+                    whileHover={{ scale: 1.03, y: -2 }}
+                    whileTap={{ scale: 0.94 }}
+                    className="group relative flex cursor-pointer flex-col items-center gap-3 rounded-[2rem] px-4 py-6 text-center"
                     style={{
                       background: f.gradient,
-                      backdropFilter: "blur(16px)",
-                      border: "1px solid color-mix(in srgb, var(--color-border-amber) 22%, var(--color-border-light))",
-                      boxShadow: `0 4px 20px ${f.glowColor}, inset 0 1px 0 rgba(255,255,255,0.12)`,
+                      backdropFilter: "blur(24px) saturate(1.2)",
+                      WebkitBackdropFilter: "blur(24px) saturate(1.2)",
+                      border: "1px solid color-mix(in srgb, var(--color-border-amber) 30%, rgba(255,255,255,0.1))",
+                      boxShadow: `0 8px 32px ${f.glowColor}, inset 0 2px 0 rgba(255,255,255,0.15)`,
                     }}
                   >
                     <motion.span
-                      className="flex h-11 w-11 items-center justify-center rounded-xl text-[22px] leading-none"
+                      className="flex h-14 w-14 items-center justify-center rounded-2xl text-[28px] leading-none"
                       style={{
-                        background: "color-mix(in srgb, var(--color-surface-card) 90%, transparent)",
-                        boxShadow: `0 2px 12px ${f.glowColor}`,
+                        background: "color-mix(in srgb, var(--color-surface-card) 95%, transparent)",
+                        boxShadow: `0 4px 16px ${f.glowColor}, inset 0 1px 0 rgba(255,255,255,0.2)`,
+                        border: "1px solid rgba(255,255,255,0.05)"
                       }}
-                      animate={{ scale: [1, 1.08, 1] }}
-                      transition={{ duration: 3, repeat: Infinity, delay: i * 0.5, ease: "easeInOut" }}
+                      animate={{ scale: [1, 1.06, 1], y: [0, -3, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, delay: i * 0.5, ease: "easeInOut" }}
                     >
                       {f.icon}
                     </motion.span>
-                    <p className="text-[13px] font-extrabold leading-tight" style={{ color: "var(--color-text-primary)" }}>{f.title}</p>
-                    <p className="text-[10px] leading-snug" style={{ color: "var(--color-text-muted)" }}>{f.desc}</p>
+                    <div>
+                      <p className="text-[14px] font-extrabold tracking-tight leading-tight" style={{ color: "var(--color-text-primary)" }}>{f.title}</p>
+                      <p className="mt-1 text-[11px] leading-snug opacity-80" style={{ color: "var(--color-text-muted)" }}>{f.desc}</p>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -377,9 +413,9 @@ export default function HeroSection() {
                   }}
                   className="relative flex h-12 w-12 items-center justify-center rounded-full"
                   style={{
-                    background: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(251,191,36,0.1))",
+                    background: "linear-gradient(135deg, color-mix(in srgb, var(--color-amber-primary) 15%, transparent), color-mix(in srgb, var(--color-amber-dark) 10%, transparent))",
                     border: "1.5px solid var(--color-border-amber)",
-                    color: "var(--color-amber-primary)",
+                    color: "var(--color-amber-dark)",
                     backdropFilter: "blur(12px)",
                   }}
                   animate={{ y: [0, 8, 0] }}
@@ -406,51 +442,94 @@ export default function HeroSection() {
             initial={{ opacity: 0, x: 24, scale: 0.97 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ delay: 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative mx-auto hidden w-full max-w-sm lg:block lg:max-w-none lg:mt-12"
+            className="relative mx-auto hidden w-full max-w-sm lg:block lg:max-w-none lg:mt-12 perspective-[1200px]"
           >
-            <div
-              className="pointer-events-none absolute -inset-4 rounded-[2rem] blur-3xl"
-              style={{
-                background:
-                  "radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--color-amber-primary) 18%, transparent), transparent 70%)",
-                opacity: 0.7,
-              }}
-              aria-hidden="true"
-            />
-
-            <div
-              className="glass-card relative overflow-hidden rounded-[2rem] border p-2"
-              style={{
-                borderColor: "var(--color-border-light)",
-                boxShadow: "var(--shadow-elevated)",
-              }}
+            <motion.div
+              animate={{ y: [-8, 8, -8] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="relative"
             >
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem]">
-                <Image
-                  src="/assets/vikingos-cerveza.webp"
-                  alt="Cerveceros disfrutando cerveza artesanal"
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 38vw"
-                />
-                <div
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--color-surface-overlay) 88%, transparent) 100%)",
-                  }}
-                />
-                <div className="absolute right-4 bottom-4 left-4 flex items-end justify-between gap-3">
-                  <span
-                    className="glass-pill rounded-full px-3 py-2 text-[14px] font-semibold leading-snug"
-                    style={{ color: "var(--color-text-primary)" }}
+              <div
+                className="pointer-events-none absolute -inset-6 rounded-[3rem] blur-[60px]"
+                style={{
+                  background:
+                    "radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--color-amber-primary) 30%, transparent), transparent 70%)",
+                  opacity: 0.8,
+                }}
+                aria-hidden="true"
+              />
+
+              <div
+                className="glass-card relative overflow-hidden rounded-[2.5rem] border p-2.5 transition-transform duration-500 hover:scale-[1.02]"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-border-amber) 40%, var(--color-border-light))",
+                  boxShadow: "var(--shadow-amber-glow-lg), inset 0 2px 0 rgba(255,255,255,0.15)",
+                }}
+              >
+                <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem]">
+                  <Image
+                    src="/assets/vikingos-cerveza.webp"
+                    alt="Cerveceros disfrutando cerveza artesanal"
+                    fill
+                    priority
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 38vw"
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.6) 100%)",
+                    }}
+                  />
+                  
+                  {/* Floating badge 1 */}
+                  <motion.div
+                    className="absolute top-6 left-6 flex items-center gap-2 rounded-full border px-3 py-1.5 backdrop-blur-md"
+                    style={{
+                      background: "rgba(0,0,0,0.6)",
+                      borderColor: "rgba(255,255,255,0.15)",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                      color: "#ffffff",
+                    }}
+                    animate={{ y: [0, 4, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                   >
-                    Encontré mi cerveza favorita en 5 minutos. Esta comunidad es otro nivel 🍺
-                  </span>
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-[10px]">🔥</span>
+                    <span className="text-[12px] font-bold" style={{ color: "#ffffff" }}>+8.5K Cerveceros</span>
+                  </motion.div>
+
+                  {/* Floating testimonial card */}
+                  <div className="absolute right-4 bottom-5 left-4">
+                    <motion.div
+                      className="rounded-2xl p-4"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(0,0,0,0.65), rgba(0,0,0,0.4))",
+                        borderColor: "rgba(255,255,255,0.15)",
+                        borderWidth: "1px",
+                        backdropFilter: "blur(24px) saturate(1.2)",
+                        boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+                      }}
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <div className="mb-2 flex items-center gap-2">
+                        <div className="flex -space-x-2">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="h-6 w-6 rounded-full border border-white/20 bg-gradient-to-br from-amber-400 to-orange-500" />
+                          ))}
+                        </div>
+                        <div className="flex text-[10px] text-amber-400">
+                          ★★★★★
+                        </div>
+                      </div>
+                      <p className="text-[14px] font-bold leading-tight tracking-tight drop-shadow-md" style={{ color: "#ffffff", textShadow: "0 2px 4px rgba(0,0,0,0.6)" }}>
+                        &quot;Encontré mi cerveza favorita en 5 minutos. Esta comunidad es otro nivel&quot; 🍺
+                      </p>
+                    </motion.div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
 
         </div>

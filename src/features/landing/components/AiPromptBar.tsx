@@ -478,18 +478,23 @@ export default function AiPromptBar({ embedded = false }: { embedded?: boolean }
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.04 }}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleSuggestion(s.full)}
-                  className={`flex items-center gap-1.5 rounded-xl border font-medium transition-all duration-200 hover:border-amber-primary/30 ${embedded ? "px-3 py-1.5 text-[11px] sm:text-xs" : "px-3.5 py-2 text-xs"}`}
+                  className={`group relative overflow-hidden flex items-center gap-1.5 rounded-xl border font-semibold transition-all duration-300 hover:border-amber-primary/40 ${embedded ? "px-3 py-1.5 text-[11px] sm:text-xs" : "px-3.5 py-2 text-xs"}`}
                   style={{
-                    background: "var(--color-surface-elevated)",
+                    background: "color-mix(in srgb, var(--color-surface-elevated) 80%, transparent)",
                     borderColor: "var(--color-border-subtle)",
-                    color: "var(--color-text-muted)",
+                    color: "var(--color-text-secondary)",
+                    backdropFilter: "blur(12px)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   }}
                 >
-                  <span className="text-xs">{s.icon}</span>
-                  {s.label}
+                  <span className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="relative z-10 flex items-center gap-1.5">
+                    <span className="text-xs">{s.icon}</span>
+                    {s.label}
+                  </span>
                 </motion.button>
               ))}
             </motion.div>
