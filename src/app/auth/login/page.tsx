@@ -67,8 +67,8 @@ const LOGIN_BG =
 
 const LOGIN_SPACING = {
   titleToSubtitle: 8,
-  mobileHeaderToPrimaryAction: 0,
-  desktopHeaderToPrimaryAction: 0,
+  mobileHeaderToPrimaryAction: 18,
+  desktopHeaderToPrimaryAction: 22,
   primaryActionToSecondaryAction: 20,
   secondaryActionToFooter: 24,
 } as const;
@@ -541,6 +541,84 @@ const EyeOffIcon = (
   </svg>
 );
 
+const HopIcon = (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 3c2.5 1.2 4 3.4 4 6s-1.5 4.8-4 6c-2.5-1.2-4-3.4-4-6s1.5-4.8 4-6Z" />
+    <path d="M12 5.5v11M8.4 7.8 12 9.6l3.6-1.8M8.1 11.5 12 13.4l3.9-1.9" />
+  </svg>
+);
+
+/* ═══════════════════════════════════════════
+   Brand badge — parity with register page
+   ═══════════════════════════════════════════ */
+function LoginBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase backdrop-blur-sm"
+      style={{
+        borderColor: "rgba(251,191,36,0.28)",
+        background: "rgba(251,191,36,0.08)",
+        color: "var(--color-amber-primary)",
+      }}
+    >
+      <span
+        className="h-1.5 w-1.5 rounded-full"
+        style={{
+          background: "var(--color-amber-primary)",
+          boxShadow: "0 0 8px var(--color-amber-primary)",
+        }}
+      />
+      {children}
+    </span>
+  );
+}
+
+/* ─── Gradient wordmark (técnica inline — robusta en Tailwind v4) ─── */
+function GradientWord({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      style={{
+        backgroundImage: LOGIN_THEME.headingGradient,
+        backgroundSize: "140% 140%",
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        color: "transparent",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+/* ─── Compact in-card header — shown on mobile & tablet, hidden at lg+
+   (the lg+ split layout already carries the heading on the left) ─── */
+function CardHeader({ subtitle, marginBottom }: { subtitle: string; marginBottom: number }) {
+  return (
+    <div className="text-center lg:hidden" style={{ marginBottom }}>
+      <h2
+        className="flex items-center justify-center gap-2 text-2xl font-bold tracking-tight"
+        style={{ color: LOGIN_THEME.textPrimary }}
+      >
+        <span style={{ color: "var(--color-amber-primary)" }}>{HopIcon}</span>
+        Bienvenido a <GradientWord>Lúpulos</GradientWord>
+      </h2>
+      <p className="mt-1.5 text-sm" style={{ color: LOGIN_THEME.textMuted }}>
+        {subtitle}
+      </p>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════
    Helper: derive input status from value
    ═══════════════════════════════════════════ */
@@ -784,7 +862,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="relative flex min-h-screen items-center justify-center overflow-x-hidden overflow-y-auto"
+      className="relative flex min-h-dvh items-center justify-center overflow-x-hidden overflow-y-auto"
       style={{ color: LOGIN_THEME.textPrimary }}
     >
       {/* Fondo */}
@@ -829,7 +907,7 @@ export default function LoginPage() {
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
-        className="relative z-10 flex w-full flex-col items-center px-6 pt-6 pb-8 sm:hidden"
+        className="relative z-10 flex w-full flex-col items-center px-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] sm:hidden"
         onFocus={(e) => {
           if (e.target instanceof HTMLInputElement) {
             if (e.target.type === "email") setEmailFocused(true);
@@ -852,6 +930,18 @@ export default function LoginPage() {
                 boxShadow: `inset 0 1px 0 color-mix(in srgb, white 24%, transparent), ${LOGIN_THEME.glowLarge}`,
               }}
             >
+              {/* Brand header */}
+              <motion.div
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <CardHeader
+                  subtitle="Inicia sesión para seguir explorando"
+                  marginBottom={LOGIN_SPACING.mobileHeaderToPrimaryAction}
+                />
+              </motion.div>
+
               {/* Google OAuth with Neon Border — first */}
               <motion.div
                 initial={{ y: 10, opacity: 0 }}
@@ -958,8 +1048,9 @@ export default function LoginPage() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="hidden max-w-[34rem] flex-1 lg:block"
           >
+            <LoginBadge>Bienvenido de nuevo</LoginBadge>
             <h1
-              className="text-5xl leading-[0.96] font-black tracking-[-0.045em] xl:text-6xl"
+              className="mt-6 text-5xl leading-[0.96] font-black tracking-[-0.045em] xl:text-6xl"
               style={{
                 fontWeight: 950,
                 backgroundImage: LOGIN_THEME.headingGradient,
@@ -1000,6 +1091,18 @@ export default function LoginPage() {
                   boxShadow: `inset 0 1px 0 color-mix(in srgb, white 24%, transparent), ${LOGIN_THEME.glowLarge}`,
                 }}
               >
+                {/* Brand header — hidden at lg+, where the left hero already carries it */}
+                <motion.div
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                >
+                  <CardHeader
+                    subtitle="Inicia sesión para seguir explorando"
+                    marginBottom={LOGIN_SPACING.desktopHeaderToPrimaryAction}
+                  />
+                </motion.div>
+
                 {/* Google OAuth with Neon Border */}
                 <motion.div
                   initial={{ y: 10, opacity: 0 }}
