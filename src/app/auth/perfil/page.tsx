@@ -9,7 +9,6 @@ import { Snackbar, Alert, CircularProgress } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
-import PageContainer from "@/components/layouts/PageContainer";
 import useAuth from "@/hooks/useAuth";
 import { persistAuthSession, type StoredAuthUser } from "@/lib/auth-storage";
 import { normalizeStoredAuthUser } from "@/lib/auth-user";
@@ -79,6 +78,11 @@ interface UserProfile {
   bio?: string;
   pronombres?: string;
   fotoPerfil?: string;
+  createdAt?: string;
+  provider?: string;
+  role?: string;
+  plan?: string;
+  isVerified?: boolean;
 }
 
 interface FieldConfig {
@@ -359,6 +363,11 @@ const buildProfileFromPayload = (
         normalizedUser.photo,
         normalizedUser.profilePicture,
       ) ?? "",
+    createdAt: pickFirstString(source?.createdAt, fallbackUser?.createdAt) ?? "",
+    provider: pickFirstString(source?.provider, fallbackUser?.provider) ?? "local",
+    role: pickFirstString(source?.role, fallbackUser?.role) ?? "",
+    plan: pickFirstString(source?.plan, fallbackUser?.plan) ?? "",
+    isVerified: source?.isVerified === true || fallbackUser?.isVerified === true,
   };
 };
 
@@ -412,17 +421,71 @@ const inputError =
   "border-red-400/30 bg-red-400/[0.02] focus:border-red-400/60 focus:shadow-[0_0_20px_color-mix(in_srgb,var(--color-error)_12%,transparent)]";
 
 /* ═══════════════════════════════════════════
+   Toggle switch (preferencias)
+   ═══════════════════════════════════════════ */
+
+function Toggle({
+  checked,
+  onChange,
+  label,
+  desc,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+  desc?: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={onChange}
+      className="flex w-full items-center justify-between gap-3 text-left"
+    >
+      <span className="min-w-0">
+        <span className="block text-[12px] font-semibold" style={{ color: "var(--color-text-secondary)" }}>
+          {label}
+        </span>
+        {desc && (
+          <span className="block text-[10.5px] leading-snug" style={{ color: "var(--color-text-muted)" }}>
+            {desc}
+          </span>
+        )}
+      </span>
+      <span
+        className="relative h-5 w-9 shrink-0 rounded-full transition-all duration-300"
+        style={{
+          background: checked
+            ? "var(--color-amber-primary)"
+            : "color-mix(in srgb, var(--color-text-muted) 30%, transparent)",
+          boxShadow: checked
+            ? "0 0 10px color-mix(in srgb, var(--color-amber-primary) 45%, transparent)"
+            : "none",
+        }}
+      >
+        <span
+          className="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all duration-300"
+          style={{ left: checked ? "calc(100% - 1.125rem)" : "0.125rem" }}
+        />
+      </span>
+    </button>
+  );
+}
+
+/* ═══════════════════════════════════════════
    Component
    ═══════════════════════════════════════════ */
 
 export default function PerfilPage() {
   const router = useRouter();
-  const { user: authUser, token, isAuthReady, setUser } = useAuth();
+  const { user: authUser, token, isAuthReady, setUser, logout } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [prefs, setPrefs] = useState({ emailNotifs: true, publicProfile: true, newsletter: false });
   const [toast, setToast] = useState<{
     open: boolean;
     message: string;
@@ -501,6 +564,32 @@ export default function PerfilPage() {
       alive = false;
     };
   }, [currentUser, isAuthReady, reset, router, token]);
+
+  /* ─── Preferencias (persistidas en localStorage) ─── */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("lupulos:prefs");
+      if (raw) setPrefs((prev) => ({ ...prev, ...JSON.parse(raw) }));
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  const togglePref = (key: keyof typeof prefs) =>
+    setPrefs((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem("lupulos:prefs", JSON.stringify(next));
+      } catch {
+        /* noop */
+      }
+      return next;
+    });
+
+  const handleLogout = () => {
+    logout();
+    router.push("/auth/login");
+  };
 
   /* ─── Helpers ─── */
   const showToast = (message: string, severity: "success" | "error") => {
@@ -606,6 +695,32 @@ export default function PerfilPage() {
 
   const avatarUrl = getAvatarUrl();
 
+  /* ─── Datos derivados ─── */
+  const COMPLETION_KEYS: (keyof UserProfile)[] = [
+    "username",
+    "pronombres",
+    "ciudad",
+    "pais",
+    "sitioWeb",
+    "bio",
+    "fotoPerfil",
+  ];
+  const filledCount = profile
+    ? COMPLETION_KEYS.filter((k) => {
+        const v = profile[k];
+        return typeof v === "string" && v.trim().length > 0;
+      }).length
+    : 0;
+  const completion = profile ? Math.round((filledCount / COMPLETION_KEYS.length) * 100) : 0;
+
+  const memberSince = profile?.createdAt
+    ? new Date(profile.createdAt).toLocaleDateString("es-ES", { month: "long", year: "numeric" })
+    : null;
+
+  const isGoogle = profile?.provider === "google";
+  const planLabel = (profile?.plan || "").trim();
+  const roleLabel = (profile?.role || "").trim();
+
   /* ═══════════════════════════════════════════
      Render
      ═══════════════════════════════════════════ */
@@ -615,9 +730,11 @@ export default function PerfilPage() {
       className="flex min-h-screen flex-col"
       style={{ background: "var(--color-surface-deepest)", color: "var(--color-text-primary)" }}
     >
-      <PageContainer>
-        {/* Layout: form + sidebar on xl */}
-        <div className="flex flex-col lg:flex-row gap-6">
+      <main className="relative min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+        {/* Mismo ancho que cervezas/lugares (calc(1140px + 4rem)) */}
+        <div className="mx-auto w-full" style={{ maxWidth: "calc(1140px + 4rem)" }}>
+          {/* Layout: form + sidebar on xl */}
+          <div className="flex flex-col gap-8 xl:flex-row">
           {/* ─── Main Column ─── */}
           <div className="min-w-0 flex-1">
             {/* Profile Header */}
@@ -671,6 +788,42 @@ export default function PerfilPage() {
                     backgroundSize: "40px 40px",
                   }}
                 />
+
+                {/* Completitud del perfil */}
+                <div className="absolute top-4 right-5 left-6 flex flex-col gap-1.5 sm:left-8">
+                  <div className="flex items-center justify-between">
+                    <span
+                      className="text-[11px] font-bold tracking-wide uppercase"
+                      style={{
+                        color: "color-mix(in srgb, var(--color-amber-primary) 88%, white)",
+                        textShadow: "0 1px 6px rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      {completion === 100 ? "Perfil completo 🍺" : `Perfil ${completion}% completo`}
+                    </span>
+                    <span
+                      className="text-[10px] font-semibold tabular-nums"
+                      style={{ color: "var(--color-text-muted)", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
+                    >
+                      {filledCount}/{COMPLETION_KEYS.length}
+                    </span>
+                  </div>
+                  <div
+                    className="h-1.5 w-full max-w-sm overflow-hidden rounded-full"
+                    style={{ background: "color-mix(in srgb, var(--color-surface-deepest) 55%, transparent)" }}
+                  >
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${completion}%` }}
+                      transition={{ duration: 0.9, ease: "easeOut", delay: 0.3 }}
+                      className="h-full rounded-full"
+                      style={{
+                        background: "var(--gradient-button-primary)",
+                        boxShadow: "0 0 10px color-mix(in srgb, var(--color-amber-primary) 55%, transparent)",
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Bottom section */}
@@ -765,16 +918,73 @@ export default function PerfilPage() {
                       />
                     </div>
                   </div>
-                  <div className="pb-1">
-                    <h1
-                      className="text-lg font-bold sm:text-xl tracking-tight"
-                      style={{ color: "var(--color-text-primary)" }}
-                    >
-                      {profile?.username || "Cervecero"}
-                    </h1>
+                  <div className="min-w-0 pb-1">
+                    <div className="flex items-center gap-1.5">
+                      <h1
+                        className="truncate text-lg font-bold tracking-tight sm:text-xl"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
+                        {profile?.username || "Cervecero"}
+                      </h1>
+                      {profile?.isVerified && (
+                        <span
+                          title="Cuenta verificada"
+                          className="shrink-0 text-[var(--color-amber-primary)]"
+                        >
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1.6l2.6 1.9 3.2-.2 1 3 2.8 1.7-1.1 3 1.1 3-2.8 1.7-1 3-3.2-.2L12 22.4l-2.6-1.9-3.2.2-1-3L2.4 16l1.1-3-1.1-3 2.8-1.7 1-3 3.2.2L12 1.6z" />
+                            <path
+                              d="M8.6 12.2l2.2 2.2 4.4-4.6"
+                              fill="none"
+                              stroke="var(--color-text-dark)"
+                              strokeWidth="2.2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs font-medium" style={{ color: "var(--color-text-muted)" }}>
                       {profile?.email}
                     </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                      {(planLabel || roleLabel) && (
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                          style={{
+                            background: "color-mix(in srgb, var(--color-amber-primary) 14%, transparent)",
+                            color: "var(--color-amber-primary)",
+                            border: "1px solid color-mix(in srgb, var(--color-amber-primary) 25%, transparent)",
+                          }}
+                        >
+                          {planLabel || roleLabel}
+                        </span>
+                      )}
+                      {isGoogle && (
+                        <span
+                          className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                          style={{
+                            background: "color-mix(in srgb, var(--color-text-primary) 6%, transparent)",
+                            color: "var(--color-text-secondary)",
+                            border: "1px solid color-mix(in srgb, var(--color-border-light) 60%, transparent)",
+                          }}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                          </svg>
+                          Google
+                        </span>
+                      )}
+                      {memberSince && (
+                        <span className="text-[10px]" style={{ color: "var(--color-text-subtle)" }}>
+                          Miembro desde {memberSince}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1135,7 +1345,7 @@ export default function PerfilPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="hidden w-72 shrink-0 space-y-4 xl:block"
+            className="hidden w-[280px] shrink-0 space-y-4 xl:block"
           >
             {/* Security card */}
             <div
@@ -1254,6 +1464,122 @@ export default function PerfilPage() {
               </div>
             </div>
 
+            {/* Account card */}
+            <div
+              className="glass-card rounded-2xl border p-5 transition-all duration-300"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-border-amber) 30%, transparent)",
+                boxShadow:
+                  "0 8px 32px color-mix(in srgb, var(--color-surface-overlay) 40%, transparent), 0 0 20px color-mix(in srgb, var(--color-amber-primary) 3%, transparent)",
+              }}
+            >
+              <div className="mb-3.5 flex items-center gap-2">
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--color-amber-primary)]"
+                  style={{
+                    background: "color-mix(in srgb, var(--color-amber-primary) 12%, transparent)",
+                    boxShadow: "0 0 8px color-mix(in srgb, var(--color-amber-primary) 12%, transparent)",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <h3 className="text-xs font-bold tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
+                  Cuenta
+                </h3>
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  { label: "Acceso", value: isGoogle ? "Google" : "Email y contraseña" },
+                  ...(memberSince ? [{ label: "Miembro desde", value: memberSince }] : []),
+                  ...(planLabel || roleLabel ? [{ label: "Plan", value: planLabel || roleLabel }] : []),
+                ].map((row) => (
+                  <div key={row.label} className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-medium" style={{ color: "var(--color-text-muted)" }}>
+                      {row.label}
+                    </span>
+                    <span className="truncate text-[11px] font-semibold" style={{ color: "var(--color-text-secondary)" }}>
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="active:scale-98 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2 text-xs font-semibold transition-all duration-250 hover:brightness-110"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--color-error) 35%, transparent)",
+                  background: "color-mix(in srgb, var(--color-error) 10%, transparent)",
+                  color: "color-mix(in srgb, var(--color-error) 80%, var(--color-text-primary))",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Cerrar sesión
+              </button>
+            </div>
+
+            {/* Preferences card */}
+            <div
+              className="glass-card rounded-2xl border p-5 transition-all duration-300"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-border-amber) 30%, transparent)",
+                boxShadow:
+                  "0 8px 32px color-mix(in srgb, var(--color-surface-overlay) 40%, transparent), 0 0 20px color-mix(in srgb, var(--color-amber-primary) 3%, transparent)",
+              }}
+            >
+              <div className="mb-4 flex items-center gap-2">
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--color-amber-primary)]"
+                  style={{
+                    background: "color-mix(in srgb, var(--color-amber-primary) 12%, transparent)",
+                    boxShadow: "0 0 8px color-mix(in srgb, var(--color-amber-primary) 12%, transparent)",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="4" y1="21" x2="4" y2="14" />
+                    <line x1="4" y1="10" x2="4" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12" y2="3" />
+                    <line x1="20" y1="21" x2="20" y2="16" />
+                    <line x1="20" y1="12" x2="20" y2="3" />
+                    <line x1="1" y1="14" x2="7" y2="14" />
+                    <line x1="9" y1="8" x2="15" y2="8" />
+                    <line x1="17" y1="16" x2="23" y2="16" />
+                  </svg>
+                </div>
+                <h3 className="text-xs font-bold tracking-wide" style={{ color: "var(--color-text-secondary)" }}>
+                  Preferencias
+                </h3>
+              </div>
+              <div className="space-y-4">
+                <Toggle
+                  checked={prefs.emailNotifs}
+                  onChange={() => togglePref("emailNotifs")}
+                  label="Notificaciones por email"
+                  desc="Catas, respuestas y novedades"
+                />
+                <Toggle
+                  checked={prefs.publicProfile}
+                  onChange={() => togglePref("publicProfile")}
+                  label="Perfil público"
+                  desc="Aparecé en la comunidad"
+                />
+                <Toggle
+                  checked={prefs.newsletter}
+                  onChange={() => togglePref("newsletter")}
+                  label="Newsletter cervecero"
+                  desc="Resumen semanal de la escena"
+                />
+              </div>
+            </div>
+
             {/* Tip card */}
             <div
               className="rounded-2xl border p-5 transition-all duration-300"
@@ -1271,8 +1597,9 @@ export default function PerfilPage() {
               </p>
             </div>
           </motion.aside>
+          </div>
         </div>
-      </PageContainer>
+      </main>
 
       <Footer />
 

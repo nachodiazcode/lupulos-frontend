@@ -3,6 +3,7 @@ import ThemeRegistry from "@/theme/ThemeRegistry";
 import { ReactQueryProvider } from "@/components/ReactQueryProvider";
 import AppLoader from "@/components/AppLoader";
 import { AuthProvider } from "@/context/AuthContext";
+import { RealtimeProvider } from "@/context/RealtimeContext";
 import Navbar from "@/components/Navbar";
 import CommandPalette from "@/components/CommandPalette";
 import "./globals.scss";
@@ -32,13 +33,15 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <AuthProvider>
-          <ReactQueryProvider>
-            <ThemeRegistry>
-              <Navbar />
-              <CommandPalette />
-              <AppLoader>{children}</AppLoader>
-            </ThemeRegistry>
-          </ReactQueryProvider>
+          <RealtimeProvider>
+            <ReactQueryProvider>
+              <ThemeRegistry>
+                <Navbar />
+                <CommandPalette />
+                <AppLoader>{children}</AppLoader>
+              </ThemeRegistry>
+            </ReactQueryProvider>
+          </RealtimeProvider>
         </AuthProvider>
       </body>
     </html>

@@ -23,6 +23,7 @@ import MainLayout from "@/components/layouts/MainLayout";
 import Footer from "@/components/Footer";
 import { api } from "@/lib/api";
 import useAuth from "@/hooks/useAuth";
+import { useRealtime } from "@/context/RealtimeContext";
 
 type ChatMode = "ai" | "community" | "b2b";
 
@@ -66,6 +67,7 @@ type ChatLite = {
 
 export default function CarretePage() {
   const { isAuthReady } = useAuth();
+  const { socket, joinChat, leaveChat, refreshUnread } = useRealtime();
   const router = useRouter();
 
   const [mode, setMode] = useState<ChatMode>("ai");
@@ -111,7 +113,36 @@ export default function CarretePage() {
   useEffect(() => {
     if (!selectedChatId) return;
     void loadMessages(selectedChatId);
+    joinChat(selectedChatId);
+    // Opening a chat marks it read → clear the navbar badge for it.
+    api
+      .post(`/chat/${selectedChatId}/read`)
+      .then(() => refreshUnread())
+      .catch(() => {});
+    return () => leaveChat(selectedChatId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChatId]);
+
+  // Live incoming messages for the conversation currently open.
+  useEffect(() => {
+    if (!socket) return;
+    const onNewMessage = ({
+      chatId,
+      message,
+    }: {
+      chatId: string;
+      message: MessageLite;
+    }) => {
+      if (chatId !== selectedChatId) return;
+      setMessages((prev) =>
+        prev.some((m) => m._id === message._id) ? prev : [...prev, message]
+      );
+    };
+    socket.on("chat:message:new", onNewMessage);
+    return () => {
+      socket.off("chat:message:new", onNewMessage);
+    };
+  }, [socket, selectedChatId]);
 
   const filteredUsers = useMemo(() => {
     if (mode === "community") return users.filter((u) => u.role !== "owner");
@@ -171,9 +202,17 @@ export default function CarretePage() {
   const sendMessage = async () => {
     if (!selectedChatId || !input.trim()) return;
     try {
-      await api.post(`/chat/${selectedChatId}/messages`, { content: input });
+      const res = await api.post(`/chat/${selectedChatId}/messages`, {
+        content: input,
+      });
+      const created: MessageLite | undefined = res.data?.data?.message;
       setInput("");
-      await loadMessages(selectedChatId);
+      if (created?._id) {
+        setMessages((prev) =>
+          prev.some((m) => m._id === created._id) ? prev : [...prev, created]
+        );
+      }
+      // Refresh the conversation list (last message / ordering).
       await loadChats(mode);
     } catch {
       // noop

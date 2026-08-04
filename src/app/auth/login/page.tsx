@@ -15,9 +15,9 @@ import {
   normalizeStoredAuthUser,
 } from "@/lib/auth-user";
 import { getErrorMessage } from "@/lib/errors";
-import { Cinzel } from "next/font/google";
+import { Outfit } from "next/font/google";
 
-const brandFont = Cinzel({ weight: ["400", "700", "900"], subsets: ["latin"] });
+const brandFont = Outfit({ weight: ["400", "600", "700", "800", "900"], subsets: ["latin"] });
 
 const LOGIN_THEME = {
   accent: "var(--color-amber-primary)",
@@ -34,9 +34,9 @@ const LOGIN_THEME = {
     "color-mix(in srgb, #0f0801 88%, #3a2408 12%)",
   buttonSurface:
     "color-mix(in srgb, #1a1002 90%, #3a2408 10%)",
-  textPrimary: "var(--color-text-primary)",
-  textSecondary: "var(--color-text-secondary)",
-  textMuted: "var(--color-text-muted)",
+  textPrimary: "#f8e9c2",
+  textSecondary: "rgba(247, 230, 192, 0.66)",
+  textMuted: "rgba(238, 209, 148, 0.52)",
   border: "var(--color-border-light)",
   borderAccent: "color-mix(in srgb, var(--color-border-amber) 48%, var(--color-border-light))",
   borderHighlight: "color-mix(in srgb, var(--color-amber-light) 18%, var(--color-border-light))",
@@ -76,6 +76,21 @@ const LOGIN_SPACING = {
   secondaryActionToFooter: 24,
 } as const;
 
+// Grano fílmico — feTurbulence inline (firma de UIs premium tipo Linear/Vercel)
+const NOISE_SVG =
+  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='180'%20height='180'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.82'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23n)'/%3E%3C/svg%3E";
+
+// Grano dorado fino — sparkle de lámina recortado al wordmark (estilo "GOLD CUP")
+const GOLD_GRAIN_SVG =
+  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='120'%3E%3Cfilter%20id='g'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.9'%20numOctaves='3'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23g)'/%3E%3C/svg%3E";
+
+// Fondo — madera dorada FABRICADA por código: veta = feTurbulence con baja frecuencia
+// vertical (vetas verticales) en escala de grises opaca, mezclada soft-light sobre un degradado golden.
+const WOOD_GRAIN_SVG =
+  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='500'%20height='500'%3E%3Cfilter%20id='w'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.052%200.004'%20numOctaves='4'%20seed='12'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type='linear'%20slope='0'%20intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23w)'/%3E%3C/svg%3E";
+const WOOD_GRADIENT =
+  "radial-gradient(ellipse 115% 95% at 50% 40%, #c08a3e 0%, #9a6a2c 32%, #6b4a1e 62%, #43300f 88%, #2c2009 100%)";
+
 /* ═══════════════════════════════════════════
    Neon Border — Reusable rotating gradient border
    ═══════════════════════════════════════════ */
@@ -98,7 +113,7 @@ function NeonBorder({
 
   useEffect(() => {
     const ctrl = animate(rotation, 360, {
-      duration: 4,
+      duration: 8,
       repeat: Infinity,
       ease: "linear",
     });
@@ -169,7 +184,7 @@ function GradientBorder({
 
   useEffect(() => {
     const ctrl = animate(rotation, 360, {
-      duration: 4,
+      duration: 8,
       repeat: Infinity,
       ease: "linear",
     });
@@ -226,7 +241,7 @@ type InputStatus = "idle" | "focus" | "valid" | "invalid";
 const NEON_INPUT_COLORS: Record<InputStatus, string> = {
   idle: "var(--color-border-light)",
   focus:
-    "#7c3aed, #4f46e5, #06b6d4, #f59e0b, #818cf8, #06b6d4, #7c3aed",
+    "#fef3c7, #fde68a, #fbbf24, #f59e0b, #fcd34d, #fde68a, #fef3c7",
   valid:
     "#10b981, #34d399, #6ee7b7, #059669, #10b981",
   invalid:
@@ -447,14 +462,14 @@ interface Particle {
 }
 
 const PARTICLE_COLORS = [
-  "rgba(124, 58, 237, 0.35)",
-  "rgba(79, 70, 229, 0.30)",
-  "rgba(37, 99, 235, 0.28)",
-  "rgba(6, 182, 212, 0.22)",
-  "rgba(129, 140, 248, 0.25)",
-  "rgba(167, 139, 250, 0.30)",
-  "rgba(56, 189, 248, 0.20)",
-  "rgba(99, 102, 241, 0.28)",
+  "rgba(255, 222, 140, 0.42)",
+  "rgba(248, 196, 92, 0.36)",
+  "rgba(236, 176, 64, 0.32)",
+  "rgba(255, 170, 80, 0.28)",
+  "rgba(214, 190, 138, 0.30)",
+  "rgba(255, 205, 110, 0.34)",
+  "rgba(230, 150, 70, 0.24)",
+  "rgba(252, 230, 170, 0.28)",
 ];
 
 function generateParticles(count: number): Particle[] {
@@ -543,6 +558,274 @@ const EyeOffIcon = (
     <line x1="1" y1="1" x2="23" y2="23" />
   </svg>
 );
+
+/* ═══════════════════════════════════════════
+   Gold foil — shared wordmark + tagline styles
+   ═══════════════════════════════════════════ */
+const GOLD_FOIL_TEXT: React.CSSProperties = {
+  fontWeight: 900,
+  letterSpacing: "0.01em",
+  background:
+    "linear-gradient(180deg, #ffe9a8 0%, #f6c453 24%, #ec9d2c 48%, #d97706 72%, #a8530a 100%)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  color: "transparent",
+  WebkitTextFillColor: "transparent",
+  WebkitTextStrokeWidth: "1.1px",
+  WebkitTextStrokeColor: "#7d4a09",
+  paintOrder: "stroke",
+  filter:
+    "drop-shadow(0 1px 0 rgba(60, 36, 6, 0.4)) drop-shadow(0 3px 10px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 22px rgba(245, 158, 11, 0.36)) drop-shadow(0 0 50px rgba(217, 119, 6, 0.18))",
+  textTransform: "uppercase",
+};
+
+const GOLD_TAGLINE_TEXT: React.CSSProperties = {
+  fontWeight: 700,
+  letterSpacing: "0.16em",
+  textTransform: "uppercase",
+  background: "linear-gradient(180deg, #ffe7a0 0%, #f5be4a 46%, #e08a22 78%, #c2620e 100%)",
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  color: "transparent",
+  WebkitTextFillColor: "transparent",
+  WebkitTextStrokeWidth: "0.4px",
+  WebkitTextStrokeColor: "rgba(58, 32, 4, 0.55)",
+  paintOrder: "stroke",
+  filter:
+    "drop-shadow(0 1px 1px rgba(28, 16, 2, 0.7)) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 16px rgba(245, 158, 11, 0.32))",
+};
+
+/* ═══════════════════════════════════════════
+   Brand wordmark — foil metálico + destello que barre
+   ═══════════════════════════════════════════ */
+function BrandWordmark({
+  fontSize,
+  lineHeight = 0.85,
+  className = "",
+}: {
+  fontSize: string;
+  lineHeight?: number;
+  className?: string;
+}) {
+  // Borde dorado animado — misma firma que el del formulario (conic-gradient que gira)
+  const rimRotation = useMotionValue(0);
+  useEffect(() => {
+    const ctrl = animate(rimRotation, 360, { duration: 7, repeat: Infinity, ease: "linear" });
+    return () => ctrl.stop();
+  }, [rimRotation]);
+  const rimBackground = useTransform(
+    rimRotation,
+    (r) => `conic-gradient(from ${r}deg, ${LOGIN_BORDER_COLORS})`,
+  );
+  const rimBase: React.CSSProperties = {
+    fontSize,
+    lineHeight,
+    fontWeight: 900,
+    letterSpacing: "0.01em",
+    textTransform: "uppercase",
+    transformOrigin: "center",
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    color: "transparent",
+    WebkitTextFillColor: "transparent",
+  };
+
+  return (
+    <span
+      className={`relative inline-block ${brandFont.className} ${className}`}
+      style={{ paddingRight: "0.06em" }}
+    >
+      {/* Halo dorado pulsante detrás */}
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          inset: "-32% -10%",
+          zIndex: 0,
+          background:
+            "radial-gradient(ellipse 58% 72% at 50% 52%, rgba(232,188,64,0.30) 0%, rgba(232,188,64,0.08) 46%, transparent 72%)",
+          filter: "blur(24px)",
+        }}
+        animate={{ opacity: [0.4, 0.8, 0.4], scale: [0.97, 1.05, 0.97] }}
+        transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Borde dorado animado — resplandor exterior (conic giratorio recortado al texto) */}
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 block"
+        style={{ ...rimBase, zIndex: 0, background: rimBackground, transform: "scale(1.06)", filter: "blur(10px)" }}
+        animate={{ opacity: [0.3, 0.62, 0.3] }}
+        transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        Lupuløs
+      </motion.span>
+
+      {/* Borde dorado animado — filo cercano (conic giratorio recortado al texto) */}
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 block"
+        style={{ ...rimBase, zIndex: 0, background: rimBackground, transform: "scale(1.02)", filter: "blur(3px)" }}
+        animate={{ opacity: [0.55, 0.92, 0.55] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        Lupuløs
+      </motion.span>
+
+      {/* Base — foil dorado */}
+      <span className="relative block" style={{ ...GOLD_FOIL_TEXT, fontSize, lineHeight, zIndex: 1 }}>
+        Lupuløs
+      </span>
+
+      {/* Textura foil — grano dorado recortado al texto (estilo "GOLD CUP") */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 block"
+        style={{
+          fontSize,
+          lineHeight,
+          fontWeight: 900,
+          letterSpacing: "0.01em",
+          textTransform: "uppercase",
+          zIndex: 2,
+          backgroundImage: `url("${GOLD_GRAIN_SVG}")`,
+          backgroundSize: "108px 108px",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          color: "transparent",
+          WebkitTextFillColor: "transparent",
+          mixBlendMode: "soft-light",
+          opacity: 0.5,
+        }}
+      >
+        Lupuløs
+      </span>
+
+      {/* Destello especular que recorre las letras */}
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 block"
+        style={{
+          fontSize,
+          lineHeight,
+          fontWeight: 900,
+          letterSpacing: "0.01em",
+          textTransform: "uppercase",
+          zIndex: 3,
+          background:
+            "linear-gradient(105deg, rgba(255,236,168,0) 42%, rgba(255,236,168,0.18) 48%, rgba(255,243,200,0.42) 50%, rgba(255,236,168,0.18) 52%, rgba(255,236,168,0) 58%)",
+          backgroundSize: "250% 100%",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          color: "transparent",
+          WebkitTextFillColor: "transparent",
+          willChange: "background-position",
+        }}
+        animate={{ backgroundPosition: ["170% 0%", "-70% 0%"] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", repeatDelay: 2.6 }}
+      >
+        Lupuløs
+      </motion.span>
+    </span>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   Editorial hero — kicker stagger + feature rows
+   (estilo register, adaptado para "volver")
+   ═══════════════════════════════════════════ */
+const heroStroke = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.5,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+
+const IconMug = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" {...heroStroke}>
+    <path d="M6 8h9v9a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V8Z" />
+    <path d="M15 10h2.4a2.5 2.5 0 0 1 0 5H15" />
+    <path d="M8 8V6a2 2 0 0 1 2-2M11 8V5.5M14 8V6" />
+  </svg>
+);
+
+const IconPin = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" {...heroStroke}>
+    <path d="M20 10c0 5.5-8 11-8 11s-8-5.5-8-11a8 8 0 1 1 16 0Z" />
+    <circle cx="12" cy="10" r="2.6" />
+  </svg>
+);
+
+const IconStar = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" {...heroStroke}>
+    <path d="M12 3.5 14.6 9l6 .7-4.4 4 1.2 5.9L12 16.8 6.6 19.6l1.2-5.9-4.4-4 6-.7L12 3.5Z" />
+  </svg>
+);
+
+const heroContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12, delayChildren: 0.2 } },
+};
+const heroItem = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+};
+
+const featureRowVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+  hover: { x: 6, transition: { type: "spring" as const, stiffness: 320, damping: 20 } },
+};
+const featureIconVariants = {
+  hover: {
+    scale: 1.12,
+    rotate: -4,
+    transition: { type: "spring" as const, stiffness: 320, damping: 14 },
+  },
+};
+
+function FeatureRow({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <motion.div
+      variants={featureRowVariants}
+      whileHover="hover"
+      className="flex cursor-default items-start gap-4"
+    >
+      <motion.div
+        variants={featureIconVariants}
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+        style={{
+          border: `1px solid ${LOGIN_THEME.borderAccent}`,
+          background: "color-mix(in srgb, var(--color-amber-primary) 8%, transparent)",
+          color: "var(--color-amber-light)",
+          boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.06)",
+        }}
+      >
+        {icon}
+      </motion.div>
+      <div className="pt-0.5">
+        <p className="text-[15px] font-semibold" style={{ color: LOGIN_THEME.textPrimary }}>
+          {title}
+        </p>
+        <p
+          className="mt-0.5 text-sm leading-snug"
+          style={{ color: "color-mix(in srgb, var(--color-amber-light) 45%, #d9bd84)" }}
+        >
+          {desc}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
 
 /* ═══════════════════════════════════════════
    Helper: derive input status from value
@@ -803,15 +1086,85 @@ export default function LoginPage() {
       className="relative flex min-h-screen items-center justify-center overflow-x-hidden overflow-y-auto"
       style={{ color: LOGIN_THEME.textPrimary }}
     >
-      {/* Fondo */}
-      <div 
-        className="absolute inset-0" 
+      {/* Fondo — madera dorada fabricada (veta SVG soft-light sobre degradado golden), Ken Burns lento */}
+      <motion.div
+        className="absolute inset-0"
         style={{
-          backgroundImage: `radial-gradient(ellipse 120% 80% at 62% 24%, rgba(255, 184, 92, 0.32) 0%, rgba(255, 138, 48, 0.12) 38%, transparent 62%), radial-gradient(ellipse 150% 130% at 50% 50%, transparent 50%, rgba(12, 6, 2, 0.6) 100%), linear-gradient(90deg, rgba(18, 9, 3, 0.78) 0%, rgba(18, 9, 3, 0.36) 34%, rgba(18, 9, 3, 0) 58%), linear-gradient(180deg, rgba(255, 150, 60, 0.1) 0%, rgba(40, 18, 6, 0.18) 55%, rgba(14, 7, 2, 0.5) 100%), url('/kattegat_bg.png')`,
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          filter: "sepia(0.45) saturate(1.5) hue-rotate(-8deg) contrast(1.05) brightness(1.05)"
+          backgroundImage: `url("${WOOD_GRAIN_SVG}"), ${WOOD_GRADIENT}`,
+          backgroundSize: "150% 135%, cover",
+          backgroundPosition: "center, center",
+          backgroundRepeat: "no-repeat, no-repeat",
+          backgroundBlendMode: "soft-light",
+          transformOrigin: "55% 45%",
+          filter: "saturate(1.05) contrast(1.03)",
+        }}
+        animate={{ scale: [1, 1.05] }}
+        transition={{ duration: 30, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+      />
+
+      {/* Scrim oscuro y elegante para madera: calidez dorada + viñeta + foco tras el hero */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(ellipse 95% 82% at 50% 40%, rgba(226, 160, 54, 0.24) 0%, rgba(150, 96, 22, 0.10) 46%, transparent 72%), " +
+            "radial-gradient(ellipse 55% 78% at 74% 50%, rgba(10, 6, 2, 0.4) 0%, rgba(10, 6, 2, 0.14) 48%, transparent 72%), " +
+            "radial-gradient(ellipse 150% 130% at 50% 48%, transparent 50%, rgba(8, 4, 1, 0.58) 100%), " +
+            "linear-gradient(180deg, rgba(8, 4, 1, 0.3) 0%, transparent 32%, transparent 68%, rgba(6, 3, 1, 0.46) 100%)",
+        }}
+      />
+
+      {/* Aurora mesh — resplandores cálidos a la deriva (profundidad premium) */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute z-[1]"
+        style={{
+          top: "6%",
+          right: "4%",
+          width: 560,
+          height: 560,
+          background:
+            "radial-gradient(circle at 50% 50%, rgba(245, 184, 72, 0.22), rgba(245, 158, 11, 0.10) 42%, transparent 70%)",
+          filter: "blur(64px)",
+        }}
+        animate={{
+          x: [0, 34, -12, 0],
+          y: [0, -22, 16, 0],
+          scale: [1, 1.12, 0.96, 1],
+          opacity: [0.65, 1, 0.8, 0.65],
+        }}
+        transition={{ duration: 19, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute z-[1]"
+        style={{
+          bottom: "4%",
+          left: "8%",
+          width: 460,
+          height: 460,
+          background:
+            "radial-gradient(circle at 50% 50%, rgba(214, 120, 40, 0.18), rgba(146, 52, 10, 0.10) 44%, transparent 72%)",
+          filter: "blur(70px)",
+        }}
+        animate={{
+          x: [0, -26, 14, 0],
+          y: [0, 18, -12, 0],
+          scale: [1, 1.08, 0.94, 1],
+          opacity: [0.5, 0.85, 0.6, 0.5],
+        }}
+        transition={{ duration: 23, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      />
+
+      {/* Grano fílmico — textura sutil estilo Linear/Vercel */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[2]"
+        style={{
+          backgroundImage: `url("${NOISE_SVG}")`,
+          backgroundSize: "180px 180px",
+          opacity: 0.08,
+          mixBlendMode: "overlay",
         }}
       />
 
@@ -868,13 +1221,29 @@ export default function LoginPage() {
           }
         }}
       >
+        {/* Marca para móvil */}
+        <motion.div
+          initial={{ y: 12, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+          className="mb-6 w-full max-w-sm text-center"
+        >
+          <BrandWordmark fontSize="2.85rem" lineHeight={0.9} className="block" />
+          <span
+            className={`${brandFont.className} mt-2 block text-[0.74rem]`}
+            style={GOLD_TAGLINE_TEXT}
+          >
+            Descubre ese brebaje que te faltaba
+          </span>
+        </motion.div>
+
         <div className="w-full max-w-sm">
           <GradientBorder radius={24} borderWidth={1.5}>
             <div
               className="rounded-3xl px-6 py-7 shadow-2xl backdrop-blur-xl"
               style={{
                 background: LOGIN_THEME.panelGradient,
-                boxShadow: `inset 0 1px 0 color-mix(in srgb, white 24%, transparent), ${LOGIN_THEME.glowLarge}`,
+                boxShadow: `inset 0 1px 0 color-mix(in srgb, white 30%, transparent), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 40px 90px -24px rgba(0, 0, 0, 0.75), ${LOGIN_THEME.glowLarge}`,
               }}
             >
               {/* Google OAuth with Neon Border — first */}
@@ -976,70 +1345,93 @@ export default function LoginPage() {
           }
         }}
       >
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-center gap-10 xl:gap-16">
+        <div className="mx-auto flex flex-col lg:flex-row-reverse w-full max-w-6xl items-center justify-center gap-9 lg:gap-12 xl:gap-16">
           <motion.div
-            initial={{ x: -24, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="hidden max-w-[34rem] flex-1 lg:block"
+            variants={heroContainer}
+            initial="hidden"
+            animate="show"
+            className="flex max-w-[34rem] flex-col items-center text-center lg:items-start lg:text-left"
           >
+            {/* Kicker — badge de cristal con punto "en vivo" */}
+            <motion.div
+              variants={heroItem}
+              className="mb-6 inline-flex items-center gap-2.5 rounded-full border px-3.5 py-1.5"
+              style={{
+                borderColor: "color-mix(in srgb, var(--color-amber-light) 22%, var(--color-border-light))",
+                background: "color-mix(in srgb, #1c1103 68%, transparent)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.07)",
+              }}
+            >
+              <span className="relative flex h-1.5 w-1.5">
+                <motion.span
+                  className="absolute inline-flex h-full w-full rounded-full"
+                  style={{ background: "var(--color-amber-light)" }}
+                  animate={{ scale: [1, 2.6], opacity: [0.55, 0] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                />
+                <span
+                  className="relative inline-flex h-1.5 w-1.5 rounded-full"
+                  style={{ background: "var(--color-amber-primary)" }}
+                />
+              </span>
+              <span
+                className="text-[11px] font-semibold uppercase"
+                style={{
+                  letterSpacing: "0.22em",
+                  color: "color-mix(in srgb, var(--color-amber-light) 85%, white)",
+                }}
+              >
+                Te estábamos esperando
+              </span>
+            </motion.div>
+
+            {/* Marca — dorado metálico (gold foil), glow que abraza las letras */}
             <motion.h1
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              variants={heroItem}
               className={`${brandFont.className} text-[2.5rem] xl:text-[3rem]`}
               style={{ lineHeight: 1.12, color: LOGIN_THEME.textPrimary }}
             >
-              {/* Marca — dorado metálico (gold foil), glow que abraza las letras */}
-              <span
-                className="relative block"
-                style={{ paddingRight: "0.06em" }}
-              >
-                <span
-                  className={`${brandFont.className} block`}
-                  style={{
-                    fontWeight: 900,
-                    fontSize: "1.5em",
-                    lineHeight: 0.85,
-                    letterSpacing: "0.04em",
-                    background:
-                      "linear-gradient(180deg, #ece0bd 0%, #d8c599 22%, #c0a673 42%, #a48a54 58%, #8d7444 67%, #bda66f 84%, #eaddb8 100%)",
-                    WebkitBackgroundClip: "text",
-                    backgroundClip: "text",
-                    color: "transparent",
-                    WebkitTextFillColor: "transparent",
-                    WebkitTextStrokeWidth: "1.5px",
-                    WebkitTextStrokeColor: "#bda66f",
-                    paintOrder: "stroke",
-                    filter:
-                      "drop-shadow(0 1px 0 rgba(60, 45, 18, 0.5)) drop-shadow(0 5px 16px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 24px rgba(214, 190, 138, 0.42)) drop-shadow(0 0 54px rgba(214, 190, 138, 0.2))",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Lupuløs
-                </span>
-              </span>
+              <BrandWordmark fontSize="1.5em" lineHeight={0.85} className="block" />
             </motion.h1>
-            {/* Bajada — estilo "LOUNGE BEER": mayúsculas, tracking, dorado */}
+
+            {/* Bajada — mayúsculas, tracking, dorado */}
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+              variants={heroItem}
               className={`${brandFont.className} mt-[2px] text-[0.95rem] xl:text-[1.1rem]`}
-              style={{
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                background:
-                  "linear-gradient(180deg, #ece0bd 0%, #c8b07a 55%, #a48a54 100%)",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-                WebkitTextFillColor: "transparent",
-                filter:
-                  "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 16px rgba(214, 190, 138, 0.28))",
-              }}
+              style={GOLD_TAGLINE_TEXT}
             >
               Descubre ese brebaje que te faltaba
             </motion.p>
+
+            {/* Copy de bienvenida */}
+            <motion.p
+              variants={heroItem}
+              className="mt-6 max-w-md text-base leading-relaxed xl:text-lg"
+              style={{ color: "color-mix(in srgb, var(--color-amber-light) 50%, #e9cd96)" }}
+            >
+              Tu cava, tus catas y tu comunidad cervecera te esperan justo donde las dejaste.
+            </motion.p>
+
+            {/* Feature rows — solo escritorio (en tablet dejamos el héroe limpio y enfocado) */}
+            <motion.div variants={heroContainer} className="mt-9 hidden space-y-5 lg:block">
+              <FeatureRow
+                icon={<IconMug />}
+                title="Tu cava personal"
+                desc="Retoma las cervezas que guardaste"
+              />
+              <FeatureRow
+                icon={<IconPin />}
+                title="Tus lugares favoritos"
+                desc="Bares y rutas listos para volver"
+              />
+              <FeatureRow
+                icon={<IconStar />}
+                title="Tu comunidad"
+                desc="Nuevas catas y brindis te esperan"
+              />
+            </motion.div>
           </motion.div>
 
           <motion.div
@@ -1053,7 +1445,7 @@ export default function LoginPage() {
                 className="rounded-3xl px-10 py-10 shadow-2xl backdrop-blur-xl"
                 style={{
                   background: LOGIN_THEME.panelGradient,
-                  boxShadow: `inset 0 1px 0 color-mix(in srgb, white 24%, transparent), ${LOGIN_THEME.glowLarge}`,
+                  boxShadow: `inset 0 1px 0 color-mix(in srgb, white 30%, transparent), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 40px 90px -24px rgba(0, 0, 0, 0.75), ${LOGIN_THEME.glowLarge}`,
                 }}
               >
                 {/* Google OAuth with Neon Border */}
@@ -1128,7 +1520,7 @@ export default function LoginPage() {
       </Snackbar>
       <style jsx>{`
         .login-input::placeholder {
-          color: var(--color-text-muted);
+          color: rgba(238, 209, 148, 0.42);
           opacity: 1;
         }
       `}</style>

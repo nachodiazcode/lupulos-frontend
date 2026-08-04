@@ -44,129 +44,6 @@ import type { Place } from "@/features/lugares/types";
 import type { Beer } from "@/features/beers/model/types";
 import { getImageUrl } from "@/lib/constants";
 
-const MOCK_PLACES: Place[] = [
-  {
-    _id: "mock-krossbar",
-    name: "KrossBar Bellavista",
-    description: "El clásico punto de encuentro en el corazón de Bellavista. Terraza amplia, excelente gastronomía cervecera y toda la variedad de salidas directas de barril de Kross.",
-    coverImage: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&auto=format&fit=crop&q=80",
-    address: {
-      street: "Mallinkrodt 76",
-      city: "Santiago",
-      state: "Región Metropolitana",
-      country: "Chile",
-    },
-    coordinates: {
-      lat: -33.4348,
-      lng: -70.6343,
-    },
-    hasTerrace: true,
-    hasLiveMusic: false,
-    isPetFriendly: true,
-    isFeatured: true,
-    likes: ["user1", "user2"],
-    promotions: [
-      {
-        description: "15% dcto en todas las cervezas Kross de barril usando la app",
-        discountPercent: 15
-      }
-    ],
-    reviews: [
-      { comment: "Excelente selección de cervezas de la casa y comida contundente.", rating: 5.0, user: { username: "CataCervecera" } },
-      { comment: "La terraza es de las mejores de Santiago, muy buen ambiente.", rating: 4.8, user: { username: "PedroH" } },
-      { comment: "Muy buena atención y rapidez. Recomendado Kross 5.", rating: 4.6, user: { username: "SofiG" } }
-    ]
-  },
-  {
-    _id: "mock-altamira",
-    name: "Cervecería Altamira",
-    description: "Ubicada a los pies del histórico ascensor Reina Victoria, Altamira celebra la tradición cervecera porteña en un espacio histórico con jazz en vivo, catas guiadas y cocina tradicional del puerto.",
-    coverImage: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&auto=format&fit=crop&q=80",
-    address: {
-      street: "Elias 120",
-      city: "Valparaíso",
-      state: "Región de Valparaíso",
-      country: "Chile",
-    },
-    coordinates: {
-      lat: -33.0425,
-      lng: -71.6265,
-    },
-    hasTerrace: false,
-    hasLiveMusic: true,
-    isPetFriendly: false,
-    isFeatured: true,
-    likes: ["user3"],
-    promotions: [
-      {
-        description: "Happy Hour especial durante las sesiones de jazz en vivo",
-        discountPercent: 20
-      }
-    ],
-    reviews: [
-      { comment: "Música increíble en un lugar cargado de historia. Las Stout son de otro planeta.", rating: 4.9, user: { username: "JazzLover" } },
-      { comment: "Buena cerveza artesanal porteña. Las tablas de quesos combinan perfecto.", rating: 4.7, user: { username: "NicoV" } }
-    ]
-  },
-  {
-    _id: "mock-growler",
-    name: "El Growler Brewpub",
-    description: "Un rincón cervecero con fuerte identidad local e influencia norteamericana en Isla Teja. Comida casera y creativa, vibra de barrio inmejorable y growlers listos para recargar.",
-    coverImage: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
-    address: {
-      street: "Saelzer 41",
-      city: "Valdivia",
-      state: "Región de Los Ríos",
-      country: "Chile",
-    },
-    coordinates: {
-      lat: -39.8183,
-      lng: -73.2505,
-    },
-    hasTerrace: true,
-    hasLiveMusic: true,
-    isPetFriendly: true,
-    isFeatured: false,
-    likes: [],
-    promotions: [],
-    reviews: [
-      { comment: "La mejor IPA de Valdivia por lejos. Y la atención es un 7.", rating: 4.9, user: { username: "ValdivianoRico" } },
-      { comment: "Excelente ambiente frente al río en Isla Teja. Muy buenas opciones veganas.", rating: 4.5, user: { username: "SoleB" } }
-    ]
-  },
-  {
-    _id: "mock-cardumen",
-    name: "Cardumen Surf & Beer",
-    description: "El spot perfecto para relajarse después de surfear en Punta de Lobos. Cervezas locales de la Región de O'Higgins, hamburguesas ahumadas monumentales y fogatas al aire libre.",
-    coverImage: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=800&auto=format&fit=crop&q=80",
-    address: {
-      street: "Av. Agustín Ross 320",
-      city: "Pichilemu",
-      state: "Región de O'Higgins",
-      country: "Chile",
-    },
-    coordinates: {
-      lat: -34.3872,
-      lng: -72.0028,
-    },
-    hasTerrace: true,
-    hasLiveMusic: false,
-    isPetFriendly: true,
-    isFeatured: false,
-    likes: ["user1", "user5"],
-    promotions: [
-      {
-        description: "2x1 en shop del día si vienes con tu tabla de surf 🏄‍♂️",
-        discountPercent: 50
-      }
-    ],
-    reviews: [
-      { comment: "El ambiente surfer y las fogatas nocturnas hacen de este lugar algo mágico.", rating: 4.8, user: { username: "SurfBrew" } },
-      { comment: "Hamburguesas mortales y cervezas heladas. Atención rápida y música de fondo de 10.", rating: 4.8, user: { username: "MatiasS" } }
-    ]
-  }
-];
-
 
 /* ═══════════════════════════════════
    Gradient Border (same as cervezas)
@@ -1672,14 +1549,10 @@ export default function LugaresPage() {
     try {
       const res = await api.get(`/location`);
       const lugaresData = Array.isArray(res.data.data) ? res.data.data : [];
-      if (lugaresData.length === 0) {
-        setLugares(MOCK_PLACES);
-      } else {
-        setLugares(lugaresData.reverse());
-      }
+      setLugares(lugaresData.reverse());
     } catch (error) {
-      console.error("❌ Error al obtener lugares, usando mock fallback:", error);
-      setLugares(MOCK_PLACES);
+      console.error("❌ Error al obtener lugares:", error);
+      setLugares([]);
     } finally {
       setLugaresLoading(false);
     }

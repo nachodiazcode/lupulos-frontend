@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Snackbar, Alert } from "@mui/material";
 import api from "@/lib/api";
@@ -12,7 +11,6 @@ import useAuth from "@/hooks/useAuth";
 import { persistAuthSession } from "@/lib/auth-storage";
 import { extractAuthSession } from "@/lib/auth-user";
 import { getErrorMessage } from "@/lib/errors";
-import HeroIllustration from "@/components/ui/HeroIllustration";
 
 /* ─── Gradient Border ─── */
 function GradientBorder({
@@ -213,6 +211,75 @@ const IconAlert = () => (
   </svg>
 );
 
+/* ─── Hero feature icons (thin line art) ─── */
+const stroke = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.5,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+
+const IconHops = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 3c2.5 1.2 4 3.4 4 6s-1.5 4.8-4 6c-2.5-1.2-4-3.4-4-6s1.5-4.8 4-6Z" />
+    <path d="M12 5.5v11M8.4 7.8 12 9.6l3.6-1.8M8.1 11.5 12 13.4l3.9-1.9" />
+    <path d="M12 15v6" />
+  </svg>
+);
+
+const IconPin = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" {...stroke}>
+    <path d="M20 10c0 5.5-8 11-8 11s-8-5.5-8-11a8 8 0 1 1 16 0Z" />
+    <circle cx="12" cy="10" r="2.6" />
+  </svg>
+);
+
+const IconStar = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" {...stroke}>
+    <path d="M12 3.5 14.6 9l6 .7-4.4 4 1.2 5.9L12 16.8 6.6 19.6l1.2-5.9-4.4-4 6-.7L12 3.5Z" />
+  </svg>
+);
+
+/* ─── Hero feature row ─── */
+function FeatureRow({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 16 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+      }}
+      className="flex items-start gap-4"
+    >
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-400/15 bg-amber-400/[0.06] text-amber-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        {icon}
+      </div>
+      <div className="pt-0.5">
+        <p className="text-[15px] font-semibold text-white">{title}</p>
+        <p className="mt-0.5 text-sm leading-snug text-amber-100/40">{desc}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Stagger variants ─── */
+const heroContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
+};
+const heroItem = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+};
+
 export default function RegisterPage() {
   const router = useRouter();
   const { setUser, setToken } = useAuth();
@@ -336,14 +403,62 @@ export default function RegisterPage() {
 
       {/* Layout */}
       <div className="relative z-10 flex w-full max-w-5xl items-center justify-center gap-8 px-4 py-8 lg:justify-between lg:gap-16 lg:px-8">
-        {/* Ilustración animada */}
+        {/* Editorial hero */}
         <motion.div
-          initial={{ x: -60, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="hidden flex-1 items-center justify-center lg:flex"
+          variants={heroContainer}
+          initial="hidden"
+          animate="show"
+          className="hidden flex-1 lg:block"
         >
-          <HeroIllustration />
+          <div className="max-w-lg">
+            {/* Kicker */}
+            <motion.div variants={heroItem} className="mb-7 flex items-center gap-3">
+              <span className="h-px w-10 bg-gradient-to-r from-transparent to-amber-400/70" />
+              <span className="text-xs font-semibold tracking-[0.28em] text-amber-300/70 uppercase">
+                Comunidad cervecera
+              </span>
+            </motion.div>
+
+            {/* Headline */}
+            <motion.h2
+              variants={heroItem}
+              className="text-5xl leading-[1.05] font-bold tracking-tight xl:text-6xl"
+            >
+              <span className="text-white">Se parte de la </span>
+              <span className="bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent">
+                comunidad más cervecera
+              </span>
+              <span className="text-white"> del mundo</span>
+            </motion.h2>
+
+            {/* Sub copy */}
+            <motion.p
+              variants={heroItem}
+              className="mt-6 max-w-md text-lg leading-relaxed text-amber-100/45"
+            >
+              Descubre cervezas artesanales, comparte tus catas y conecta con miles de
+              cerveceros tan apasionados como tú.
+            </motion.p>
+
+            {/* Features */}
+            <motion.div variants={heroContainer} className="mt-10 space-y-5">
+              <FeatureRow
+                icon={<IconHops />}
+                title="Cervezas artesanales"
+                desc="Explora cientos de etiquetas y estilos"
+              />
+              <FeatureRow
+                icon={<IconPin />}
+                title="Bares y rutas cerca de ti"
+                desc="Encuentra los mejores spots del momento"
+              />
+              <FeatureRow
+                icon={<IconStar />}
+                title="Catas y rankings reales"
+                desc="Comparte reseñas con la comunidad"
+              />
+            </motion.div>
+          </div>
         </motion.div>
 
         {/* Card */}
@@ -363,36 +478,26 @@ export default function RegisterPage() {
                 "0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(251,191,36,0.06), inset 0 1px 0 rgba(255,255,255,0.05)",
             }}
           >
-            {/* Logo */}
+            {/* Title */}
             <div className="mb-6 text-center">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <Image
-                  src="/assets/logo.gif"
-                  alt="Lúpulos App"
-                  width={70}
-                  height={70}
-                  className="mx-auto drop-shadow-lg"
-                />
-              </motion.div>
               <motion.h1
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
-                className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                className="text-3xl font-bold tracking-tight text-white"
               >
-                Crea tu cuenta 🍺
+                Crea tu{" "}
+                <span className="bg-gradient-to-r from-amber-300 to-amber-500 bg-clip-text text-transparent">
+                  cuenta
+                </span>
               </motion.h1>
               <motion.p
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="mt-1.5 text-sm text-amber-200/60"
+                className="mt-2 text-sm text-amber-200/55"
               >
-                Únete a la comunidad cervecera más grande de Chile
+                Únete gratis y empieza a brindar con la comunidad
               </motion.p>
             </div>
 

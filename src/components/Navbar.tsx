@@ -38,6 +38,7 @@ import NavbarSearch from "@/components/NavbarSearch";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useBeerTheme, BEER_THEMES } from "@/theme/ThemeContext";
 import useAuth from "@/hooks/useAuth";
+import { useRealtime } from "@/context/RealtimeContext";
 
 interface NavItem {
   text: string;
@@ -108,6 +109,7 @@ function isRouteActive(pathname: string, href: string) {
 
 export default function Navbar() {
   const { user, isAuthReady, logout } = useAuth();
+  const { unreadMessages } = useRealtime();
   const { theme, setTheme } = useBeerTheme();
   const [sidebarThemeOpen, setSidebarThemeOpen] = useState(false);
   const activeBeerTheme = BEER_THEMES.find((t) => t.id === theme) ?? BEER_THEMES[0];
@@ -362,10 +364,12 @@ export default function Navbar() {
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
-                <span
-                  className="absolute right-[6px] top-[6px] flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black"
-                  style={{ background: "var(--color-amber-primary)", color: "var(--color-text-dark)" }}
-                >5</span>
+                {unreadMessages > 0 && (
+                  <span
+                    className="absolute right-[6px] top-[6px] flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-black"
+                    style={{ background: "var(--color-amber-primary)", color: "var(--color-text-dark)" }}
+                  >{unreadMessages > 9 ? "9+" : unreadMessages}</span>
+                )}
               </Link>
 
               {/* Menú Rápido */}
