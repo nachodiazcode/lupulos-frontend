@@ -72,11 +72,7 @@ function HomeLoadingState() {
 export default function HomePageClient() {
   const { user, isAuthReady } = useAuth();
 
-  if (!isAuthReady) {
-    return <HomeLoadingState />;
-  }
-
-  if (user) {
+  if (isAuthReady && user) {
     return <LoggedInHome />;
   }
 

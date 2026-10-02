@@ -34,9 +34,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const syncAuthState = () => {
-      setUser(getStoredUser());
-      setToken(getStoredToken());
-      setIsAuthReady(true);
+      try {
+        setUser(getStoredUser());
+        setToken(getStoredToken());
+      } finally {
+        setIsAuthReady(true);
+      }
     };
 
     syncAuthState();
