@@ -6,9 +6,10 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
    Types
    ═══════════════════════════════════ */
 
-export type BeerTheme = "ambar" | "saintpatrick" | "stout" | "haze" | "dorado";
+export type BeerTheme = "corporativo" | "ambar" | "saintpatrick" | "stout" | "haze" | "dorado";
 
 export const BEER_THEMES: { id: BeerTheme; label: string; icon: string }[] = [
+  { id: "corporativo", label: "Corporativo", icon: "▣" },
   { id: "saintpatrick", label: "St. Patrick", icon: "🍀" },
   { id: "ambar", label: "Ámbar", icon: "🍻" },
   { id: "stout", label: "Stout", icon: "🖤" },
@@ -16,8 +17,9 @@ export const BEER_THEMES: { id: BeerTheme; label: string; icon: string }[] = [
   { id: "dorado", label: "Dorado", icon: "👑" },
 ];
 
-const STORAGE_KEY = "lupulos-theme";
-const DEFAULT_THEME: BeerTheme = "stout";
+const STORAGE_KEY = "lupulos-theme-v2";
+const DEFAULT_THEME: BeerTheme = "corporativo";
+const THEMES: readonly BeerTheme[] = ["corporativo", "ambar", "saintpatrick", "stout", "haze", "dorado"];
 
 /* ═══════════════════════════════════
    Context
@@ -32,7 +34,7 @@ interface BeerThemeContextValue {
 const BeerThemeContext = createContext<BeerThemeContextValue>({
   theme: DEFAULT_THEME,
   setTheme: () => {},
-  isDark: true,
+  isDark: false,
 });
 
 export const useBeerTheme = () => useContext(BeerThemeContext);
@@ -44,7 +46,7 @@ export const useBeerTheme = () => useContext(BeerThemeContext);
 function getInitialTheme(): BeerTheme {
   if (typeof window === "undefined") return DEFAULT_THEME;
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "saintpatrick" || stored === "ambar" || stored === "stout" || stored === "haze" || stored === "dorado") return stored;
+  if (stored && THEMES.includes(stored as BeerTheme)) return stored as BeerTheme;
   return DEFAULT_THEME;
 }
 
@@ -64,7 +66,7 @@ export function BeerThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, t);
   }, []);
 
-  const isDark = theme !== "saintpatrick" && theme !== "haze";
+  const isDark = theme !== "corporativo" && theme !== "saintpatrick" && theme !== "haze";
 
   return (
     <BeerThemeContext.Provider value={{ theme, setTheme, isDark }}>

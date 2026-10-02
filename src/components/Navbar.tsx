@@ -58,43 +58,43 @@ const navItems: NavItem[] = [
   {
     text: "Inicio",
     href: "/",
-    description: "Tu home con el ruido cervecero más reciente.",
+    description: "Portada y actividad reciente.",
     icon: <HomeIcon fontSize="small" />,
   },
   {
     text: "La Guía",
     href: "/guia",
-    description: "Descubre los estilos de cerveza.",
+    description: "Estilos de cerveza.",
     icon: <MenuBookIcon fontSize="small" />,
   },
   {
     text: "Cervezas",
     href: "/cervezas",
-    description: "Descubre botellas, estilos y hallazgos para guardar.",
+    description: "Catálogo y fichas de cata.",
     icon: <SportsBarIcon fontSize="small" />,
   },
   {
     text: "Lugares",
     href: "/lugares",
-    description: "Encuentra pubs, taprooms y rutas para salir.",
+    description: "Cervecerías, bares y taprooms.",
     icon: <LocationOnIcon fontSize="small" />,
   },
   {
     text: "Comunidad",
     href: "/posts",
-    description: "Mira, comenta y comparte lo que está subiendo.",
+    description: "Publicaciones y comentarios.",
     icon: <ForumIcon fontSize="small" />,
   },
   {
     text: "Favoritos",
     href: "/favoritos",
-    description: "Tus cervezas y lugares favoritos guardados.",
+    description: "Lo que guardaste.",
     icon: <FavoriteIcon fontSize="small" />,
   },
   {
     text: "Carrete",
     href: "/carrete",
-    description: "Chatea con la comunidad, IA o B2B.",
+    description: "Mensajes de la comunidad.",
     icon: <ChatIcon fontSize="small" />,
   },
 ];
@@ -114,6 +114,7 @@ export default function Navbar() {
   const [sidebarThemeOpen, setSidebarThemeOpen] = useState(false);
   const activeBeerTheme = BEER_THEMES.find((t) => t.id === theme) ?? BEER_THEMES[0];
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [publicMenuOpen, setPublicMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [quickMenuAnchor, setQuickMenuAnchor] = useState<null | HTMLElement>(null);
   const [isSidebarMenu, setIsSidebarMenu] = useState(false);
@@ -165,6 +166,7 @@ export default function Navbar() {
 
   useEffect(() => {
     setDrawerOpen(false);
+    setPublicMenuOpen(false);
     setFooterMenuOpen(false);
     setAnchorEl(null);
   }, [pathname]);
@@ -186,129 +188,92 @@ export default function Navbar() {
 
   if (!showSidebar) {
     if (isPublicLanding) {
+      const publicNav = navItems.filter((item) => item.text !== "Favoritos" && item.text !== "Carrete");
+
       return (
         <header
-          className="sticky top-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-between px-6 border-b border-[var(--color-border-subtle)] backdrop-blur-md"
+          className="sticky top-0 z-50 border-b"
           style={{
-            background: scrolled ? "var(--navbar-bg-scrolled)" : "var(--navbar-bg)",
-            borderColor: scrolled ? "var(--navbar-border-scrolled)" : "var(--navbar-border)",
-            boxShadow: scrolled
-              ? "var(--navbar-shadow)"
-              : "0 8px 28px color-mix(in srgb, var(--color-amber-primary) 8%, transparent)",
-            WebkitBackdropFilter: "blur(18px) saturate(190%)",
-            backdropFilter: "blur(18px) saturate(190%)",
+            background: scrolled ? "rgba(251,250,247,0.98)" : "rgba(251,250,247,0.94)",
+            borderColor: "rgba(20,32,51,0.1)",
+            boxShadow: scrolled ? "0 8px 24px rgba(20,32,51,0.05)" : "none",
           }}
         >
-          {/* Logo */}
-          <Link href="/" aria-label="Ir al inicio" className="flex items-center">
-            <span
-              className="lupulos-logo-text relative text-[1.75rem] font-[900] tracking-[-0.05em]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(100deg, #b45309 0%, #f59e0b 30%, #fbbf24 50%, #d97706 75%, #92400e 100%)",
-                backgroundSize: "220% auto",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                filter: "drop-shadow(0 1px 6px color-mix(in srgb, var(--color-amber-primary) 35%, transparent))",
-              }}
-            >
-              Lúpulos
-            </span>
-          </Link>
-
-          {/* Navigation Links */}
-          <nav className="hidden items-center gap-6 lg:flex">
-            {navItems.map((item) => {
-              const isActive = isRouteActive(pathname, item.href);
-              return (
-                <Link
-                  key={item.text}
-                  href={item.href}
-                  className={`sidebar-cursive-text text-sm font-medium transition-colors hover:text-[var(--color-amber-primary)]`}
-                  style={{
-                    color: isActive ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
-                  }}
-                >
-                  {item.text}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right side: Theme + Social + Login */}
-          <div className="flex items-center gap-3">
-            {/* Theme Switcher */}
-            <ThemeSwitcher />
-
-            {/* Social Media Icons */}
-            <div className="hidden items-center gap-2 md:flex">
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="social-icon-neon group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-[1.15]"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-                </svg>
-              </a>
-              <a
-                href="https://x.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="X (Twitter)"
-                className="social-icon-neon group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-[1.15]"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-              </a>
-              <a
-                href="https://tiktok.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="TikTok"
-                className="social-icon-neon group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-[1.15]"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.51a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V9.05a8.27 8.27 0 0 0 4.76 1.51V7.12a4.83 4.83 0 0 1-1-.43z"/>
-                </svg>
-              </a>
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="social-icon-neon group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-[1.15]"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-              </a>
-            </div>
-
-            {/* Divider */}
-            <div
-              className="hidden h-6 w-px md:block"
-              style={{ background: "color-mix(in srgb, var(--color-border-light) 40%, transparent)" }}
-            />
-
-            {/* Action button */}
-            <Link
-              href="/auth/login"
-              className="flex items-center justify-center px-4 py-2 rounded-full border text-xs font-bold transition-all hover:scale-[1.02]"
-              style={{
-                borderColor: "color-mix(in srgb, var(--color-border-amber) 54%, transparent)",
-                background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 50%, var(--color-amber-hover) 100%)",
-                color: "var(--color-text-dark)",
-                boxShadow: "var(--shadow-amber-glow)",
-              }}
-            >
-              Iniciar sesión
+          <div className="home-content-shell flex h-16 items-center gap-3 sm:gap-5">
+            <Link href="/" aria-label="Ir al inicio" className="shrink-0">
+              <span className="brand-wordmark text-[1.45rem]">Lúpulos</span>
             </Link>
+
+            <nav className="hidden min-w-0 items-center gap-4 lg:flex xl:gap-5" aria-label="Secciones">
+              {publicNav.map((item) => {
+                const isActive = isRouteActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.text}
+                    href={item.href}
+                    className="whitespace-nowrap text-sm font-medium"
+                    style={{
+                      color: isActive ? "#1e3a5f" : "rgba(20,32,51,0.72)",
+                      fontWeight: isActive ? 600 : 500,
+                    }}
+                  >
+                    {item.text}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              <Link
+                href="/auth/login"
+                className="hidden h-9 items-center px-3 text-sm font-semibold sm:inline-flex"
+                style={{ color: "#142033" }}
+              >
+                Ingresar
+              </Link>
+              <Link
+                href="/auth/register"
+                className="inline-flex h-9 items-center rounded-md px-3 text-sm font-semibold"
+                style={{ background: "#1e3a5f", color: "#f8f6f2" }}
+              >
+                Crear cuenta
+              </Link>
+              <button
+                type="button"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border lg:hidden"
+                style={{ borderColor: "rgba(20,32,51,0.16)", color: "#142033" }}
+                aria-expanded={publicMenuOpen}
+                aria-label={publicMenuOpen ? "Cerrar menú" : "Abrir menú"}
+                onClick={() => setPublicMenuOpen((open) => !open)}
+              >
+                <MenuRoundedIcon fontSize="small" />
+              </button>
+            </div>
           </div>
+
+          {publicMenuOpen && (
+            <nav
+              className="border-t px-5 py-3 lg:hidden"
+              style={{ borderColor: "rgba(20,32,51,0.08)", background: "#fbfaf7" }}
+              aria-label="Secciones"
+            >
+              <div className="home-content-shell flex flex-col !px-0">
+                {publicNav.map((item) => (
+                  <Link
+                    key={item.text}
+                    href={item.href}
+                    className="border-b py-3 text-sm font-medium last:border-b-0"
+                    style={{ borderColor: "rgba(20,32,51,0.08)", color: "#142033" }}
+                  >
+                    {item.text}
+                  </Link>
+                ))}
+                <Link href="/auth/login" className="py-3 text-sm font-semibold sm:hidden" style={{ color: "#1e3a5f" }}>
+                  Ingresar
+                </Link>
+              </div>
+            </nav>
+          )}
         </header>
       );
     }
@@ -513,7 +478,7 @@ export default function Navbar() {
                   >
                     <span className="sidebar-cursive-text text-[13.5px] font-bold leading-tight">{item.text}</span>
                     <span
-                      className="text-[11px] font-normal leading-normal mt-0.5"
+                      className="line-clamp-1 text-[11px] font-normal leading-normal mt-0.5"
                       style={{
                         color: isActive
                           ? "color-mix(in srgb, var(--color-amber-primary) 55%, var(--color-text-muted))"
@@ -1496,7 +1461,7 @@ export default function Navbar() {
       </Drawer>
 
       <div 
-        className="fixed z-50 md:hidden transition-all duration-300"
+        className="lupulos-tabbar fixed z-50 md:hidden transition-all duration-300"
         style={{
           bottom: "calc(16px + env(safe-area-inset-bottom))",
           left: "50%",

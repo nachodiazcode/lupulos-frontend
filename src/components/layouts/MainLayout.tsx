@@ -3,6 +3,7 @@
 import React from "react";
 import GoldenBackground from "@/components/GoldenBackground";
 import { motion } from "framer-motion";
+import { useBeerTheme } from "@/theme/ThemeContext";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -43,10 +44,12 @@ export default function MainLayout({
   maxWidth,
   stickySidebar = true,
 }: MainLayoutProps) {
+  const { theme } = useBeerTheme();
+  const showParticles = showBackground && theme !== "corporativo";
+
   return (
     <div className="relative flex min-h-screen flex-col text-[var(--color-text-primary)]">
-      {/* Fondo premium de partículas */}
-      {showBackground && <GoldenBackground />}
+      {showParticles && <GoldenBackground />}
 
       {topBanner}
 

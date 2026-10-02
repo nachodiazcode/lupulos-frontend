@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Victor+Mono:ital,wght@1,400;1,500;1,600;1,700&family=Montserrat:wght@900&family=Poppins:wght@900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Victor+Mono:ital,wght@1,400;1,500;1,600;1,700&family=Montserrat:wght@900&family=Poppins:wght@900&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap');
 
 .sidebar-cursive-text {
   font-family: var(--font-sans, system-ui, sans-serif) !important;
@@ -33,7 +33,7 @@ body {
 }
 
 @media (max-width: 767px) {
-  body {
+  body:has(.lupulos-tabbar) {
     padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
 }
@@ -515,6 +515,141 @@ html:not([data-theme]) .glass-card {
   --font-sans: var(--font-geist-sans, "Ubuntu", Arial, Helvetica, sans-serif);
   --font-heading: var(--font-outfit, "Ubuntu"), Arial, Helvetica, sans-serif;
   --font-mono: var(--font-geist-mono, monospace);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Theme: Corporativo — papel claro, tinta marina, un acento cobre
+   ═══════════════════════════════════════════════════════════ */
+[data-theme="corporativo"] {
+  --color-amber-primary: #1e3a5f;
+  --color-amber-hover: #16304f;
+  --color-amber-dark: #14283f;
+  --color-amber-light: #3d5a80;
+  --color-amber-muted: #d6deea;
+
+  --color-surface-deepest: #f4f1ea;
+  --color-surface-dark: #fbfaf7;
+  --color-surface-mid: #ece7de;
+  --color-surface-card: #ffffff;
+  --color-surface-card-alt: #f7f5f0;
+  --color-surface-elevated: #ffffff;
+  --color-surface-overlay: #efeae2;
+
+  --color-brown-navbar-start: #fbfaf7;
+  --color-brown-navbar-end: #f4f1ea;
+  --color-brown-drawer: #fbfaf7;
+  --color-brown-modal: #ffffff;
+  --color-brown-barrel-start: #f7f5f0;
+  --color-brown-barrel-end: #efeae2;
+
+  --color-gold-nav: #8c5a2b;
+  --color-emerald: #1f6b4a;
+  --color-emerald-dark: #18563b;
+  --color-emerald-darker: #123f2b;
+  --color-orange-cta: #1e3a5f;
+  --color-orange-cta-hover: #16304f;
+  --color-error: #b42318;
+  --color-error-dark: #912018;
+  --color-info: #1e3a5f;
+
+  --color-text-primary: #142033;
+  --color-text-secondary: rgba(20, 32, 51, 0.72);
+  --color-text-muted: rgba(20, 32, 51, 0.56);
+  --color-text-subtle: rgba(20, 32, 51, 0.4);
+  --color-text-ghost: rgba(20, 32, 51, 0.28);
+  --color-text-dark: #f8f6f2;
+
+  --color-border-subtle: rgba(20, 32, 51, 0.08);
+  --color-border-light: rgba(20, 32, 51, 0.12);
+  --color-border-medium: rgba(20, 32, 51, 0.2);
+  --color-border-amber: rgba(30, 58, 95, 0.28);
+  --color-border-emerald: rgba(31, 107, 74, 0.22);
+
+  --gradient-hero: linear-gradient(180deg, #fbfaf7 0%, #f4f1ea 100%);
+  --gradient-body: linear-gradient(180deg, #fbfaf7 0%, #f4f1ea 40%, #efeae2 100%);
+  --gradient-section-dark: linear-gradient(180deg, #f4f1ea 0%, #fbfaf7 100%);
+  --gradient-section-darker: #f7f5f0;
+  --gradient-home-backdrop: linear-gradient(180deg, #fbfaf7 0%, #f4f1ea 100%);
+  --gradient-feed-empty-state: linear-gradient(180deg, #ffffff 0%, #f7f5f0 100%);
+  --gradient-footer: linear-gradient(180deg, #f4f1ea 0%, #efeae2 100%);
+  --gradient-card-glass: #ffffff;
+  --gradient-card-step: #ffffff;
+  --gradient-heading: #142033;
+  --shadow-login-heading: none;
+  --gradient-button-primary: linear-gradient(180deg, #243e66 0%, #1a3354 100%);
+
+  --shadow-card: 0 1px 2px rgba(20, 32, 51, 0.04), 0 10px 28px rgba(20, 32, 51, 0.05);
+  --shadow-elevated: 0 16px 40px rgba(20, 32, 51, 0.08);
+  --shadow-amber-glow: 0 8px 20px rgba(20, 32, 51, 0.12);
+  --shadow-amber-glow-lg: 0 16px 36px rgba(20, 32, 51, 0.14);
+  --shadow-emerald-glow: 0 8px 20px rgba(31, 107, 74, 0.12);
+  --shadow-emerald-glow-sm: 0 4px 12px rgba(31, 107, 74, 0.1);
+
+  --navbar-bg: rgba(251, 250, 247, 0.92);
+  --navbar-bg-scrolled: rgba(251, 250, 247, 0.98);
+  --navbar-border: rgba(20, 32, 51, 0.1);
+  --navbar-border-scrolled: rgba(20, 32, 51, 0.14);
+  --navbar-shadow: 0 8px 24px rgba(20, 32, 51, 0.06);
+
+  color-scheme: light;
+}
+
+[data-theme="corporativo"] body {
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  font-weight: 400;
+}
+
+[data-theme="corporativo"] .lupulos-logo-text {
+  font-family: "Source Serif 4", Georgia, serif !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em !important;
+  background-image: none !important;
+  -webkit-text-fill-color: #142033 !important;
+  color: #142033 !important;
+  filter: none !important;
+  animation: none !important;
+}
+
+[data-theme="corporativo"] .lupulos-logo-text::after,
+[data-theme="corporativo"] .lupulos-logo-text > span {
+  display: none !important;
+}
+
+[data-theme="corporativo"] .glass-card {
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #e4dfd6;
+  box-shadow: 0 1px 2px rgba(20, 32, 51, 0.04), 0 8px 24px rgba(20, 32, 51, 0.04);
+}
+
+[data-theme="corporativo"] .lupulos-topbar,
+[data-theme="corporativo"] .lupulos-sidebar {
+  --color-text-secondary: rgba(20, 32, 51, 0.78);
+  --color-text-muted: rgba(20, 32, 51, 0.58);
+}
+
+[data-theme="corporativo"] {
+  .text-white { color: var(--color-text-primary) !important; }
+  .text-white\/80 { color: rgba(20, 32, 51, 0.82) !important; }
+  .text-white\/60 { color: rgba(20, 32, 51, 0.68) !important; }
+  .text-white\/50 { color: rgba(20, 32, 51, 0.58) !important; }
+  .text-white\/40 { color: rgba(20, 32, 51, 0.48) !important; }
+  .border-white\/20, .border-white\/10, .border-white\/5 {
+    border-color: rgba(20, 32, 51, 0.12) !important;
+  }
+  .bg-white\/10, .bg-white\/5 {
+    background-color: rgba(20, 32, 51, 0.04) !important;
+  }
+  button.text-black, a.text-black { color: #f8f6f2 !important; }
+}
+
+.brand-wordmark {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #142033;
+  line-height: 1;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1479,7 +1614,7 @@ html {
   scroll-behavior: smooth;
   font-size: 17px; /* +1px base — escala todos los rem (text-sm, text-xs, etc.) */
   /* Prevent flash before CSS custom properties resolve — matches stout default */
-  background-color: #0c0a14;
+  background-color: #f4f1ea;
 }
 
 /* Hide native cursor on desktop when custom cursor is active */
@@ -2232,7 +2367,7 @@ select {
 /* ═══════════════════════════════════════════════════════════
    Leaflet Map Beautified Dark & Theme Adaptations
    ═══════════════════════════════════════════════════════════ */
-html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) {
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]):not([data-theme="corporativo"]) {
   .leaflet-tile {
     filter: invert(100%) hue-rotate(180deg) brightness(80%) contrast(90%) saturate(80%) !important;
   }
@@ -2260,7 +2395,7 @@ html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) {
   }
 }
 
-html[data-theme="saintpatrick"], html[data-theme="haze"] {
+html[data-theme="saintpatrick"], html[data-theme="haze"], html[data-theme="corporativo"] {
   .leaflet-bar {
     border: 1px solid var(--color-border-medium) !important;
     background-color: white !important;
@@ -2305,24 +2440,24 @@ html[data-theme="saintpatrick"], html[data-theme="haze"] {
    ═══════════════════════════════════════════════════════════ */
 
 /* Dark theme neon glow on social icons */
-html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon svg {
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]):not([data-theme="corporativo"]) .social-icon-neon svg {
   filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.4))
           drop-shadow(0 0 14px rgba(245, 158, 11, 0.2));
   transition: filter 0.3s ease;
 }
 
-html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon:hover svg {
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]):not([data-theme="corporativo"]) .social-icon-neon:hover svg {
   filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))
           drop-shadow(0 0 22px rgba(245, 158, 11, 0.35))
           drop-shadow(0 0 40px rgba(217, 119, 6, 0.2));
 }
 
 /* The neon gradient color applied to the icon wrapper */
-html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon {
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]):not([data-theme="corporativo"]) .social-icon-neon {
   color: transparent;
 }
 
-html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon .social-icon-fill {
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]):not([data-theme="corporativo"]) .social-icon-neon .social-icon-fill {
   background: linear-gradient(
     135deg,
     #fbbf24 0%,
@@ -2340,7 +2475,7 @@ html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon
 }
 
 /* SVG icons need a different approach — use CSS color animation */
-html:not([data-theme="saintpatrick"]):not([data-theme="haze"]) .social-icon-neon svg {
+html:not([data-theme="saintpatrick"]):not([data-theme="haze"]):not([data-theme="corporativo"]) .social-icon-neon svg {
   animation: neon-icon-color 4s ease-in-out infinite;
 }
 

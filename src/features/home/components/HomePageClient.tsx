@@ -14,22 +14,25 @@ const Footer = dynamic(() => import("@/components/Footer"));
 const CommunitySection = dynamic(() => import("@/features/landing/components/CommunitySection"));
 const CtaSection = dynamic(() => import("@/features/landing/components/CtaSection"));
 const NewsletterBanner = dynamic(() => import("@/features/landing/components/NewsletterBanner"));
-const GoldenParticles = dynamic(() => import("@/features/landing/components/GoldenParticles"), {
-  ssr: false,
-});
-const TrendsSidenav = dynamic(() => import("@/features/landing/components/TrendsSidenav"), {
-  ssr: false,
-});
 
 function PublicHome() {
   return (
     <>
-      <GoldenParticles count={25} />
-      <TrendsSidenav />
       <HeroSection />
       <CommunitySection />
       <CtaSection />
       <NewsletterBanner />
+      <footer
+        className="border-t"
+        style={{ background: "#fbfaf7", borderColor: "var(--color-border-subtle)" }}
+      >
+        <div className="home-content-shell flex flex-col gap-2 py-6 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-semibold" style={{ color: "var(--color-text-primary)", fontFamily: '"Source Serif 4", Georgia, serif' }}>
+            Lúpulos
+          </p>
+          <p style={{ color: "var(--color-text-muted)" }}>Cerveza artesanal · Chile</p>
+        </div>
+      </footer>
       <Footer />
     </>
   );
@@ -38,7 +41,6 @@ function PublicHome() {
 function HomeLoadingState() {
   return (
     <>
-      <GoldenParticles count={16} />
       <main className="relative flex min-h-[70vh] items-center justify-center px-4 py-10 sm:px-6">
         <div
           className="flex w-full flex-col items-center gap-3 rounded-[2rem] border px-6 py-10 text-center sm:px-8"
