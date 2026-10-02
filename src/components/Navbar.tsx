@@ -58,43 +58,43 @@ const navItems: NavItem[] = [
   {
     text: "Inicio",
     href: "/",
-    description: "Tu home con el ruido cervecero más reciente.",
+    description: "Actividad reciente.",
     icon: <HomeIcon fontSize="small" />,
   },
   {
     text: "La Guía",
     href: "/guia",
-    description: "Descubre los estilos de cerveza.",
+    description: "Estilos de cerveza.",
     icon: <MenuBookIcon fontSize="small" />,
   },
   {
     text: "Cervezas",
     href: "/cervezas",
-    description: "Descubre botellas, estilos y hallazgos para guardar.",
+    description: "Catálogo y fichas.",
     icon: <SportsBarIcon fontSize="small" />,
   },
   {
     text: "Lugares",
     href: "/lugares",
-    description: "Encuentra pubs, taprooms y rutas para salir.",
+    description: "Pubs y taprooms.",
     icon: <LocationOnIcon fontSize="small" />,
   },
   {
     text: "Comunidad",
     href: "/posts",
-    description: "Mira, comenta y comparte lo que está subiendo.",
+    description: "Publicaciones.",
     icon: <ForumIcon fontSize="small" />,
   },
   {
     text: "Favoritos",
     href: "/favoritos",
-    description: "Tus cervezas y lugares favoritos guardados.",
+    description: "Lo que guardaste.",
     icon: <FavoriteIcon fontSize="small" />,
   },
   {
     text: "Carrete",
     href: "/carrete",
-    description: "Chatea con la comunidad, IA o B2B.",
+    description: "Mensajes.",
     icon: <ChatIcon fontSize="small" />,
   },
 ];
@@ -332,7 +332,7 @@ export default function Navbar() {
           <div className="w-full max-w-[1140px] flex items-center justify-between gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-10">
 
             {/* Search bar column — buscador premium con autocompletado IA + memoria */}
-            <div className="flex-1 max-w-md xl:max-w-none flex items-center justify-start pl-6 xl:pl-0">
+            <div className="flex min-w-0 flex-1 items-center justify-start xl:max-w-none">
               <NavbarSearch />
             </div>
 
@@ -418,7 +418,7 @@ export default function Navbar() {
           <Link
             href="/"
             aria-label="Ir al inicio"
-            className={`group flex shrink-0 items-center ${isCollapsed ? "hidden" : ""}`}
+            className={`group shrink-0 items-center ${isCollapsed ? "hidden" : "hidden xl:flex"}`}
           >
             <motion.div
               animate={{
@@ -509,11 +509,11 @@ export default function Navbar() {
                       marginLeft: isCollapsed ? 0 : 12,
                     }}
                     transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                    className="relative z-10 hidden flex-col min-w-0 xl:flex overflow-hidden max-h-[38px]"
+                    className="relative z-10 hidden min-w-0 flex-col xl:flex"
                   >
                     <span className="sidebar-cursive-text text-[13.5px] font-bold leading-tight">{item.text}</span>
                     <span
-                      className="text-[11px] font-normal leading-normal mt-0.5"
+                      className="mt-0.5 line-clamp-2 text-[11px] font-normal leading-snug"
                       style={{
                         color: isActive
                           ? "color-mix(in srgb, var(--color-amber-primary) 55%, var(--color-text-muted))"
@@ -1526,7 +1526,7 @@ export default function Navbar() {
                 key={item.text}
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-3 text-center transition-all duration-200"
+                className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 py-3 text-center transition-all duration-200"
                 style={{
                   color: isActive ? "var(--color-text-primary)" : "var(--color-text-muted)",
                 }}
@@ -1548,7 +1548,7 @@ export default function Navbar() {
                 >
                   {item.icon}
                 </span>
-                <span className="relative z-10 block w-full truncate text-[9px] font-semibold">
+                <span className="relative z-10 block w-full text-center text-[8.5px] font-semibold leading-none tracking-tight">
                   {item.text}
                 </span>
               </Link>
