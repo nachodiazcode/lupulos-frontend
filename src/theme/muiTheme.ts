@@ -35,34 +35,6 @@ interface ThemePalette {
 }
 
 const palettes: Record<BeerTheme, ThemePalette> = {
-  /* ─── Corporativo (light, navy) ─── */
-  corporativo: {
-    mode: "light",
-    primary: { main: "#1e3a5f", dark: "#14283f", light: "#3d5a80" },
-    secondary: { main: "#8c5a2b", dark: "#6d4520", light: "#c4a574" },
-    error: { main: "#b42318", dark: "#912018" },
-    background: { default: "#f4f1ea", paper: "#ffffff" },
-    text: {
-      primary: "#142033",
-      secondary: "rgba(20,32,51,0.72)",
-      disabled: "rgba(20,32,51,0.38)",
-    },
-    divider: "rgba(20,32,51,0.12)",
-    brand: {
-      navbarGradient: "linear-gradient(to right, #fbfaf7, #f4f1ea)",
-      drawerBg: "#fbfaf7",
-      elevatedBg: "#ffffff",
-      inputBg: "#ffffff",
-      inputBorder: "rgba(20,32,51,0.16)",
-      inputBorderHover: "rgba(30,58,95,0.45)",
-      inputBorderFocus: "#1e3a5f",
-      inputLabel: "rgba(20,32,51,0.55)",
-      inputLabelFocus: "#1e3a5f",
-      buttonGradient: "linear-gradient(180deg, #243e66 0%, #1a3354 100%)",
-      buttonHoverGradient: "linear-gradient(180deg, #1a3354 0%, #14283f 100%)",
-    },
-  },
-
   /* ─── Ámbar ─── */
   ambar: {
     mode: "dark",
@@ -305,7 +277,6 @@ function createBeerTheme(name: BeerTheme): Theme {
 
 /* Pre-built themes (avoids re-creating on every render) */
 export const beerMuiThemes: Record<BeerTheme, Theme> = {
-  corporativo: createBeerTheme("corporativo"),
   ambar: createBeerTheme("ambar"),
   saintpatrick: createBeerTheme("saintpatrick"),
   stout: createBeerTheme("stout"),
@@ -314,4 +285,4 @@ export const beerMuiThemes: Record<BeerTheme, Theme> = {
 };
 
 /* Backwards-compatible default export */
-export default beerMuiThemes.corporativo;
+export default beerMuiThemes.ambar;

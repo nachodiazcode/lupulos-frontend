@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { fadeUp, GradientText, AmberDivider } from "./shared";
 import { QUOTES } from "./data";
 
 export default function CtaSection() {
@@ -13,43 +15,119 @@ export default function CtaSection() {
 
   return (
     <section
-      className="border-b py-14 sm:py-20"
-      style={{ background: "#142033", borderColor: "rgba(255,255,255,0.08)" }}
-      aria-label="Crear cuenta"
+      className="relative overflow-hidden py-20 sm:py-36"
+      style={{ background: "var(--gradient-section-darker)" }}
+      aria-label="Llamada a acción"
     >
-      <div className="home-content-shell grid items-end gap-8 lg:grid-cols-[minmax(0,1.2fr)_auto] lg:gap-12">
-        <div className="min-w-0">
-          <blockquote
-            className="max-w-2xl text-lg leading-relaxed font-medium sm:text-xl"
-            style={{
-              fontFamily: '"Source Serif 4", Georgia, serif',
-              color: "#f8f6f2",
-            }}
+      {/* Multiple ambient glows */}
+      <div
+        className="pointer-events-none absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px]"
+        style={{ background: "var(--color-amber-primary)", opacity: 0.06 }}
+        aria-hidden="true"
+      />
+      <motion.div
+        className="pointer-events-none absolute top-1/3 left-1/3 h-64 w-64 rounded-full blur-[80px]"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.04, 0.08, 0.04] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{ background: "var(--color-orange-cta)" }}
+        aria-hidden="true"
+      />
+
+      <AmberDivider className="absolute top-0 left-1/2 w-2/3 -translate-x-1/2 opacity-60" />
+
+      <div className="home-content-shell relative z-10">
+        <div className="mx-auto max-w-2xl text-center">
+          <motion.div
+            variants={fadeUp}
+            custom={0}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
           >
-            {quote}
-          </blockquote>
-          <h2 className="mt-8 text-2xl font-semibold tracking-[-0.03em] text-[#f8f6f2] sm:text-[1.85rem]">
-            Abre una cuenta y guarda lo que pruebas
-          </h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed" style={{ color: "rgba(248,246,242,0.72)" }}>
-            La cuenta es gratuita. Lúpulos Plus agrega herramientas para quien publica o administra un lugar.
-          </p>
-        </div>
-        <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:flex-col">
-          <Link
-            href="/auth/register"
-            prefetch
-            className="inline-flex h-11 items-center justify-center rounded-md bg-[#f8f6f2] px-5 text-sm font-semibold text-[#142033]"
-          >
-            Crear cuenta
-          </Link>
-          <Link
-            href="/auth/login"
-            prefetch
-            className="inline-flex h-11 items-center justify-center rounded-md border border-white/25 px-5 text-sm font-semibold text-[#f8f6f2]"
-          >
-            Ingresar
-          </Link>
+            <div
+              className="mb-2 text-5xl leading-none font-extrabold opacity-15 select-none sm:text-7xl"
+              style={{ color: "var(--color-amber-primary)", fontFamily: "Georgia, serif" }}
+              aria-hidden="true"
+            >
+              &ldquo;
+            </div>
+
+            <motion.p
+              className="text-text-secondary text-lg leading-relaxed font-light tracking-wide italic sm:text-xl"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2 }}
+            >
+              {quote}
+            </motion.p>
+
+            <div
+              className="mx-auto mt-6 h-px w-10"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, var(--color-border-amber), transparent)",
+              }}
+              aria-hidden="true"
+            />
+
+            <h2 className="text-text-primary mt-10 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <GradientText>Solo falta tu nombre en la mesa</GradientText>
+            </h2>
+            <p className="text-text-muted mt-3 text-base">
+              Da igual si destapas o si fabricas — acá tu pasión por la cerveza artesanal tiene nombre, comunidad y un lugar que la honra.
+            </p>
+
+            <div className="mt-10 flex flex-col items-stretch justify-center gap-5 sm:flex-row sm:items-center">
+              {/* Primary CTA with mobile breathing glow */}
+              <motion.div
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.96 }}
+                className="relative w-full sm:w-auto"
+              >
+                {/* Mobile Breathing Glow */}
+                <motion.div
+                  className="absolute -inset-1 rounded-full opacity-60 blur-md sm:hidden"
+                  style={{ background: "var(--gradient-button-primary)" }}
+                  animate={{ scale: [0.98, 1.05, 0.98], opacity: [0.4, 0.8, 0.4] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <Link
+                  href="/auth/register"
+                  prefetch
+                  className="group relative flex w-full min-h-[56px] items-center justify-center overflow-hidden rounded-full px-8 text-center text-[15px] font-extrabold shadow-2xl transition-all duration-300 hover:brightness-110 sm:inline-flex sm:w-auto sm:px-10"
+                  style={{
+                    background: "var(--gradient-button-primary)",
+                    color: "var(--color-text-dark)",
+                    boxShadow: "var(--shadow-amber-glow)",
+                  }}
+                >
+                  <span className="relative z-10">Empezar ahora — es gratis</span>
+                  <span
+                    className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-600 group-hover:translate-x-full"
+                    style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
+                  />
+                </Link>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                <Link
+                  href="/auth/login"
+                  prefetch
+                  className="group relative flex w-full min-h-[56px] items-center justify-center overflow-hidden rounded-full border px-8 text-center text-[15px] font-bold backdrop-blur-md transition-all duration-300 sm:inline-flex sm:w-auto sm:px-10"
+                  style={{
+                    borderColor: "var(--color-border-medium)",
+                    color: "var(--color-text-primary)",
+                    background: "color-mix(in srgb, var(--color-surface-card) 20%, transparent)"
+                  }}
+                >
+                  <span className="relative z-10 transition-colors duration-300 group-hover:text-amber-primary">
+                    Ya soy parte →
+                  </span>
+                </Link>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

@@ -285,13 +285,7 @@ const localAnswers: Record<string, string> = {
    Component
    ═══════════════════════════════════ */
 
-export default function AiPromptBar({
-  embedded = false,
-  tone = "default",
-}: {
-  embedded?: boolean;
-  tone?: "default" | "plain";
-}) {
+export default function AiPromptBar({ embedded = false }: { embedded?: boolean }) {
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
@@ -383,83 +377,6 @@ export default function AiPromptBar({
     animate(tiltX, 0, { duration: 0.4 });
     animate(tiltY, 0, { duration: 0.4 });
   };
-
-  if (tone === "plain") {
-    return (
-      <div className="w-full">
-        <form onSubmit={handleSubmit}>
-          <div
-            className="flex items-center gap-2 rounded-md border bg-white px-3 py-2"
-            style={{
-              borderColor: focused ? "#1e3a5f" : "#d9d3c8",
-              boxShadow: focused ? "0 0 0 3px rgba(30,58,95,0.12)" : "none",
-            }}
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              placeholder="Pregunta por un estilo, un maridaje o una cervecería"
-              className="min-w-0 flex-1 bg-transparent py-1.5 text-sm outline-none"
-              style={{ color: "var(--color-text-primary)" }}
-              aria-label="Consulta"
-            />
-            <button
-              type="submit"
-              disabled={loading || !query.trim()}
-              className="inline-flex h-9 shrink-0 items-center rounded-md px-3 text-sm font-semibold disabled:cursor-default"
-              style={{
-                background: query.trim() ? "#1e3a5f" : "#e7e1d6",
-                color: query.trim() ? "#f8f6f2" : "#5c6573",
-              }}
-            >
-              {loading ? "..." : "Preguntar"}
-            </button>
-          </div>
-        </form>
-
-        {!expanded && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {suggestions.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => handleSuggestion(item.full)}
-                className="rounded-md border bg-white px-2.5 py-1.5 text-left text-xs font-medium"
-                style={{ borderColor: "#e4dfd6", color: "#142033" }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {expanded && (
-          <div className="mt-3 rounded-md border bg-white p-4" style={{ borderColor: "#e4dfd6" }}>
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: "#8c5a2b" }}>
-                {loading ? "Consultando" : "Respuesta"}
-              </p>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-semibold"
-                style={{ color: "#1e3a5f" }}
-              >
-                Cerrar
-              </button>
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-              {loading ? "Un momento." : answer}
-            </p>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="relative z-20 w-full">

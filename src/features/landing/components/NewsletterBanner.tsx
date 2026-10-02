@@ -168,6 +168,13 @@ export default function NewsletterBanner() {
       }}
       aria-label="Newsletter"
     >
+      {/* Ambient glow */}
+      <div
+        className="pointer-events-none absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[140px]"
+        style={{ background: "color-mix(in srgb, var(--color-amber-primary) 8%, transparent)" }}
+        aria-hidden="true"
+      />
+
       <div className="home-content-shell relative z-10">
         <motion.div
           className="mx-auto max-w-3xl text-center"
@@ -177,14 +184,11 @@ export default function NewsletterBanner() {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <h3
-            className="text-2xl font-semibold tracking-[-0.03em] sm:text-[1.85rem]"
-            style={{ fontFamily: '"Source Serif 4", Georgia, serif', color: "var(--color-text-primary)" }}
-          >
-            Novedades, una vez por semana
+          <h3 className="text-text-primary text-2xl font-extrabold sm:text-3xl">
+            El correo que los cerveceros sí abren <span className="inline-block">🍻</span>
           </h3>
-          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-            Lanzamientos, fichas nuevas y lugares que vale la pena visitar. Sin otra frecuencia.
+          <p className="text-text-secondary mx-auto mt-3 max-w-2xl text-base font-semibold leading-relaxed sm:text-lg">
+            Cada martes: lanzamientos exclusivos, hallazgos de la comunidad y la cerveza que no sabías que necesitabas.
           </p>
 
           <div className="mt-6">
@@ -196,14 +200,14 @@ export default function NewsletterBanner() {
               <Link
                 href="/auth/register"
                 prefetch
-                className="group relative block w-full overflow-hidden rounded-md px-6 py-3 text-center text-sm font-semibold sm:inline-block sm:w-auto"
+                className="group relative block w-full overflow-hidden rounded-full px-9 py-4 text-center text-sm font-bold transition-all duration-300 hover:shadow-xl hover:brightness-110 sm:inline-block sm:w-auto"
                 style={{
                   background: "var(--gradient-button-primary)",
                   color: "var(--color-text-dark)",
                   boxShadow: "var(--shadow-amber-glow)",
                 }}
               >
-                <span className="relative z-10">Recibir el correo</span>
+                <span className="relative z-10">Quiero ser parte</span>
                 <span
                   className="absolute inset-0 -translate-x-full skew-x-12 transition-transform duration-600 group-hover:translate-x-full"
                   style={{
@@ -217,13 +221,13 @@ export default function NewsletterBanner() {
               <Link
                 href="/cervezas"
                 prefetch
-                className="block w-full rounded-md border bg-white px-6 py-3 text-center text-sm font-semibold sm:inline-block sm:w-auto"
+                className="block w-full rounded-full border px-9 py-4 text-center text-sm font-medium backdrop-blur-sm transition-all duration-300 hover:brightness-110 sm:inline-block sm:w-auto"
                 style={{
                   borderColor: "var(--color-border-medium)",
                   color: "var(--color-text-muted)",
                 }}
               >
-                Ver el catálogo
+                Explorar sin cuenta →
               </Link>
             </motion.div>
           </div>

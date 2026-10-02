@@ -43,7 +43,6 @@ import { SidebarWidget } from "@/components/ui/SidebarWidget";
 import type { Place } from "@/features/lugares/types";
 import type { Beer } from "@/features/beers/model/types";
 import { getImageUrl } from "@/lib/constants";
-import { useBeerTheme } from "@/theme/ThemeContext";
 
 
 /* ═══════════════════════════════════
@@ -60,7 +59,6 @@ function GradientBorder({
   radius?: number;
   borderWidth?: number;
 }) {
-  const { theme } = useBeerTheme();
   const rotation = useMotionValue(0);
 
   useEffect(() => {
@@ -72,19 +70,6 @@ function GradientBorder({
     rotation,
     (r) => `conic-gradient(from ${r}deg, #f59e0b, #ef4444, #f59e0b, #34d399, #f59e0b)`,
   );
-
-  if (theme === "corporativo") {
-    return (
-      <div
-        className="relative"
-        style={{ borderRadius: radius, padding: 1, background: active ? "#1e3a5f" : "#d9d3c8" }}
-      >
-        <div className="relative" style={{ borderRadius: radius - 1 }}>
-          {children}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative" style={{ borderRadius: radius, padding: borderWidth }}>

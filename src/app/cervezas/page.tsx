@@ -21,7 +21,6 @@ import PairingBanner from "@/components/PairingBanner";
 import { useBeers } from "@/features/beers/hooks/useBeers";
 import type { Beer } from "@/features/beers/model/types";
 import MainLayout from "@/components/layouts/MainLayout";
-import { useBeerTheme } from "@/theme/ThemeContext";
 import BeerCard from "@/components/ui/BeerCard";
 import { SidebarWidget } from "@/components/ui/SidebarWidget";
 
@@ -40,7 +39,6 @@ function GradientBorder({
   radius?: number;
   borderWidth?: number;
 }) {
-  const { theme } = useBeerTheme();
   const rotation = useMotionValue(0);
 
   useEffect(() => {
@@ -57,19 +55,6 @@ function GradientBorder({
     (r) =>
       `conic-gradient(from ${r}deg, #fbbf24, #f59e0b, #34d399, #3b82f6, #a855f7, #f59e0b, #fbbf24)`,
   );
-
-  if (theme === "corporativo") {
-    return (
-      <div
-        className="relative"
-        style={{ borderRadius: radius, padding: 1, background: active ? "#1e3a5f" : "#d9d3c8" }}
-      >
-        <div className="relative" style={{ borderRadius: radius - 1 }}>
-          {children}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative" style={{ borderRadius: radius, padding: borderWidth }}>

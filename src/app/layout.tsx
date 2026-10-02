@@ -9,11 +9,11 @@ import CommandPalette from "@/components/CommandPalette";
 import "./globals.scss";
 
 export const metadata: Metadata = {
-  title: "Lúpulos",
-  description: "Catálogo, lugares y comunidad de cerveza artesanal en Chile",
+  title: "Lúpulos App 🍺",
+  description: "Explora y comparte las mejores cervezas artesanales",
 };
 
-const themeBootScript = `(function(){try{var key='lupulos-theme-v2';var themes=['corporativo','ambar','saintpatrick','stout','haze','dorado'];var backgrounds={corporativo:'#f4f1ea',ambar:'#160800',saintpatrick:'#f0fbf4',stout:'#080610',haze:'#f7f2ff',dorado:'#030201'};var stored=localStorage.getItem(key);var theme=themes.indexOf(stored)>=0?stored:'corporativo';var root=document.documentElement;root.setAttribute('data-theme',theme);root.style.background=backgrounds[theme]||backgrounds.corporativo;var light=theme==='corporativo'||theme==='saintpatrick'||theme==='haze';root.style.colorScheme=light?'light':'dark';}catch(e){}}())`;
+const themeBootScript = `(function(){try{var key='lupulos-theme';var themes=['ambar','saintpatrick','stout','haze','dorado'];var backgrounds={ambar:'#160800',saintpatrick:'#f0fbf4',stout:'#080610',haze:'#f7f2ff',dorado:'#030201'};var stored=localStorage.getItem(key);var theme=themes.indexOf(stored)>=0?stored:'stout';var root=document.documentElement;root.setAttribute('data-theme',theme);root.style.background=backgrounds[theme]||backgrounds.stout;root.style.colorScheme=theme==='saintpatrick'||theme==='haze'?'light':'dark';}catch(e){}}())`;
 
 export default function RootLayout({
   children,
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning style={{ background: "#f4f1ea" }}>
+    <html lang="es" suppressHydrationWarning style={{ background: "#080610" }}>
       <head>
         {/* Inline script: set data-theme before first paint to prevent FOUC */}
         <script
