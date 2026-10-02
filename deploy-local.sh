@@ -3,7 +3,7 @@
 echo "🚀 Deploying Lúpulos Frontend locally..."
 
 # 📁 Ir al directorio del proyecto
-cd /Users/ignaciodiaz/Documents/proyectos/lupulos-api/lupulos-frontend || {
+cd "$(dirname "$0")" || {
   echo "❌ Project directory not found. Aborting..."
   exit 1
 }

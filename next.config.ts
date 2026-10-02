@@ -34,6 +34,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "lupulos.app" },
+      { protocol: "https", hostname: "lupulos-api.netlify.app" },
       { protocol: "https", hostname: "lupulos-dev.duckdns.org" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
