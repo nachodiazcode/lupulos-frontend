@@ -17,12 +17,16 @@ function hasCss(dir) {
 
 // A Next deploy without .next/static serves the HTML shell and every
 // stylesheet 404s. Fail before that publish goes live.
+// __dirname stays at the plugin folder; process.cwd() does not.
 module.exports = {
-  onPostBuild({ utils }) {
-    const staticDir = path.join(process.cwd(), ".next", "static");
-    if (!hasCss(staticDir)) {
+  onPostBuild({ constants, utils }) {
+    const candidates = [
+      path.join(__dirname, "../../../.next/static"),
+      constants.PUBLISH_DIR ? path.join(constants.PUBLISH_DIR, "static") : "",
+    ].filter(Boolean);
+    if (!candidates.some(hasCss)) {
       utils.build.failBuild(
-        "No se publica: el build de Next no generó CSS en .next/static. Esa publicación deja la página sin estilos."
+        `No se publica: no hay CSS de Next en ${candidates.join(" ni ")}.`
       );
     }
   },
