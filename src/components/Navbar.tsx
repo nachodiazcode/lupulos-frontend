@@ -188,7 +188,7 @@ export default function Navbar() {
     if (isPublicLanding) {
       return (
         <header
-          className="sticky top-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-between px-6 border-b border-[var(--color-border-subtle)] backdrop-blur-md"
+          className="sticky top-0 left-0 right-0 z-50 flex h-16 w-full items-center gap-3 border-b border-[var(--color-border-subtle)] px-4 backdrop-blur-md sm:px-5 lg:gap-4 lg:px-6"
           style={{
             background: scrolled ? "var(--navbar-bg-scrolled)" : "var(--navbar-bg)",
             borderColor: scrolled ? "var(--navbar-border-scrolled)" : "var(--navbar-border)",
@@ -200,7 +200,7 @@ export default function Navbar() {
           }}
         >
           {/* Logo */}
-          <Link href="/" aria-label="Ir al inicio" className="flex items-center">
+          <Link href="/" aria-label="Ir al inicio" className="flex shrink-0 items-center">
             <span
               className="lupulos-logo-text relative text-[1.75rem] font-[900] tracking-[-0.05em]"
               style={{
@@ -218,14 +218,14 @@ export default function Navbar() {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden items-center gap-6 lg:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-x-2.5 lg:flex xl:gap-x-4 2xl:gap-x-6">
             {navItems.map((item) => {
               const isActive = isRouteActive(pathname, item.href);
               return (
                 <Link
                   key={item.text}
                   href={item.href}
-                  className={`sidebar-cursive-text text-sm font-medium transition-colors hover:text-[var(--color-amber-primary)]`}
+                  className="sidebar-cursive-text whitespace-nowrap text-[13px] font-medium transition-colors hover:text-[var(--color-amber-primary)] xl:text-sm"
                   style={{
                     color: isActive ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
                   }}
@@ -237,12 +237,12 @@ export default function Navbar() {
           </nav>
 
           {/* Right side: Theme + Social + Login */}
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-2 xl:gap-3">
             {/* Theme Switcher */}
-            <ThemeSwitcher />
+            <ThemeSwitcher compactLabels />
 
             {/* Social Media Icons */}
-            <div className="hidden items-center gap-2 md:flex">
+            <div className="hidden items-center gap-2 2xl:flex">
               <a
                 href="https://instagram.com"
                 target="_blank"
@@ -291,14 +291,14 @@ export default function Navbar() {
 
             {/* Divider */}
             <div
-              className="hidden h-6 w-px md:block"
+              className="hidden h-6 w-px 2xl:block"
               style={{ background: "color-mix(in srgb, var(--color-border-light) 40%, transparent)" }}
             />
 
             {/* Action button */}
             <Link
               href="/auth/login"
-              className="flex items-center justify-center px-4 py-2 rounded-full border text-xs font-bold transition-all hover:scale-[1.02]"
+              className="flex shrink-0 items-center justify-center whitespace-nowrap rounded-full border px-3 py-2 text-xs font-bold transition-all hover:scale-[1.02] xl:px-4"
               style={{
                 borderColor: "color-mix(in srgb, var(--color-border-amber) 54%, transparent)",
                 background: "linear-gradient(135deg, var(--color-amber-primary) 0%, var(--color-amber-light) 50%, var(--color-amber-hover) 100%)",

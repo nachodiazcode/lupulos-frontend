@@ -9,7 +9,7 @@ import { useBeerTheme, BEER_THEMES } from "@/theme/ThemeContext";
  * - Mobile: compact active-theme button → opens animated popover grid
  * - Desktop: horizontal pill list (unchanged feel)
  */
-export default function ThemeSwitcher() {
+export default function ThemeSwitcher({ compactLabels = false }: { compactLabels?: boolean }) {
   const { theme, setTheme } = useBeerTheme();
   const [open, setOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -45,7 +45,7 @@ export default function ThemeSwitcher() {
               key={t.id}
               onClick={() => setTheme(t.id)}
               title={`Tema ${t.label}`}
-              className="theme-switcher-pill flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap transition-all duration-200"
+              className={`theme-switcher-pill flex items-center gap-1 rounded-full py-1 text-[11px] font-semibold whitespace-nowrap transition-all duration-200 ${compactLabels ? "px-1.5 xl:px-2.5" : "px-2.5"}`}
               style={{
                 background: isActive
                   ? "color-mix(in srgb, var(--color-amber-primary) 14%, transparent)"
@@ -60,7 +60,7 @@ export default function ThemeSwitcher() {
               }}
             >
               <span className="text-sm leading-none">{t.icon}</span>
-              <span>{t.label}</span>
+              <span className={compactLabels ? "hidden xl:inline" : undefined}>{t.label}</span>
             </button>
           );
         })}
