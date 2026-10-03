@@ -236,7 +236,7 @@ export default function TrendsSidenav() {
     <AnimatePresence>
       {!isDismissed && (
         <motion.aside
-          className="fixed z-40 hidden xl:block"
+          className="fixed z-40 hidden min-[1680px]:block"
           style={{
             top: 80,
             right: 16,

@@ -45,7 +45,7 @@ export default function ThemeSwitcher({ compactLabels = false }: { compactLabels
               key={t.id}
               onClick={() => setTheme(t.id)}
               title={`Tema ${t.label}`}
-              className={`theme-switcher-pill flex items-center gap-1 rounded-full py-1 text-[11px] font-semibold whitespace-nowrap transition-all duration-200 ${compactLabels ? "px-1.5 xl:px-2.5" : "px-2.5"}`}
+              className={`theme-switcher-pill flex items-center gap-1 rounded-full py-1 text-[11px] font-semibold whitespace-nowrap transition-all duration-200 ${compactLabels ? "px-1.5 min-[1440px]:px-2.5" : "px-2.5"}`}
               style={{
                 background: isActive
                   ? "color-mix(in srgb, var(--color-amber-primary) 14%, transparent)"
@@ -60,7 +60,7 @@ export default function ThemeSwitcher({ compactLabels = false }: { compactLabels
               }}
             >
               <span className="text-sm leading-none">{t.icon}</span>
-              <span className={compactLabels ? "hidden xl:inline" : undefined}>{t.label}</span>
+              <span className={compactLabels ? "hidden min-[1440px]:inline" : undefined}>{t.label}</span>
             </button>
           );
         })}

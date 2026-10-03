@@ -218,14 +218,14 @@ export default function Navbar() {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-x-2.5 lg:flex xl:gap-x-4 2xl:gap-x-6">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-x-3 px-4 lg:flex xl:gap-x-4 2xl:gap-x-6">
             {navItems.map((item) => {
               const isActive = isRouteActive(pathname, item.href);
               return (
                 <Link
                   key={item.text}
                   href={item.href}
-                  className="sidebar-cursive-text whitespace-nowrap text-[13px] font-medium transition-colors hover:text-[var(--color-amber-primary)] xl:text-sm"
+                  className="sidebar-cursive-text shrink-0 whitespace-nowrap text-[13px] font-medium transition-colors hover:text-[var(--color-amber-primary)] xl:text-sm"
                   style={{
                     color: isActive ? "var(--color-amber-primary)" : "var(--color-text-secondary)",
                   }}
