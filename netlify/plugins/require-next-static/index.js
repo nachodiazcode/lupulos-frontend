@@ -15,15 +15,17 @@ function hasCss(dir) {
   return false;
 }
 
-// A Next deploy without .next/static serves the HTML shell and every
-// stylesheet 404s. Fail before that publish goes live.
-// __dirname stays at the plugin folder; process.cwd() does not.
+// The Next runtime renames publish dirs before other onPostBuild hooks.
+// A good deploy has the CSS either still in .next/static or already
+// moved to .next/_next/static, which is what the CDN serves.
 module.exports = {
   onPostBuild({ constants, utils }) {
+    const root = path.join(__dirname, "../../..");
+    const publishDir = path.resolve(root, constants.PUBLISH_DIR || ".next");
     const candidates = [
-      path.join(__dirname, "../../../.next/static"),
-      constants.PUBLISH_DIR ? path.join(constants.PUBLISH_DIR, "static") : "",
-    ].filter(Boolean);
+      path.join(publishDir, "_next/static"),
+      path.join(publishDir, "static"),
+    ];
     if (!candidates.some(hasCss)) {
       utils.build.failBuild(
         `No se publica: no hay CSS de Next en ${candidates.join(" ni ")}.`
